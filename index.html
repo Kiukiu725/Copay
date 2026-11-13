@@ -115,6 +115,9 @@
       VND: 0.00031
     };
 
+    // 圓餅圖顏色配置
+    const CHART_COLORS = ["#10B981", "#F59E0B", "#3B82F6", "#EC4899", "#8B5CF6", "#14B8A6", "#F97316"];
+
     const DEFAULT_MEMBERS = ["我", "Alex", "Chloe", "Sam"];
     const DEFAULT_CATEGORIES_DAILY = ["🍱 食飯埋單", "🛒 超市買餸", "🏠 夾租水電", "🏸 唱K打波", "🚕 的士車費", "📦 網購團購", "💡 其他雜費"];
     const DEFAULT_CATEGORIES_TRAVEL = ["🍱 餐飲美食", "🚗 交通租車", "🏨 住宿酒店", "🎟️ 門票活動", "🛍️ 購物手信", "✈️ 機票保險", "💡 其他雜費"];
@@ -193,7 +196,7 @@
     }
 
     function App() {
-      // 帳號與房間清單狀態 (使用全新 key 確保預設顯示「未解鎖」狀態供檢視)
+      // 帳號與房間清單狀態
       const [myRooms, setMyRooms] = useState(getStoredRooms);
       const [isPro, setIsPro] = useState(() => localStorage.getItem("copay_v2_pro_unlocked") === "true");
       const [showPaywall, setShowPaywall] = useState(false);
@@ -221,11 +224,14 @@
       const [customRates, setCustomRates] = useState({});
       const [paidMap, setPaidMap] = useState({});
 
+      // 自訂信用卡手續費百分比 (預設 1.95%) 及預設外幣
+      const [cardFeePercent, setCardFeePercent] = useState(1.95);
+
       // 成員改名狀態
       const [editingMemberName, setEditingMemberName] = useState(null);
       const [tempMemberNewName, setTempMemberNewName] = useState("");
 
-      // 【TripTab 公數錢包狀態】支援記錄注資金額及最後注資日期
+      // 【TripTab 公數錢包狀態】
       const [poolContributions, setPoolContributions] = useState({});
       const [poolDate, setPoolDate] = useState(new Date().toISOString().split("T")[0]);
       const [poolTopUpAmount, setPoolTopUpAmount] = useState("");
@@ -237,7 +243,7 @@
       const [editAmount, setEditAmount] = useState("");
       const [deleteConfirmExp, setDeleteConfirmExp] = useState(null);
 
-      // UI 導航狀態 (expenses | settle | report | rooms | settings)
+      // UI 導航狀態 (expenses | settle | rooms | settings) -> 已刪除獨立消費報告頁，整合入 settle 結算頁
       const [activeTab, setActiveTab] = useState("expenses");
       const [newMemberName, setNewMemberName] = useState("");
       const [liveRates, setLiveRates] = useState(TRIPTAB_RATES);
@@ -255,7 +261,7 @@
       const [category, setCategory] = useState("🍱 食飯埋單");
       const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
 
-      // 消費報告 (Report) 篩選狀態 (年 / 月 / 日)
+      // 結算頁內置報告篩選狀態 (年 / 月 / 日)
       const [reportYear, setReportYear] = useState("ALL");
       const [reportMonth, setReportMonth] = useState("ALL");
       const [reportDay, setReportDay] = useState("ALL");
@@ -263,7 +269,7 @@
       const rates = useMemo(() => ({ ...liveRates, ...customRates }), [liveRates, customRates]);
       const isTripTabActive = isPro && roomMode === "triptab";
 
-      // 動態活動類別清單 (支援用戶自由增減)
+      // 動態活動類別清單
       const activeCategories = useMemo(() => {
         if (Array.isArray(customCategories) && customCategories.length > 0) {
           return customCategories;
@@ -271,7 +277,7 @@
         return isTripTabActive ? DEFAULT_CATEGORIES_TRAVEL : DEFAULT_CATEGORIES_DAILY;
       }, [customCategories, isTripTabActive]);
 
-      // TripTab 強化：將當前揀選嘅 Currency 自動排喺貨幣列表最頂部
+      // 將當前揀選嘅預設 Currency 自動排喺貨幣選單最頂部
       const sortedCurrencyKeys = useMemo(() => {
         const allKeys = Object.keys(rates);
         return [currency, ...allKeys.filter(k => k !== currency)];
@@ -303,7 +309,7 @@
         });
       }, [roomId, groupName]);
 
-      // 載入即時匯率函數 (支援手動 Refresh)
+      // 載入即時匯率函數 (保留刷新即時匯率功能)
       const fetchLiveExchangeRates = () => {
         setRateUpdatedText("更新中...");
         fetch("https://open.er-api.com/v6/latest/HKD")
@@ -353,11 +359,22 @@
             const loadedMode = data.roomMode === "travel" || data.roomMode === "triptab" ? "triptab" : "daily";
             if (loadedMode === "triptab" && isPro) {
               setRoomMode("triptab");
+              if (data.defaultCurrency) {
+                setCurrency(data.defaultCurrency);
+              } else if (currency === "HKD") {
+                setCurrency("JPY");
+              }
             } else {
               setRoomMode("daily");
               setCurrency("HKD");
               setAddCardFee(false);
               if (payer === POOL_PAYER_KEY) setPayer("我");
+            }
+
+            if (data.cardFeePercent !== undefined && !isNaN(Number(data.cardFeePercent))) {
+              setCardFeePercent(Number(data.cardFeePercent));
+            } else {
+              setCardFeePercent(1.95);
             }
 
             const loadedMembers = Array.isArray(data.members) && data.members.length > 0 ? data.members : DEFAULT_MEMBERS;
@@ -397,6 +414,8 @@
               roomId: roomId,
               groupName: defaultTitle,
               roomMode: "daily",
+              defaultCurrency: "JPY",
+              cardFeePercent: 1.95,
               members: DEFAULT_MEMBERS,
               expenses: {},
               customRates: {},
@@ -449,20 +468,25 @@
         };
       }, [members, poolContributions, expenses, rates]);
 
+      // 根據用戶設定嘅 cardFeePercent 計算手續費倍數
+      const feeMultiplier = useMemo(() => {
+        const pct = Math.max(0, Number(cardFeePercent) || 0);
+        return 1 + pct / 100;
+      }, [cardFeePercent]);
+
       const currentInputHKD = useMemo(() => {
         const raw = parseFloat(amount);
         if (isNaN(raw) || raw <= 0) return 0;
-        const withFee = isTripTabActive && addCardFee ? raw * 1.0195 : raw;
+        const withFee = isTripTabActive && addCardFee ? raw * feeMultiplier : raw;
         const curr = isTripTabActive ? currency : "HKD";
         return toHKD(withFee, curr);
-      }, [amount, currency, addCardFee, isTripTabActive, rates]);
+      }, [amount, currency, addCardFee, isTripTabActive, rates, feeMultiplier]);
 
       const isExceedingPoolBalance = useMemo(() => {
         if (payer !== POOL_PAYER_KEY) return false;
         return currentInputHKD > (poolStats.rawRemainingHKD + 0.05);
       }, [payer, currentInputHKD, poolStats.rawRemainingHKD]);
 
-      // 一鍵全體注資公數 + 儲存公數日期
       const handleBatchTopUpPool = (e) => {
         e.preventDefault();
         const addAmt = parseFloat(poolTopUpAmount);
@@ -500,7 +524,7 @@
       };
 
       // ==========================================
-      // 🏷️ 自訂活動類別新增與刪除 (房間頁與設定頁共用)
+      // 🏷️ 自訂活動類別新增與刪除 (只保留喺設定頁)
       // ==========================================
       const handleAddCategory = (e) => {
         e.preventDefault();
@@ -531,23 +555,17 @@
       };
 
       // ==========================================
-      // 👥 成員管理：新增、改名（全歷史同步）、刪除（自動重新平分）
+      // 👥 成員管理：日常免費版與旅遊版人數均無上限！
       // ==========================================
       const handleAddMember = () => {
         const name = newMemberName.trim();
         if (!name || members.includes(name) || name === POOL_PAYER_KEY) return;
-        if (!isPro && members.length >= 4) {
-          setPaywallMsg("免費版每個房間最多支援 4 位成員。升級即可解鎖無限人數 + ✈️ TripTab 旅遊記帳版！");
-          setShowPaywall(true);
-          return;
-        }
         const updated = [...members, name];
         db.ref(`billmate_rooms/${roomId}/members`).set(updated);
         setSplitWith(updated);
         setNewMemberName("");
       };
 
-      // 【要求 4】成員改名並自動同步所有歷史單據、公數同結算紀錄
       const handleRenameMember = (oldName) => {
         const newName = tempMemberNewName.trim();
         if (!newName || newName === oldName || newName === POOL_PAYER_KEY) {
@@ -563,7 +581,6 @@
         const updates = {};
         updates[`members`] = updatedMembers;
 
-        // 同步更新所有歷史單據入面嘅 payer 同 splitWith
         expenses.forEach(exp => {
           const newPayer = exp.payer === oldName ? newName : exp.payer;
           const newSplit = (exp.splitWith || []).map(p => p === oldName ? newName : p);
@@ -573,7 +590,6 @@
           }
         });
 
-        // 同步更新公數注資紀錄
         if (poolContributions && poolContributions[oldName] !== undefined) {
           const newPool = { ...poolContributions };
           newPool[newName] = newPool[oldName];
@@ -588,7 +604,6 @@
         setTempMemberNewName("");
       };
 
-      // 【要求 6】刪除成員：保留單據總額，由餘下成員自動重新平分；若被刪者係墊支人，會保留記錄並喺分析中顯示為負數
       const handleRemoveMember = (nameToRemove) => {
         if (members.length <= 2) {
           alert("每個房間至少需要保留 2 位活躍成員！");
@@ -602,7 +617,6 @@
         const updates = {};
         updates[`members`] = updatedMembers;
 
-        // 更新每筆單據嘅 splitWith（將被刪成員剔除，令餘下成員自動重新平分該筆總額）
         expenses.forEach(exp => {
           if (Array.isArray(exp.splitWith) && exp.splitWith.includes(nameToRemove)) {
             let remainingSplits = exp.splitWith.filter(m => m !== nameToRemove && updatedMembers.includes(m));
@@ -633,6 +647,8 @@
             roomId: newId,
             groupName: customName,
             roomMode: "daily",
+            defaultCurrency: "JPY",
+            cardFeePercent: 1.95,
             members: DEFAULT_MEMBERS,
             expenses: {},
             customRates: {},
@@ -651,7 +667,7 @@
 
         if (!isPro && myRooms.length >= FREE_ROOM_QUOTA) {
           setPendingAction(() => executeCreate);
-          setPaywallMsg(`免費版支援 ${FREE_ROOM_QUOTA} 個房間額度（目前已使用 ${myRooms.length}/${FREE_ROOM_QUOTA}）。立即升級即可解鎖無限房間 + ✈️ TripTab 旅遊版 + 📊 消費報告！`);
+          setPaywallMsg(`免費版支援 ${FREE_ROOM_QUOTA} 個房間額度（目前已使用 ${myRooms.length}/${FREE_ROOM_QUOTA}）。立即升級即可解鎖無限房間 + ✈️ TripTab 旅遊版！`);
           setShowPaywall(true);
           return;
         }
@@ -686,7 +702,6 @@
         }
       };
 
-      // 切換「COPAY 日常版」與「TripTab 旅遊版」
       const handleSwitchToTripTab = (targetMode) => {
         if (targetMode === "triptab" && !isPro) {
           setPendingAction(() => () => {
@@ -694,7 +709,7 @@
             setCurrency("JPY");
             db.ref(`billmate_rooms/${roomId}/roomMode`).set("triptab");
           });
-          setPaywallMsg("「✈️ TripTab 旅遊版」屬於付費解鎖功能！解鎖後即可睇到 Full Version（支援公數錢包、15 國旅遊外幣、信用卡 1.95% 手續費、消費報告 Excel 匯出及無限房間）！");
+          setPaywallMsg("「✈️ TripTab 旅遊版」屬於付費解鎖功能！解鎖後即可睇到 Full Version（支援公數錢包、15 國旅遊外幣、自訂信用卡手續費、IG Story 圓餅圖消費報告及無限房間）！");
           setShowPaywall(true);
           return;
         }
@@ -704,7 +719,7 @@
           setAddCardFee(false);
           if (payer === POOL_PAYER_KEY) setPayer(members[0] || "我");
         } else {
-          setCurrency("JPY");
+          if (currency === "HKD") setCurrency("JPY");
         }
         db.ref(`billmate_rooms/${roomId}/roomMode`).set(targetMode);
       };
@@ -729,7 +744,7 @@
             setCurrency("JPY");
             db.ref(`billmate_rooms/${roomId}/roomMode`).set("triptab");
           }
-          alert("🎉 解鎖成功！已為你開啟 Full Version（TripTab 旅遊版 + 消費報告 + 無限房間）！");
+          alert("🎉 解鎖成功！已為你開啟 Full Version（TripTab 旅遊版 + 結算圖表報告 + 無限房間）！");
         } else {
           alert("❌ 解鎖碼無效！測試可用解鎖碼：COPAY2026 或 TRIPTAB");
         }
@@ -759,12 +774,6 @@
         setIsEditingGroupName(false);
       };
 
-      const multiplyAmount = (factor) => {
-        const val = parseFloat(amount);
-        if (isNaN(val) || val <= 0) return;
-        setAmount(String(Number((val * factor).toFixed(2))));
-      };
-
       // 新增開支
       const handleAddExpense = (e) => {
         e.preventDefault();
@@ -774,7 +783,7 @@
         const rawAmt = parseFloat(amount);
         if (isNaN(rawAmt) || rawAmt <= 0) return;
 
-        const finalAmt = isTripTabMode && addCardFee ? Number((rawAmt * 1.0195).toFixed(2)) : rawAmt;
+        const finalAmt = isTripTabMode && addCardFee ? Number((rawAmt * feeMultiplier).toFixed(2)) : rawAmt;
         const finalCurrency = isTripTabMode ? currency : "HKD";
         const expenseHKD = toHKD(finalAmt, finalCurrency);
 
@@ -797,9 +806,10 @@
         }
 
         const id = Date.now();
+        const feeLabel = isTripTabMode && addCardFee ? ` (連${cardFeePercent}%卡費)` : "";
         const newExp = {
           id,
-          title: isTripTabMode && addCardFee ? `${title.trim()} (連1.95%卡費)` : title.trim(),
+          title: `${title.trim()}${feeLabel}`,
           amount: finalAmt,
           currency: finalCurrency,
           payer,
@@ -846,10 +856,16 @@
         setDeleteConfirmExp(null);
       };
 
+      // 【要求 3】修改匯率與點選預設貨幣（點選後記帳頁自動 Default 成為該貨幣）
       const handleRateChange = (cur, val) => {
         const num = parseFloat(val);
         if (isNaN(num) || num <= 0) return;
         db.ref(`billmate_rooms/${roomId}/customRates/${cur}`).set(num);
+      };
+
+      const handleSelectDefaultCurrency = (cur) => {
+        setCurrency(cur);
+        db.ref(`billmate_rooms/${roomId}/defaultCurrency`).set(cur);
       };
 
       const handleAddCustomCurrency = (e) => {
@@ -858,9 +874,20 @@
         const rateVal = parseFloat(newCurRate);
         if (code.length !== 3 || isNaN(rateVal) || rateVal <= 0) return;
         db.ref(`billmate_rooms/${roomId}/customRates/${code}`).set(rateVal);
-        setCurrency(code);
+        handleSelectDefaultCurrency(code);
         setNewCurCode("");
         setNewCurRate("");
+      };
+
+      // 【要求 4】喺設定頁更改信用卡海外簽帳手續費百分比
+      const handleCardFeePercentChange = (valStr) => {
+        const val = parseFloat(valStr);
+        if (isNaN(val) || val < 0) {
+          setCardFeePercent(0);
+          return;
+        }
+        setCardFeePercent(val);
+        db.ref(`billmate_rooms/${roomId}/cardFeePercent`).set(val);
       };
 
       const toggleSettlementPaid = (txKey) => {
@@ -877,11 +904,11 @@
       }, [expenses, rates]);
 
       // ==========================================
-      // ⚡ 結算與重算邏輯 (支援要求 6：刪除成員後自動由餘下成員重新平分總額；被刪墊支人直接顯示負數)
+      // ⚡ 結算與重算邏輯
       // ==========================================
       const settlement = useMemo(() => {
         const balances = {};
-        const deletedPayersNegative = {}; // 記錄已被刪除但曾經墊支過嘅成員 (直接顯示為負數)
+        const deletedPayersNegative = {};
 
         members.forEach(m => {
           const poolPaid = isTripTabActive ? (Number(poolContributions[m]) || 0) : 0;
@@ -890,8 +917,6 @@
 
         expenses.forEach(exp => {
           const hkdAmount = toHKD(Number(exp.amount), exp.currency);
-
-          // 找出目前仍然喺名單內嘅夾份成員；如果被刪走咗 1 人，該筆總額 hkdAmount 自動由餘下嘅 activeSplits 平分！
           let activeSplits = (exp.splitWith || []).filter(p => members.includes(p));
           if (activeSplits.length === 0) {
             activeSplits = [...members];
@@ -901,7 +926,6 @@
             if (members.includes(exp.payer)) {
               balances[exp.payer] += hkdAmount;
             } else {
-              // 【要求 6】如果被刪除嗰位成員本身係「墊支人」，系統直接記錄為負數顯示
               deletedPayersNegative[exp.payer] = (deletedPayersNegative[exp.payer] || 0) - hkdAmount;
             }
           } else if (!isTripTabActive) {
@@ -957,7 +981,7 @@
       }, [expenses, members, rates, poolContributions, isTripTabActive, poolStats]);
 
       // ==========================================
-      // 📊 【要求 16】付費版專屬：消費報告 (可 Filter 年/月/日 + 保留已刪除成員紀錄 + 匯出 Excel CSV)
+      // 📊 【要求 6 & 7】抄足 TripTab 結算及圖表版面（整合入結算頁，連圓餅圖、排行榜、年月日篩選、Excel 匯出）
       // ==========================================
       const reportAvailableDates = useMemo(() => {
         const years = new Set();
@@ -977,7 +1001,7 @@
         };
       }, [expenses]);
 
-      const filteredReportData = useMemo(() => {
+      const tripTabChartAndReport = useMemo(() => {
         const list = expenses.filter(e => {
           if (!e.date) return true;
           const [y, m, d] = e.date.split("-");
@@ -987,7 +1011,24 @@
           return true;
         });
 
-        // 統計所有出現過喺事件中嘅成員（包含現役成員 + 已被刪除但有墊支/夾份紀錄嘅成員）
+        const totalFilteredHKD = list.reduce((s, e) => s + toHKD(Number(e.amount), e.currency), 0);
+
+        // 1. 類別佔比圓餅圖數據
+        const catMap = {};
+        list.forEach(e => {
+          const hkd = toHKD(Number(e.amount), e.currency);
+          const cat = e.category || "💡 其他雜費";
+          catMap[cat] = (catMap[cat] || 0) + hkd;
+        });
+        const categoryBreakdown = Object.entries(catMap)
+          .map(([cat, val]) => ({
+            category: cat,
+            amountHKD: val,
+            percent: totalFilteredHKD > 0 ? Math.round((val / totalFilteredHKD) * 100) : 0
+          }))
+          .sort((a, b) => b.amountHKD - a.amountHKD);
+
+        // 2. 成員個人實際享用排行榜 & 歷史紀錄（含已被刪除但曾參與事件嘅成員）
         const participantSet = new Set(members);
         list.forEach(exp => {
           if (exp.payer && exp.payer !== POOL_PAYER_KEY) participantSet.add(exp.payer);
@@ -1012,12 +1053,15 @@
             personStats[exp.payer].paidHKD += hkd;
             personStats[exp.payer].eventCount += 1;
           }
-          const validSplits = (exp.splitWith || []).filter(p => personStats[p] !== undefined);
+          let validSplits = (exp.splitWith || []).filter(p => members.includes(p));
+          if (validSplits.length === 0) validSplits = [...members];
           if (validSplits.length > 0) {
             const eachShare = hkd / validSplits.length;
             validSplits.forEach(p => {
-              personStats[p].shareHKD += eachShare;
-              if (exp.payer !== p) personStats[p].eventCount += 1;
+              if (personStats[p]) {
+                personStats[p].shareHKD += eachShare;
+                if (exp.payer !== p) personStats[p].eventCount += 1;
+              }
             });
           }
         });
@@ -1026,38 +1070,38 @@
           .filter(p => !p.isDeleted || p.eventCount > 0 || p.paidHKD > 0 || p.shareHKD > 0)
           .map(p => ({
             ...p,
-            // 若成員已被刪除但曾擔任墊支人，按要求直接顯示負數提示
             netHKD: p.isDeleted && p.paidHKD > 0 ? -p.paidHKD : (p.paidHKD - p.shareHKD)
-          }));
+          }))
+          .sort((a, b) => b.shareHKD - a.shareHKD);
 
-        const totalFilteredHKD = list.reduce((s, e) => s + toHKD(Number(e.amount), e.currency), 0);
+        const maxShareHKD = personArray.reduce((max, p) => Math.max(max, p.shareHKD), 0);
 
-        return { list, personArray, totalFilteredHKD };
+        return { list, totalFilteredHKD, categoryBreakdown, personArray, maxShareHKD };
       }, [expenses, reportYear, reportMonth, reportDay, members, rates]);
 
-      // 匯出 Excel (.csv) 檔案
+      // 匯出 Excel (.csv)
       const handleExportExcelCSV = () => {
         if (!isPro) {
-          setPaywallMsg("「📊 消費報告與匯出 Excel」屬於付費版功能，升級後即可按年月日篩選及下載完整 Excel 報表！");
+          setPaywallMsg("「📥 匯出 Excel 消費報告」屬於付費版功能，升級後即可下載完整 Excel 報表！");
           setShowPaywall(true);
           return;
         }
-        let csv = "\uFEFF"; // UTF-8 BOM 確保 Excel 打開中文唔亂碼
+        let csv = "\uFEFF";
         csv += `COPAY 消費報告 - ${groupName} (房號 #${roomId})\n`;
         csv += `篩選範圍：,年份:${reportYear === 'ALL' ? '全部' : reportYear},月份:${reportMonth === 'ALL' ? '全部' : reportMonth},日期:${reportDay === 'ALL' ? '全部' : reportDay}\n\n`;
         csv += "單據日期,類別,項目名稱,原幣金額,貨幣,折合港幣(HKD),墊支人(狀態),參與分攤成員\n";
 
-        filteredReportData.list.forEach(e => {
+        tripTabChartAndReport.list.forEach(e => {
           const hkd = Math.round(toHKD(Number(e.amount), e.currency));
           const payerStatus = (e.payer !== POOL_PAYER_KEY && !members.includes(e.payer)) ? `${e.payer} (已刪除)` : e.payer;
-          const splitsText = (e.splitWith || []).map(p => members.includes(p) ? p : `${p}(已刪)`).join(" / ");
+          const splitsText = (e.splitWith || []).filter(p => members.includes(p)).join(" / ");
           const safeTitle = `"${String(e.title || "").replace(/"/g, '""')}"`;
           csv += `${e.date},${e.category},${safeTitle},${e.amount},${e.currency || "HKD"},${hkd},"${payerStatus}","${splitsText}"\n`;
         });
 
         csv += "\n成員消費匯總 (包括已刪除但有事件紀錄之成員)\n";
-        csv += "成員姓名,狀態,累計墊支(HKD),應分攤消費(HKD),淨結餘/負數顯示(HKD)\n";
-        filteredReportData.personArray.forEach(p => {
+        csv += "成員姓名,狀態,累計墊支(HKD),實際享用消費(HKD),淨結餘/負數顯示(HKD)\n";
+        tripTabChartAndReport.personArray.forEach(p => {
           csv += `"${p.name}",${p.isDeleted ? "已刪除成員" : "現有成員"},${Math.round(p.paidHKD)},${Math.round(p.shareHKD)},${Math.round(p.netHKD)}\n`;
         });
 
@@ -1105,6 +1149,11 @@
 
       const paidCount = settlement.transactions.filter(t => !!paidMap[t.key]).length;
 
+      // 計算 SVG Donut Chart 圓餅圖弧度
+      let cumulativePercent = 0;
+      const radius = 38;
+      const circumference = 2 * Math.PI * radius;
+
       return (
         <div className="max-w-md mx-auto min-h-screen volo-bg flex flex-col pb-28 shadow-2xl relative overflow-x-hidden">
           
@@ -1114,23 +1163,27 @@
               <div className="flex items-center gap-2.5">
                 <CopayLogo size="w-9 h-9" />
                 <div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-black tracking-wider text-xl text-[#1C2830] drop-shadow-sm leading-none">COPAY</span>
+                  {/* 【要求 2】用旅遊版時 × TripTab 字跟 COPAY 一樣大 */}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="font-black tracking-wider text-xl text-[#1C2830] drop-shadow-sm leading-none">
+                      COPAY
+                    </span>
                     {isTripTabActive && (
-                      <span className="text-[9px] bg-[#1C2830] text-amber-300 px-2 py-0.5 rounded-md font-black">
-                        × TripTab ✈️
+                      <span className="font-black tracking-wider text-xl text-[#1C2830] drop-shadow-sm leading-none flex items-center gap-1">
+                        <span>× TripTab</span>
+                        <span className="text-lg">✈️</span>
                       </span>
                     )}
                   </div>
                 </div>
               </div>
 
-              {/* 【要求 12】升級 TripTab 旅遊版按鈕直接放右上角；解鎖後取消「切換」二字，直接顯示「✈️ TripTab 旅遊版」 */}
+              {/* 升級 / TripTab 旅遊版按鈕 */}
               <div className="flex items-center gap-2">
                 {isPro ? (
                   <button
                     onClick={() => handleSwitchToTripTab(roomMode === "daily" ? "triptab" : "daily")}
-                    className={`text-xs px-3.5 py-2 rounded-full font-black tracking-wide shadow-md transition ${
+                    className={`text-xs px-3.5 py-2 rounded-full font-black tracking-wide shadow-md transition whitespace-nowrap ${
                       isTripTabActive
                         ? "gold-pill text-[#1C2830]"
                         : "bg-[#1C2830]/85 text-amber-300 border border-amber-300/40"
@@ -1141,10 +1194,10 @@
                 ) : (
                   <button
                     onClick={() => {
-                      setPaywallMsg("免費日常版提供 2 日試用及 2 個房間 Quota。立即升級即可解鎖 Full Version：開啟 ✈️ TripTab 旅遊版、公數錢包、15國貨幣、📊 消費報告 Excel 匯出及無限房間！");
+                      setPaywallMsg("免費日常版提供 2 日試用及 2 個房間 Quota。立即升級即可解鎖 Full Version：開啟 ✈️ TripTab 旅遊版、公數錢包、15國貨幣、IG Story 消費圖表報告及無限房間！");
                       setShowPaywall(true);
                     }}
-                    className="text-xs bg-[#1C2830]/85 hover:bg-[#1C2830] text-amber-300 px-3.5 py-2 rounded-full font-black backdrop-blur-md transition shadow-md border border-amber-300/40 flex items-center gap-1"
+                    className="text-xs bg-[#1C2830]/85 hover:bg-[#1C2830] text-amber-300 px-3.5 py-2 rounded-full font-black backdrop-blur-md transition shadow-md border border-amber-300/40 flex items-center gap-1 whitespace-nowrap"
                   >
                     <span>🔒 升級 TripTab 旅遊版</span>
                   </button>
@@ -1152,7 +1205,7 @@
               </div>
             </div>
 
-            {/* Hero 標題區 (【要求 10】已移除「香港人日常純港幣記帳」及「🇭🇰 純港幣日常版(HK$)」) */}
+            {/* Hero 標題區 */}
             <div className="space-y-1.5 mb-4">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-[11px] bg-[#1C2830]/75 text-white px-2.5 py-0.5 rounded-full font-mono font-bold flex items-center gap-1.5 backdrop-blur-md">
@@ -1202,22 +1255,23 @@
                     >
                       {groupName}
                     </h1>
+                    {/* 【要求 1 & 8】移除「改名」兩隻字，只留枝筆 ✏️ */}
                     <button
                       type="button"
                       onClick={() => {
                         setTempGroupName(groupName);
                         setIsEditingGroupName(true);
                       }}
-                      className="text-[11px] bg-black/25 hover:bg-black/40 text-white px-2.5 py-1 rounded-full font-bold backdrop-blur-md whitespace-nowrap border border-white/20"
+                      title="修改名稱"
+                      className="w-8 h-8 rounded-full bg-black/25 hover:bg-black/40 text-white flex items-center justify-center text-xs backdrop-blur-md border border-white/20 transition"
                     >
-                      ✏️ 改名
+                      ✏️
                     </button>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* 【要求 3】已刪除鎖匙 🔑 和 ✈️ 去旅行圓形掣，保留乾淨嘅邀請連結按鈕 */}
             <div className="flex items-center justify-between gap-3 pt-1">
               <button
                 onClick={shareRoomLink}
@@ -1227,7 +1281,7 @@
               </button>
             </div>
 
-            {/* 【要求 15】「日常總開支」改為「總開支 (港幣 HK$)」 */}
+            {/* 總開支摘要卡 (【要求 1】人數無上限，不再顯示 / 4) */}
             <div className="mt-4 glass-dark p-4 rounded-3xl space-y-3">
               <div className="flex justify-between items-end">
                 <div>
@@ -1235,10 +1289,13 @@
                     總開支 (港幣 HK$)
                   </p>
                   <p className="text-3xl font-black tracking-tight text-white">HK$ {Math.round(totalHKD).toLocaleString()}</p>
+                  <p className="text-[10px] text-slate-300 mt-0.5">
+                    人均約 HK$ {members.length > 0 ? Math.round(totalHKD / members.length).toLocaleString() : 0} • 共 {expenses.length} 筆消費
+                  </p>
                 </div>
                 <div className="text-right">
                   <p className="text-[11px] text-slate-300 mb-0.5">參與成員</p>
-                  <p className="text-base font-bold text-[#78C3D2]">{members.length} {!isPro && "/ 4"} 人</p>
+                  <p className="text-base font-bold text-[#78C3D2]">{members.length} 人</p>
                 </div>
               </div>
 
@@ -1257,7 +1314,7 @@
                       onClick={() => setShowPoolModal(true)}
                       className="text-[10px] gold-pill text-[#1C2830] font-black px-2.5 py-1 rounded-full hover:opacity-90 whitespace-nowrap"
                     >
-                      ＋ 注資 / 管理
+                      ＋ 每人注資公數
                     </button>
                   </div>
 
@@ -1292,7 +1349,6 @@
             {activeTab === "expenses" && (
               <>
                 <form onSubmit={handleAddExpense} className="glass-dark p-5 rounded-3xl space-y-3.5">
-                  {/* 【要求 12 & 15】移除卡片內升級掣，標題改為「➕ 新增開支 (HK$)」 */}
                   <div className="flex justify-between items-center border-b border-white/10 pb-2.5">
                     <h3 className="font-bold text-white text-sm">
                       {isTripTabActive ? "✈️ 新增旅遊開支" : "➕ 新增開支 (HK$)"}
@@ -1324,30 +1380,12 @@
                     />
                   </div>
 
-                  {/* 【要求 7 & 9】純數字鍵盤 inputMode="decimal" + 移除 +10% 加一按鈕 */}
+                  {/* 【要求 4】已移除 +8%稅 及 +10%稅 按鈕；保留信用卡海外簽帳手續費並連動設定頁百分比 */}
                   <div>
                     <div className="flex justify-between items-center mb-1 ml-1">
                       <label className="text-[10px] text-slate-300 font-bold">
                         {isTripTabActive ? `消費金額 (${currency})` : "消費金額 (港幣 HK$)"}
                       </label>
-                      {isTripTabActive && (
-                        <div className="flex gap-1">
-                          <button
-                            type="button"
-                            onClick={() => multiplyAmount(1.08)}
-                            className="text-[10px] bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 px-2 py-0.5 rounded-md font-bold transition"
-                          >
-                            +8% 稅
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => multiplyAmount(1.10)}
-                            className="text-[10px] bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 px-2 py-0.5 rounded-md font-bold transition"
-                          >
-                            +10% 稅
-                          </button>
-                        </div>
-                      )}
                     </div>
 
                     <div className="flex gap-2">
@@ -1369,11 +1407,10 @@
                         }`}
                         required
                       />
-                      {/* TripTab 強化：已選貨幣自動排最頂 */}
                       {isTripTabActive && (
                         <select
                           value={currency}
-                          onChange={e => setCurrency(e.target.value)}
+                          onChange={e => handleSelectDefaultCurrency(e.target.value)}
                           className="gold-pill rounded-2xl px-3.5 py-2.5 text-xs font-black text-[#1C2830] focus:outline-none"
                         >
                           {sortedCurrencyKeys.map(c => <option key={c} value={c} className="text-slate-900">{c}</option>)}
@@ -1390,7 +1427,7 @@
                             onChange={e => setAddCardFee(e.target.checked)}
                             className="rounded accent-amber-400"
                           />
-                          <span>💳 信用卡海外簽帳 (+1.95% 手續費)</span>
+                          <span>💳 信用卡海外簽帳 (+{cardFeePercent}% 手續費)</span>
                         </label>
                         {amount && currency !== "HKD" && (
                           <span className="text-[11px] font-bold text-amber-300">
@@ -1452,7 +1489,7 @@
                     )}
                   </div>
 
-                  {/* 【要求 11】移除右邊「淨係自己 / 全部人夾」按鈕 */}
+                  {/* 邊個夾份？ */}
                   <div className="text-xs">
                     <div className="flex justify-between items-center mb-1.5 mx-1">
                       <label className="text-[10px] text-slate-300 font-bold">邊個夾份？</label>
@@ -1494,7 +1531,7 @@
                   </div>
                 </form>
 
-                {/* 開支明細列表 (TripTab 強化：修改與刪除按鈕左右分開，避免誤觸) */}
+                {/* 開支明細列表 */}
                 <div className="space-y-2.5">
                   <h3 className="font-bold text-slate-200 text-xs flex justify-between items-center px-2">
                     <span>最近單據明細</span>
@@ -1567,7 +1604,6 @@
                                   </span> 支付 • 畀 {(exp.splitWith || []).filter(m => members.includes(m)).join(", ")} 平分
                                 </p>
                               </div>
-                              {/* 修改同刪除掣左右分開，避免誤按 */}
                               <div className="flex justify-between items-center pt-2 mt-1 border-t border-white/10">
                                 <button
                                   type="button"
@@ -1599,16 +1635,19 @@
               </>
             )}
 
-            {/* TAB 2: 結算夾錢 (【要求 13】移除 PayMe/FPS 提示句，右邊按鈕直接改做簡單 ✓ 剔號) */}
+            {/* TAB 2: 結算與圖表版面 (【要求 6 & 7】直接抄足圖五 TripTab 嘅結算、IG Story 圓餅圖消費報告、大豪客排行榜及個人墊支結餘) */}
             {activeTab === "settle" && (
               <div className="space-y-4">
+                {/* 1. 自動簡化結算 (連公數多除少補) */}
                 <div className="glass-dark p-5 rounded-3xl">
                   <div className="flex justify-between items-center mb-2 border-b border-white/10 pb-3">
                     <div>
-                      <h3 className="font-bold text-white text-sm">⚡ 自動對沖結算清單 (HK$)</h3>
+                      <h3 className="font-bold text-white text-sm">
+                        ⚡ {isTripTabActive ? "自動簡化結算 (連公數多除少補)" : "自動對沖結算清單 (HK$)"}
+                      </h3>
                     </div>
-                    <button onClick={copyToWhatsApp} className="teal-pill text-white text-[11px] px-3.5 py-1.5 rounded-full font-bold">
-                      📲 複製清單
+                    <button onClick={copyToWhatsApp} className="teal-pill text-white text-[11px] px-3.5 py-1.5 rounded-full font-bold whitespace-nowrap">
+                      📲 複製 WhatsApp 清單
                     </button>
                   </div>
 
@@ -1629,33 +1668,35 @@
                                 : "bg-white/10 border-white/10"
                             }`}
                           >
-                            <div className="flex flex-col gap-0.5">
-                              <div className="flex items-center gap-1.5">
+                            <div className="flex items-center gap-2">
+                              <span className="w-6 h-6 rounded-full bg-amber-400/20 text-amber-300 flex items-center justify-center text-xs">💸</span>
+                              <div className="flex items-center gap-1.5 flex-wrap">
                                 <span className={`font-bold text-sm ${isPaid ? "line-through text-slate-400" : "text-white"}`}>
                                   {t.from}
                                 </span>
-                                <span className="text-xs text-slate-300">過數畀 ➡️</span>
+                                <span className="text-xs text-slate-300">➡️ 過數畀</span>
                                 <span className={`font-bold text-sm ${isPaid ? "line-through text-slate-400" : "text-[#78C3D2]"}`}>
                                   {t.to}
                                 </span>
                               </div>
-                              <span className={`font-black text-base ${isPaid ? "line-through text-emerald-300" : "text-amber-300"}`}>
-                                HK$ {t.amount.toLocaleString()}
-                              </span>
                             </div>
 
-                            {/* 【要求 13】簡潔 Tick 號按鈕 */}
-                            <button
-                              type="button"
-                              onClick={() => toggleSettlementPaid(t.key)}
-                              className={`w-10 h-10 rounded-full text-base font-black flex items-center justify-center transition shadow-md ${
-                                isPaid
-                                  ? "bg-emerald-500 text-white"
-                                  : "teal-pill text-white hover:opacity-90"
-                              }`}
-                            >
-                              ✓
-                            </button>
+                            <div className="flex items-center gap-2.5">
+                              <span className={`font-black text-sm ${isPaid ? "line-through text-emerald-300" : "text-amber-300"}`}>
+                                HK$ {t.amount.toLocaleString()}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => toggleSettlementPaid(t.key)}
+                                className={`w-8 h-8 rounded-full text-sm font-black flex items-center justify-center transition shadow-md ${
+                                  isPaid
+                                    ? "bg-emerald-500 text-white"
+                                    : "bg-white/15 border border-emerald-400/50 text-emerald-300 hover:bg-emerald-500 hover:text-white"
+                                }`}
+                              >
+                                ✓
+                              </button>
+                            </div>
                           </div>
                         );
                       })}
@@ -1675,9 +1716,158 @@
                     </div>
                   )}
                 </div>
-                
+
+                {/* 2. 【參照圖五】IG STORY SUMMARY · 消費報告 (連圓餅圖 + 匯出 Excel + 年月日篩選 + 大豪客排行榜) */}
+                {isPro ? (
+                  <div className="glass-dark p-5 rounded-3xl space-y-5 border border-emerald-400/25">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <span className="inline-block text-[10px] font-black tracking-wider uppercase bg-emerald-400/20 text-emerald-300 px-2.5 py-0.5 rounded-full mb-1">
+                          📸 IG STORY SUMMARY
+                        </span>
+                        <h3 className="font-black text-lg text-white">
+                          {groupName} ✈️ · 消費報告
+                        </h3>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleExportExcelCSV}
+                        className="bg-white/10 hover:bg-white/20 border border-white/20 text-white text-[11px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1 transition whitespace-nowrap"
+                      >
+                        <span>📥 匯出 Excel</span>
+                      </button>
+                    </div>
+
+                    {/* 年 / 月 / 日 篩選器 */}
+                    <div className="grid grid-cols-3 gap-2 pt-1">
+                      <select value={reportYear} onChange={e => setReportYear(e.target.value)} className="text-[11px] bg-white/10 border border-white/15 rounded-xl px-2.5 py-1.5 text-white font-bold focus:outline-none">
+                        <option value="ALL" className="text-slate-900">全部年份</option>
+                        {reportAvailableDates.years.map(y => <option key={y} value={y} className="text-slate-900">{y}年</option>)}
+                      </select>
+                      <select value={reportMonth} onChange={e => setReportMonth(e.target.value)} className="text-[11px] bg-white/10 border border-white/15 rounded-xl px-2.5 py-1.5 text-white font-bold focus:outline-none">
+                        <option value="ALL" className="text-slate-900">全部月份</option>
+                        {reportAvailableDates.months.map(m => <option key={m} value={m} className="text-slate-900">{m}月</option>)}
+                      </select>
+                      <select value={reportDay} onChange={e => setReportDay(e.target.value)} className="text-[11px] bg-white/10 border border-white/15 rounded-xl px-2.5 py-1.5 text-white font-bold focus:outline-none">
+                        <option value="ALL" className="text-slate-900">全部日子</option>
+                        {reportAvailableDates.days.map(d => <option key={d} value={d} className="text-slate-900">{d}日</option>)}
+                      </select>
+                    </div>
+
+                    {/* SVG 圓餅圖 (Donut Chart) + 類別百分比明細 */}
+                    <div className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/10">
+                      <div className="relative w-28 h-28 flex items-center justify-center shrink-0">
+                        <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                          <circle cx="50" cy="50" r={radius} stroke="rgba(255,255,255,0.1)" strokeWidth="12" fill="transparent" />
+                          {tripTabChartAndReport.categoryBreakdown.map((item, idx) => {
+                            const pct = tripTabChartAndReport.totalFilteredHKD > 0 ? item.amountHKD / tripTabChartAndReport.totalFilteredHKD : 0;
+                            const strokeDasharray = `${pct * circumference} ${circumference}`;
+                            const strokeDashoffset = -cumulativePercent * circumference;
+                            cumulativePercent += pct;
+                            return (
+                              <circle
+                                key={item.category}
+                                cx="50"
+                                cy="50"
+                                r={radius}
+                                stroke={CHART_COLORS[idx % CHART_COLORS.length]}
+                                strokeWidth="12"
+                                fill="transparent"
+                                strokeDasharray={strokeDasharray}
+                                strokeDashoffset={strokeDashoffset}
+                                strokeLinecap="butt"
+                              />
+                            );
+                          })}
+                        </svg>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-1">
+                          <span className="text-[9px] text-slate-300">總消費</span>
+                          <span className="text-xs font-black text-white leading-tight">
+                            HK${Math.round(tripTabChartAndReport.totalFilteredHKD).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex-1 space-y-1.5 text-xs">
+                        {tripTabChartAndReport.categoryBreakdown.length === 0 ? (
+                          <div className="text-slate-400 text-[11px]">暫無消費數據</div>
+                        ) : (
+                          tripTabChartAndReport.categoryBreakdown.map((item, idx) => (
+                            <div key={item.category} className="flex items-center justify-between gap-1">
+                              <div className="flex items-center gap-1.5 truncate">
+                                <span
+                                  className="w-2.5 h-2.5 rounded-full shrink-0"
+                                  style={{ backgroundColor: CHART_COLORS[idx % CHART_COLORS.length] }}
+                                ></span>
+                                <span className="text-[11px] font-bold text-slate-200 truncate">{item.category}</span>
+                              </div>
+                              <div className="text-[11px] font-bold text-white whitespace-nowrap">
+                                {item.percent}% <span className="text-[10px] text-slate-400 font-normal">(${Math.round(item.amountHKD).toLocaleString()})</span>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+
+                    {/* 👑 全團個人消費排行榜 (按實際享用金額) */}
+                    <div className="space-y-2.5 pt-1">
+                      <h4 className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                        <span>👑 全團個人消費排行榜 (按實際享用金額)</span>
+                      </h4>
+                      <div className="space-y-2.5">
+                        {tripTabChartAndReport.personArray.map((p, index) => {
+                          const barWidth = tripTabChartAndReport.maxShareHKD > 0 ? Math.max(8, Math.round((p.shareHKD / tripTabChartAndReport.maxShareHKD) * 100)) : 0;
+                          const rankBadge = index === 0 ? "🥇 大豪客" : index === 1 ? "🥈 二當家" : index === 2 ? "🥉 三當家" : `#${index + 1}`;
+                          return (
+                            <div key={p.name} className="bg-white/5 p-3 rounded-2xl border border-white/10 space-y-1.5">
+                              <div className="flex justify-between items-center text-xs">
+                                <div className="flex items-center gap-2">
+                                  <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                                    index === 0 ? "bg-amber-400/25 text-amber-300" : "bg-white/10 text-slate-300"
+                                  }`}>
+                                    {rankBadge}
+                                  </span>
+                                  <span className="font-bold text-white">{p.name}</span>
+                                  {p.isDeleted && (
+                                    <span className="text-[9px] bg-rose-500/25 text-rose-200 px-1.5 py-0.5 rounded">已刪成員</span>
+                                  )}
+                                </div>
+                                <span className="font-black text-white">HK$ {Math.round(p.shareHKD).toLocaleString()}</span>
+                              </div>
+                              <div className="w-full h-1.5 bg-black/40 rounded-full overflow-hidden">
+                                <div
+                                  className="h-full bg-gradient-to-r from-emerald-400 to-[#3A8899] rounded-full transition-all duration-300"
+                                  style={{ width: `${barWidth}%` }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="glass-dark p-4 rounded-3xl flex items-center justify-between border border-amber-300/30">
+                    <div className="text-xs text-slate-200">
+                      📊 <strong>升級 TripTab 旅遊版</strong> 解鎖 IG Story 圓餅圖、大豪客排行榜及匯出 Excel！
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPaywallMsg("立即解鎖 Full Version，即可查看「📸 IG Story 圓餅圖消費報告、大豪客排行榜及 Excel 報表匯出」！");
+                        setShowPaywall(true);
+                      }}
+                      className="gold-pill text-[#1C2830] text-[11px] font-black px-3 py-1.5 rounded-full whitespace-nowrap ml-2"
+                    >
+                      🔒 解鎖圖表
+                    </button>
+                  </div>
+                )}
+
+                {/* 3. 📊 個人墊支與應付結餘 (包含已刪除但有事件發生嘅成員) */}
                 <div className="glass-dark p-5 rounded-3xl">
-                  <h3 className="font-bold text-white text-sm mb-3 border-b border-white/10 pb-2.5">個人墊支與應付分析</h3>
+                  <h3 className="font-bold text-white text-sm mb-3 border-b border-white/10 pb-2.5">📊 個人墊支與應付結餘</h3>
                   <div className="space-y-2.5">
                     {members.map(m => {
                       const net = Math.round(settlement.balances[m] || 0);
@@ -1686,16 +1876,16 @@
                         <div key={m} className="flex justify-between items-center text-sm py-2 border-b border-white/10 last:border-none">
                           <span className="font-bold text-white">{m}</span>
                           <span className={`font-bold px-3 py-1 rounded-full text-xs ${net === 0 ? 'bg-white/10 text-slate-300' : isPositive ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-400/30' : 'bg-rose-500/25 text-rose-300 border border-rose-400/30'}`}>
-                            {net === 0 ? '收支平衡' : isPositive ? `應收回 HK$ ${net.toLocaleString()}` : `應支付 HK$ ${Math.abs(net).toLocaleString()}`}
+                            {net === 0 ? '收支平衡' : isPositive ? `應收回 HK$ ${net.toLocaleString()}` : `-HK$ ${Math.abs(net).toLocaleString()} (應補交)`}
                           </span>
                         </div>
                       );
                     })}
 
-                    {/* 【要求 6】如果被刪除嘅成員本身係「墊支人」，直接顯示負數 */}
+                    {/* 已刪除但有墊支紀錄嘅成員直接顯示負數 */}
                     {Object.entries(settlement.deletedPayersNegative).map(([delName, negVal]) => (
                       <div key={delName} className="flex justify-between items-center text-sm py-2 border-b border-white/10 last:border-none opacity-85">
-                        <span className="font-bold text-rose-300">{delName} <span className="text-[10px] bg-rose-500/20 px-1.5 py-0.5 rounded">已刪墊支人</span></span>
+                        <span className="font-bold text-rose-300">{delName} <span className="text-[10px] bg-rose-500/20 px-1.5 py-0.5 rounded">已刪成員 (保留紀錄)</span></span>
                         <span className="font-mono font-black px-3 py-1 rounded-full text-xs bg-rose-500/30 text-rose-200 border border-rose-400/40">
                           HK$ {Math.round(negVal).toLocaleString()}
                         </span>
@@ -1706,131 +1896,7 @@
               </div>
             )}
 
-            {/* TAB 3: 【要求 16】付費版新增「📊 消費報告」(支援年月日篩選 + 匯出 Excel + 保留已刪除成員紀錄) */}
-            {activeTab === "report" && (
-              <div className="space-y-4">
-                {!isPro ? (
-                  <div className="glass-dark p-6 rounded-3xl text-center space-y-4 border border-amber-300/40">
-                    <div className="text-3xl">📊</div>
-                    <h3 className="font-black text-base text-white">付費版專屬：智能消費報告 & Excel 匯出</h3>
-                    <p className="text-xs text-slate-300 leading-relaxed">
-                      升級後即可按<strong>年、月、日</strong>篩選查閱所有單據與成員統計（即使已被刪除嘅成員，只要曾發生過墊支或夾份事件，都會完整保留喺報告內），並支援一鍵匯出 Excel (.csv)！
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPaywallMsg("立即解鎖 Full Version，即可使用「📊 消費報告（年月日篩選 + Excel 匯出）」及「✈️ TripTab 旅遊版」！");
-                        setShowPaywall(true);
-                      }}
-                      className="gold-pill text-[#1C2830] font-black text-xs px-6 py-3 rounded-full shadow-lg"
-                    >
-                      🔒 立即解鎖消費報告功能
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <div className="glass-dark p-5 rounded-3xl space-y-3.5">
-                      <div className="flex justify-between items-center border-b border-white/10 pb-2.5">
-                        <div>
-                          <h3 className="font-bold text-white text-sm">📊 消費報告篩選 (年 / 月 / 日)</h3>
-                          <p className="text-[10px] text-slate-300 mt-0.5">已刪除但有單據紀錄嘅成員亦會完整保留</p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={handleExportExcelCSV}
-                          className="gold-pill text-[#1C2830] text-[11px] font-black px-3.5 py-1.5 rounded-full shadow-sm"
-                        >
-                          📥 匯出 Excel (.csv)
-                        </button>
-                      </div>
-
-                      {/* 年 / 月 / 日 Filter 下拉選單 */}
-                      <div className="grid grid-cols-3 gap-2">
-                        <div>
-                          <label className="block text-[10px] text-slate-300 font-bold mb-1">年份</label>
-                          <select value={reportYear} onChange={e => setReportYear(e.target.value)} className="w-full text-xs bg-white/10 border border-white/15 rounded-xl px-2.5 py-2 text-white font-bold focus:outline-none">
-                            <option value="ALL" className="text-slate-900">全部年份</option>
-                            {reportAvailableDates.years.map(y => <option key={y} value={y} className="text-slate-900">{y}年</option>)}
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-[10px] text-slate-300 font-bold mb-1">月份</label>
-                          <select value={reportMonth} onChange={e => setReportMonth(e.target.value)} className="w-full text-xs bg-white/10 border border-white/15 rounded-xl px-2.5 py-2 text-white font-bold focus:outline-none">
-                            <option value="ALL" className="text-slate-900">全部月份</option>
-                            {reportAvailableDates.months.map(m => <option key={m} value={m} className="text-slate-900">{m}月</option>)}
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-[10px] text-slate-300 font-bold mb-1">日子</label>
-                          <select value={reportDay} onChange={e => setReportDay(e.target.value)} className="w-full text-xs bg-white/10 border border-white/15 rounded-xl px-2.5 py-2 text-white font-bold focus:outline-none">
-                            <option value="ALL" className="text-slate-900">全部日子</option>
-                            {reportAvailableDates.days.map(d => <option key={d} value={d} className="text-slate-900">{d}日</option>)}
-                          </select>
-                        </div>
-                      </div>
-
-                      <div className="bg-white/5 rounded-2xl p-3 flex justify-between items-center border border-white/10">
-                        <span className="text-xs text-slate-300">篩選範圍總開支 ({filteredReportData.list.length} 筆單據)</span>
-                        <span className="text-base font-black text-amber-300">HK$ {Math.round(filteredReportData.totalFilteredHKD).toLocaleString()}</span>
-                      </div>
-                    </div>
-
-                    {/* 成員消費紀錄表（包含已刪除但有事件發生嘅人） */}
-                    <div className="glass-dark p-5 rounded-3xl space-y-3">
-                      <h3 className="font-bold text-white text-sm border-b border-white/10 pb-2.5">👥 成員消費與墊支統計（含已刪成員）</h3>
-                      <div className="space-y-2">
-                        {filteredReportData.personArray.map(p => (
-                          <div key={p.name} className="p-3 rounded-2xl bg-white/5 border border-white/10 flex justify-between items-center text-xs">
-                            <div>
-                              <div className="font-bold text-white flex items-center gap-1.5">
-                                <span>{p.name}</span>
-                                {p.isDeleted && (
-                                  <span className="text-[10px] bg-rose-500/25 text-rose-200 px-2 py-0.5 rounded-full border border-rose-400/30">
-                                    已刪除成員 (保留紀錄)
-                                  </span>
-                                )}
-                              </div>
-                              <div className="text-[11px] text-slate-300 mt-0.5">
-                                累計墊支: HK$ {Math.round(p.paidHKD).toLocaleString()} ｜ 應分攤: HK$ {Math.round(p.shareHKD).toLocaleString()}
-                              </div>
-                            </div>
-                            <div className={`font-mono font-black text-xs px-2.5 py-1 rounded-xl ${
-                              p.netHKD < 0 ? "bg-rose-500/25 text-rose-200" : p.netHKD > 0 ? "bg-emerald-500/25 text-emerald-300" : "bg-white/10 text-slate-300"
-                            }`}>
-                              {p.netHKD > 0 ? `+HK$ ${Math.round(p.netHKD).toLocaleString()}` : `HK$ ${Math.round(p.netHKD).toLocaleString()}`}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* 篩選後嘅單據明細 */}
-                    <div className="glass-dark p-5 rounded-3xl space-y-2.5">
-                      <h3 className="font-bold text-white text-sm border-b border-white/10 pb-2.5">📝 篩選單據列表</h3>
-                      {filteredReportData.list.length === 0 ? (
-                        <div className="text-center py-6 text-xs text-slate-400">此日期範圍內沒有單據紀錄</div>
-                      ) : (
-                        filteredReportData.list.map(e => (
-                          <div key={e.id} className="flex justify-between items-center py-2 border-b border-white/10 last:border-none text-xs">
-                            <div>
-                              <div className="font-bold text-white">{e.category} · {e.title}</div>
-                              <div className="text-[10px] text-slate-300">
-                                📅 {e.date} ｜ {e.payer} 墊支 ｜ 夾份: {(e.splitWith || []).join(", ")}
-                              </div>
-                            </div>
-                            <div className="text-right font-bold text-amber-300 whitespace-nowrap ml-2">
-                              HK$ {Math.round(toHKD(e.amount, e.currency)).toLocaleString()}
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-
-            {/* TAB 4: 房間管理 (【要求 4 & 14】移除「或東京之旅」字眼 + 加入活動類別修改) */}
+            {/* TAB 3: 房間管理 (【要求 7】已刪除房間頁面內重複嘅「房間活動類別管理」) */}
             {activeTab === "rooms" && (
               <div className="space-y-4">
                 <div className="glass-dark p-5 rounded-3xl space-y-3">
@@ -1840,7 +1906,6 @@
                       自動分配 6 位 ID
                     </span>
                   </div>
-                  {/* 【要求 14】已移除「或『東京之旅』」 */}
                   <p className="text-[11px] text-slate-300 leading-relaxed">
                     輸入房間名稱（例如「星期五邊爐局」），系統會喺背後自動產生一組獨一無二嘅 6 位代碼，完全唔怕同人撞房！
                   </p>
@@ -1919,47 +1984,12 @@
                     })}
                   </div>
                 </div>
-
-                {/* 【要求 4】喺房間 Page 加入「活動類別修改」，俾用戶自己加減 */}
-                <div className="glass-dark p-5 rounded-3xl space-y-3.5">
-                  <div className="flex justify-between items-center border-b border-white/10 pb-2.5">
-                    <h3 className="font-bold text-white text-sm">🏷️ 房間活動類別管理 (自由加減)</h3>
-                    <span className="text-[10px] text-slate-300">共 {activeCategories.length} 個類別</span>
-                  </div>
-                  <form onSubmit={handleAddCategory} className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="輸入新類別 (如：🎾 網球Book場)"
-                      value={newCategoryInput}
-                      onChange={e => setNewCategoryInput(e.target.value)}
-                      className="flex-1 text-xs bg-white/10 border border-white/15 rounded-2xl px-3.5 py-2.5 text-white placeholder-slate-400 focus:outline-none"
-                    />
-                    <button type="submit" className="teal-pill text-white text-xs font-bold px-4 rounded-2xl">
-                      ＋ 新增類別
-                    </button>
-                  </form>
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    {activeCategories.map(cat => (
-                      <span key={cat} className="bg-white/10 border border-white/15 text-white text-xs px-3 py-1.5 rounded-xl font-medium flex items-center gap-2">
-                        <span>{cat}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteCategory(cat)}
-                          className="text-slate-300 hover:text-rose-300 font-bold text-sm leading-none"
-                        >
-                          ×
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                </div>
               </div>
             )}
 
-            {/* TAB 5: 設定頁 (【要求 2, 4, 5, 8】付費解鎖介面、成員 ✏️ 改名、活動類別加減、獨立付費 Quota Reminder) */}
+            {/* TAB 4: 設定頁 */}
             {activeTab === "settings" && (
               <div className="space-y-4">
-                {/* 【要求 2】圖一變返要付費解鎖版本（免費日常版 2 日試用，付費解鎖 TripTab 旅遊版），加設一鍵切換未解鎖/已解鎖測試掣 */}
                 <div className="glass-dark p-5 rounded-3xl space-y-3 border border-amber-300/30">
                   <div className="flex justify-between items-center">
                     <h3 className="font-bold text-white text-sm flex items-center gap-1.5">
@@ -1985,7 +2015,7 @@
                     )}
                   </div>
                   <p className="text-[11px] text-slate-300 leading-relaxed">
-                    免費日常版提供 2 日試用及 2 個房間額度；付費解鎖 <strong>TripTab 旅遊記帳版</strong> 即可睇到 Full Version（啟用公數錢包、15國貨幣匯率、信用卡 1.95% 手續費及消費報告 Excel 匯出）！
+                    免費日常版提供 2 日試用及 2 個房間額度；付費解鎖 <strong>TripTab 旅遊記帳版</strong> 即可睇到 Full Version（啟用公數錢包、15國貨幣匯率、自訂信用卡手續費及 IG Story 消費圖表報告）！
                   </p>
                   <div className="grid grid-cols-2 gap-2.5 pt-1">
                     <button
@@ -2013,7 +2043,7 @@
                     <button
                       type="button"
                       onClick={() => {
-                        setPaywallMsg("立即解鎖即可睇到 Full Version（包含 ✈️ TripTab 旅遊版、公數錢包、📊 消費報告及無限房間）！");
+                        setPaywallMsg("立即解鎖即可睇到 Full Version（包含 ✈️ TripTab 旅遊版、公數錢包、📊 IG Story 消費報告及無限房間）！");
                         setShowPaywall(true);
                       }}
                       className="w-full py-2.5 rounded-2xl gold-pill text-[#1C2830] font-black text-xs shadow-md"
@@ -2034,7 +2064,7 @@
                   </div>
                 </div>
 
-                {/* 【要求 5】設定頁加入成員權限與 Quota Reminder */}
+                {/* 房間連結與付費權限提醒 */}
                 <div className="glass-dark p-4 rounded-3xl border border-[#78C3D2]/40 bg-[#3A8899]/15 space-y-1.5">
                   <div className="text-xs font-black text-[#9BE0EE] flex items-center gap-1.5">
                     <span>💡 房間連結與付費權限提醒 (Quota Reminder)</span>
@@ -2045,18 +2075,16 @@
                   </p>
                 </div>
 
-                {/* 【要求 4】參與成員管理：每個成員名字旁邊加一個「✏️ 改名」按鈕 */}
+                {/* 【要求 1 & 8】參與成員管理：日常免費版與旅遊版人數均無上限！刪除「改名」兩隻字，只留枝筆 ✏️ */}
                 <div className="glass-dark p-5 rounded-3xl space-y-3.5">
                   <div className="flex justify-between items-center border-b border-white/10 pb-2.5">
                     <h3 className="font-bold text-white text-sm">👥 參與成員 ({members.length}人)</h3>
-                    {!isPro && <span className="text-[10px] text-slate-300">免費版上限 4 人</span>}
                   </div>
                   <div className="flex gap-2">
                     <input type="text" placeholder="新增成員名字" value={newMemberName} onChange={e => setNewMemberName(e.target.value)} className="flex-1 text-sm bg-white/10 border border-white/15 rounded-2xl px-4 py-2.5 text-white placeholder-slate-400 focus:outline-none" />
                     <button onClick={handleAddMember} className="teal-pill text-white text-xs font-bold px-5 rounded-2xl">新增</button>
                   </div>
 
-                  {/* 如果正在改成員名，彈出改名輸入列 */}
                   {editingMemberName && (
                     <div className="bg-black/35 p-3 rounded-2xl border border-[#78C3D2]/40 space-y-2">
                       <div className="text-[10px] font-bold text-[#9BE0EE]">
@@ -2098,10 +2126,10 @@
                             setEditingMemberName(m);
                             setTempMemberNewName(m);
                           }}
-                          title="改名"
-                          className="text-[10px] bg-white/10 hover:bg-white/25 px-1.5 py-0.5 rounded text-[#9BE0EE]"
+                          title="修改名字"
+                          className="text-[11px] bg-white/10 hover:bg-white/25 px-1.5 py-0.5 rounded text-[#9BE0EE] leading-none"
                         >
-                          ✏️ 改名
+                          ✏️
                         </button>
                         {members.length > 2 && (
                           <button
@@ -2118,7 +2146,7 @@
                   </div>
                 </div>
 
-                {/* 【要求 8】喺設定頁加個活動類別修改，俾用戶自己加減 */}
+                {/* 活動類別設定 (自由加減) */}
                 <div className="glass-dark p-5 rounded-3xl space-y-3.5">
                   <div className="flex justify-between items-center border-b border-white/10 pb-2.5">
                     <h3 className="font-bold text-white text-sm">🏷️ 活動類別設定 (自由加減)</h3>
@@ -2127,7 +2155,7 @@
                   <form onSubmit={handleAddCategory} className="flex gap-2">
                     <input
                       type="text"
-                      placeholder="輸入新活動類別 (如：🎤 唱K聚會)"
+                      placeholder="輸入新活動類別 (如：🎾 網球Book場)"
                       value={newCategoryInput}
                       onChange={e => setNewCategoryInput(e.target.value)}
                       className="flex-1 text-xs bg-white/10 border border-white/15 rounded-2xl px-3.5 py-2.5 text-white placeholder-slate-400 focus:outline-none"
@@ -2152,89 +2180,135 @@
                   </div>
                 </div>
 
-                {/* TripTab 旅遊版專屬：唱錢匯率鎖定設定 (支援純數字鍵盤) */}
+                {/* 【要求 3 & 4】TripTab 旅遊版專屬：自訂信用卡手續費百分比 + 點選預設貨幣及修改唱錢匯率 */}
                 {isTripTabActive && (
-                  <div className="glass-dark p-5 rounded-3xl space-y-3.5 border border-amber-300/30">
-                    <div className="flex justify-between items-center border-b border-white/10 pb-2.5">
-                      <div>
-                        <h3 className="font-bold text-amber-300 text-sm">💱 TripTab 唱錢匯率鎖定 (兌 HKD)</h3>
-                        <p className="text-[10px] text-slate-300 mt-0.5">可輸入找換店實際唱錢匯率，全團統一計數零誤差</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={fetchLiveExchangeRates}
-                        className="text-[10px] bg-amber-400/20 text-amber-300 px-2.5 py-1 rounded-lg font-bold"
-                      >
-                        🔄 刷新即時匯率
-                      </button>
-                    </div>
-                    <form onSubmit={handleAddCustomCurrency} className="flex gap-2 bg-white/5 p-2 rounded-2xl">
-                      <input type="text" maxLength="3" placeholder="代號 (NZD)" value={newCurCode} onChange={e => setNewCurCode(e.target.value.toUpperCase())} className="w-24 text-xs bg-white/10 rounded-xl px-2 py-2 font-mono uppercase text-center text-white placeholder-slate-400 focus:outline-none" />
-                      <input type="number" inputMode="decimal" pattern="[0-9]*" step="any" placeholder="兌港幣匯率" value={newCurRate} onChange={e => setNewCurRate(e.target.value)} className="flex-1 text-xs bg-white/10 rounded-xl px-3 py-2 text-white placeholder-slate-400 focus:outline-none" />
-                      <button type="submit" className="gold-pill text-[#1C2830] text-xs font-black px-3 rounded-xl">＋加入</button>
-                    </form>
-                    <div className="grid grid-cols-2 gap-2.5 pt-1">
-                      {sortedCurrencyKeys.filter(c => c !== "HKD").map(cur => (
-                        <div key={cur} className="flex justify-between items-center p-2.5 bg-white/5 rounded-2xl border border-white/10">
-                          <span className="font-bold text-slate-200 text-xs pl-1">{cur}</span>
-                          <input type="number" inputMode="decimal" pattern="[0-9]*" step="0.0001" value={rates[cur]} onChange={e => handleRateChange(cur, e.target.value)} className="w-20 text-right bg-black/30 rounded-lg px-2 py-1 font-mono font-bold text-xs text-amber-300 focus:outline-none" />
+                  <>
+                    {/* 【要求 4】信用卡海外簽帳手續費百分比設定 */}
+                    <div className="glass-dark p-5 rounded-3xl space-y-2.5 border border-amber-300/30">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h3 className="font-bold text-amber-300 text-sm">💳 信用卡海外簽帳手續費 (%)</h3>
+                          <p className="text-[10px] text-slate-300 mt-0.5">記帳時勾選信用卡海外簽帳，將自動加上此百分比</p>
                         </div>
-                      ))}
+                        <div className="flex items-center gap-1.5 bg-black/35 px-3 py-1.5 rounded-2xl border border-amber-300/40">
+                          <input
+                            type="number"
+                            inputMode="decimal"
+                            pattern="[0-9]*"
+                            step="0.05"
+                            value={cardFeePercent}
+                            onChange={e => handleCardFeePercentChange(e.target.value)}
+                            className="w-16 text-right bg-transparent font-mono font-black text-sm text-amber-300 focus:outline-none"
+                          />
+                          <span className="text-xs font-bold text-amber-300">%</span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+
+                    {/* 【要求 3】TripTab 唱錢匯率鎖定 + 點選設為記帳預設貨幣 */}
+                    <div className="glass-dark p-5 rounded-3xl space-y-3.5 border border-amber-300/30">
+                      <div className="flex justify-between items-center border-b border-white/10 pb-2.5">
+                        <div>
+                          <h3 className="font-bold text-amber-300 text-sm">💱 TripTab 唱錢匯率鎖定 (兌 HKD)</h3>
+                          <p className="text-[10px] text-slate-300 mt-0.5">
+                            點選貨幣名稱即可設為<strong>記帳預設貨幣</strong>（目前預設：<span className="text-amber-300 font-bold">{currency}</span>）
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={fetchLiveExchangeRates}
+                          className="text-[10px] bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 px-2.5 py-1.5 rounded-lg font-bold whitespace-nowrap transition"
+                        >
+                          🔄 刷新即時匯率
+                        </button>
+                      </div>
+                      <form onSubmit={handleAddCustomCurrency} className="flex gap-2 bg-white/5 p-2 rounded-2xl">
+                        <input type="text" maxLength="3" placeholder="代號 (NZD)" value={newCurCode} onChange={e => setNewCurCode(e.target.value.toUpperCase())} className="w-24 text-xs bg-white/10 rounded-xl px-2 py-2 font-mono uppercase text-center text-white placeholder-slate-400 focus:outline-none" />
+                        <input type="number" inputMode="decimal" pattern="[0-9]*" step="any" placeholder="兌港幣匯率" value={newCurRate} onChange={e => setNewCurRate(e.target.value)} className="flex-1 text-xs bg-white/10 rounded-xl px-3 py-2 text-white placeholder-slate-400 focus:outline-none" />
+                        <button type="submit" className="gold-pill text-[#1C2830] text-xs font-black px-3 rounded-xl">＋加入</button>
+                      </form>
+                      <div className="grid grid-cols-2 gap-2.5 pt-1">
+                        {sortedCurrencyKeys.filter(c => c !== "HKD").map(cur => {
+                          const isDefaultCur = currency === cur;
+                          return (
+                            <div
+                              key={cur}
+                              onClick={() => handleSelectDefaultCurrency(cur)}
+                              className={`flex justify-between items-center p-2.5 rounded-2xl border cursor-pointer transition ${
+                                isDefaultCur
+                                  ? "bg-amber-400/25 border-amber-300 shadow-md"
+                                  : "bg-white/5 border-white/10 hover:bg-white/10"
+                              }`}
+                            >
+                              <div className="flex items-center gap-1.5 pl-1">
+                                <span className={`font-black text-xs ${isDefaultCur ? "text-amber-300" : "text-slate-200"}`}>
+                                  {cur}
+                                </span>
+                                {isDefaultCur && (
+                                  <span className="text-[9px] bg-amber-300 text-slate-900 font-black px-1.5 py-0.5 rounded">
+                                    預設
+                                  </span>
+                                )}
+                              </div>
+                              <input
+                                type="number"
+                                inputMode="decimal"
+                                pattern="[0-9]*"
+                                step="0.0001"
+                                value={rates[cur]}
+                                onClick={e => e.stopPropagation()}
+                                onChange={e => handleRateChange(cur, e.target.value)}
+                                className="w-20 text-right bg-black/40 rounded-lg px-2 py-1 font-mono font-bold text-xs text-amber-300 focus:outline-none focus:ring-1 focus:ring-amber-300"
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </>
                 )}
               </div>
             )}
           </div>
 
-          {/* 底部 5 格方形磨砂玻璃導航欄 (加入咗 📊 報告 分頁) */}
-          <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto px-4 pb-4 pt-2 z-40 bg-gradient-to-t from-[#141C22] via-[#141C22]/90 to-transparent">
-            <div className="grid grid-cols-5 gap-2">
+          {/* 底部 4 格方形磨砂玻璃導航欄 (已移除獨立消費報告分頁，整合入結算頁) */}
+          <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto px-5 pb-4 pt-2 z-40 bg-gradient-to-t from-[#141C22] via-[#141C22]/90 to-transparent">
+            <div className="grid grid-cols-4 gap-2.5">
               <button
                 onClick={() => setActiveTab("expenses")}
-                className={`py-2.5 px-1 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all ${
+                className={`py-2.5 px-2 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all ${
                   activeTab === "expenses" ? "nav-square-active text-white scale-105" : "nav-square text-slate-300 hover:text-white"
                 }`}
               >
                 <span className="text-base leading-none">📝</span>
-                <span className="text-[10px] font-bold tracking-tight">記帳</span>
+                <span className="text-[10px] font-bold tracking-tight">記帳明細</span>
               </button>
 
               <button
                 onClick={() => setActiveTab("settle")}
-                className={`py-2.5 px-1 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all ${
+                className={`py-2.5 px-2 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all ${
                   activeTab === "settle" ? "nav-square-active text-white scale-105" : "nav-square text-slate-300 hover:text-white"
                 }`}
               >
                 <span className="text-base leading-none">⚡</span>
                 <span className="text-[10px] font-bold tracking-tight">
-                  結算{settlement.transactions.length > 0 ? `(${paidCount}/${settlement.transactions.length})` : ""}
+                  結算及圖表{settlement.transactions.length > 0 ? `(${paidCount}/${settlement.transactions.length})` : ""}
                 </span>
               </button>
 
               <button
-                onClick={() => setActiveTab("report")}
-                className={`py-2.5 px-1 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all ${
-                  activeTab === "report" ? "nav-square-active text-white scale-105" : "nav-square text-slate-300 hover:text-white"
-                }`}
-              >
-                <span className="text-base leading-none">📊</span>
-                <span className="text-[10px] font-bold tracking-tight">消費報告</span>
-              </button>
-
-              <button
                 onClick={() => setActiveTab("rooms")}
-                className={`py-2.5 px-1 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all ${
+                className={`py-2.5 px-2 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all ${
                   activeTab === "rooms" ? "nav-square-active text-white scale-105" : "nav-square text-slate-300 hover:text-white"
                 }`}
               >
                 <span className="text-base leading-none">🔑</span>
-                <span className="text-[10px] font-bold tracking-tight">房間</span>
+                <span className="text-[10px] font-bold tracking-tight">房間代碼</span>
               </button>
 
               <button
                 onClick={() => setActiveTab("settings")}
-                className={`py-2.5 px-1 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all ${
+                className={`py-2.5 px-2 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all ${
                   activeTab === "settings" ? "nav-square-active text-white scale-105" : "nav-square text-slate-300 hover:text-white"
                 }`}
               >
@@ -2244,7 +2318,7 @@
             </div>
           </div>
 
-          {/* 🏦 公數錢包管理彈窗 (連注資日期選擇 + 純數字鍵盤) */}
+          {/* 🏦 公數錢包管理彈窗 */}
           {showPoolModal && (
             <div className="fixed inset-0 bg-black/65 backdrop-blur-sm z-50 flex items-center justify-center p-4">
               <div className="glass-dark max-w-sm w-full rounded-[2rem] p-6 shadow-2xl space-y-4 border border-amber-300/40">
@@ -2273,7 +2347,6 @@
                   </div>
                 </div>
 
-                {/* 公數注資日期選擇 (TripTab 同步功能) */}
                 <div>
                   <label className="block text-[10px] text-slate-300 font-bold mb-1">📅 公數注資 / 建立日期</label>
                   <input
@@ -2370,7 +2443,7 @@
             </div>
           )}
 
-          {/* 升級 COPAY Pro × TripTab 旅遊記帳版彈窗 */}
+          {/* 升級 COPAY × TripTab 旅遊記帳版彈窗 */}
           {showPaywall && (
             <div className="fixed inset-0 bg-black/65 backdrop-blur-sm z-50 flex items-center justify-center p-4">
               <div className="glass-dark max-w-sm w-full rounded-[2rem] p-6 shadow-2xl space-y-4 border border-amber-300/30">
@@ -2390,10 +2463,10 @@
                 </div>
 
                 <div className="space-y-2 text-xs text-slate-200 bg-white/5 p-3.5 rounded-2xl border border-white/10">
-                  <div className="flex items-center gap-2"><span>✈️</span> <strong>解鎖 TripTab 旅遊版</strong>（15國貨幣即時置頂轉換）</div>
+                  <div className="flex items-center gap-2"><span>✈️</span> <strong>解鎖 TripTab 旅遊版</strong>（15國貨幣一鍵設為預設）</div>
                   <div className="flex items-center gap-2"><span>🏦</span> <strong>公數錢包管理 (連日期記錄 + 防超支保護)</strong></div>
-                  <div className="flex items-center gap-2"><span>📊</span> <strong>智能消費報告</strong>（年月日篩選 + 匯出 Excel）</div>
-                  <div className="flex items-center gap-2"><span>🔓</span> <strong>無限房間與人數</strong>（注意：雙方均需解鎖方可使用旅遊版）</div>
+                  <div className="flex items-center gap-2"><span>📸</span> <strong>IG Story 圓餅圖消費報告 + 大豪客排行榜 + 匯出 Excel</strong></div>
+                  <div className="flex items-center gap-2"><span>💳</span> <strong>自訂信用卡海外簽帳手續費 %</strong> ＋ 無限房間額度</div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2.5 pt-1">
