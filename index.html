@@ -17,8 +17,8 @@
   <link rel="apple-touch-icon" href="Copay.png" />
 
   <!-- React 18 & Babel CDN -->
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -115,7 +115,6 @@
       VND: 0.00031
     };
 
-    // 圓餅圖顏色配置
     const CHART_COLORS = ["#10B981", "#F59E0B", "#3B82F6", "#EC4899", "#8B5CF6", "#14B8A6", "#F97316"];
 
     const DEFAULT_MEMBERS = ["我", "Alex", "Chloe", "Sam"];
@@ -138,18 +137,21 @@
       return (raw || "").trim().toUpperCase().replace(/[.#$\[\]\/\s]/g, "");
     };
 
+    // 房間清單結構：[{ id: 'XXXXXX', name: '日常飯局夾錢 🍱', mode: 'daily' | 'triptab' }]
     const getStoredRooms = () => {
       try {
-        const saved = JSON.parse(localStorage.getItem("copay_my_rooms"));
+        const saved = JSON.parse(localStorage.getItem("copay_my_rooms_v3"));
         if (Array.isArray(saved) && saved.length > 0) {
           return saved.map(item =>
-            typeof item === "string" ? { id: item, name: item } : item
+            typeof item === "string"
+              ? { id: item, name: item, mode: "daily" }
+              : { id: item.id, name: item.name, mode: item.mode === "triptab" ? "triptab" : "daily" }
           );
         }
       } catch (e) {}
       const firstId = generateRandomRoomId();
-      const initial = [{ id: firstId, name: "日常飯局夾錢 🍱" }];
-      localStorage.setItem("copay_my_rooms", JSON.stringify(initial));
+      const initial = [{ id: firstId, name: "日常飯局夾錢 🍱", mode: "daily" }];
+      localStorage.setItem("copay_my_rooms_v3", JSON.stringify(initial));
       return initial;
     };
 
@@ -161,21 +163,68 @@
       return rooms[0].id;
     };
 
-    // 圖二 COPAY Logo 元件
-    function CopayLogo({ size = "w-9 h-9" }) {
-      const [imgErr, setImgErr] = useState(false);
-      if (!imgErr) {
+    // 【要求 1】根據模式自動顯示 COPAY Logo 或 圖二 TripTab 行李牌 Logo
+    function BrandLogo({ isTripTab = false, size = "w-10 h-10" }) {
+      const [copayErr, setCopayErr] = useState(false);
+      const [triptabErr, setTriptabErr] = useState(false);
+
+      // 當處於 TripTab 旅遊版時，顯示圖二嘅綠色行李牌收據 Logo
+      if (isTripTab) {
+        if (!triptabErr) {
+          return (
+            <img
+              src="TripTab.png"
+              alt="TripTab Logo"
+              onError={() => setTriptabErr(true)}
+              className={`${size} rounded-2xl object-cover shadow-md border border-white/25`}
+            />
+          );
+        }
+        // 圖二 1:1 內置高精細 SVG 後備圖示 (莫蘭迪綠底 + 米白收據行李牌 + 飛機剪刀虛線)
+        return (
+          <div className={`${size} rounded-2xl bg-[#6C8C74] flex items-center justify-center shadow-md border border-white/25 relative overflow-hidden shrink-0`}>
+            <svg viewBox="0 0 100 100" className="w-full h-full">
+              <rect width="100" height="100" rx="22" fill="#6C8C74" />
+              {/* 行李牌繩圈 */}
+              <path d="M50 28 C48 18, 65 12, 68 20 C70 25, 56 28, 52 31" stroke="#DFC7A7" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+              {/* 行李牌主體陰影 */}
+              <path d="M40 28 L64 28 L72 38 L72 78 L67 74 L62 78 L57 74 L52 78 L47 74 L42 78 L37 74 L32 78 L32 38 Z" fill="#597661" transform="translate(2, 2)" />
+              {/* 米白色行李牌連底部鋸齒收據邊 */}
+              <path d="M39 27 L61 27 L69 37 L69 62 C66 62, 66 66, 69 66 L69 77 L64 73 L59 77 L54 73 L50 77 L46 73 L41 77 L36 73 L31 77 L31 66 C34 66, 34 62, 31 62 L31 37 Z" fill="#F7EAD9" />
+              {/* 右側微陰影 */}
+              <path d="M50 27 L61 27 L69 37 L69 77 L64 73 L59 77 L54 73 L50 77 Z" fill="#EDD8BE" opacity="0.55" />
+              {/* 吊孔 */}
+              <circle cx="50" cy="34" r="4.5" fill="#6C8C74" stroke="#D5B895" strokeWidth="2.5" />
+              {/* 垂直與水平虛線 */}
+              <line x1="50" y1="43" x2="50" y2="71" stroke="#6C8C74" strokeWidth="2" strokeDasharray="4 3" strokeLinecap="round" />
+              <line x1="36" y1="64" x2="60" y2="64" stroke="#6C8C74" strokeWidth="2" strokeDasharray="4 3" strokeLinecap="round" />
+              {/* 小飛機圖示 */}
+              <path d="M38 56 L45 53 L43 59 L41 56.5 L39 58 Z" fill="#C9AF8E" />
+              {/* 星星圖示 */}
+              <path d="M59 45 L60.5 48.5 L64 50 L60.5 51.5 L59 55 L57.5 51.5 L54 50 L57.5 48.5 Z" fill="#C9AF8E" />
+              {/* 小剪刀圖示 */}
+              <circle cx="63" cy="62.5" r="1.8" stroke="#6C8C74" strokeWidth="1.5" fill="none" />
+              <circle cx="63" cy="66.5" r="1.8" stroke="#6C8C74" strokeWidth="1.5" fill="none" />
+              <line x1="58" y1="66" x2="62" y2="63" stroke="#6C8C74" strokeWidth="1.5" />
+              <line x1="58" y1="63" x2="62" y2="66" stroke="#6C8C74" strokeWidth="1.5" />
+            </svg>
+          </div>
+        );
+      }
+
+      // 日常版顯示 COPAY Logo
+      if (!copayErr) {
         return (
           <img
             src="Copay.png"
             alt="COPAY Logo"
-            onError={() => setImgErr(true)}
-            className={`${size} rounded-xl object-cover shadow-md border border-white/20`}
+            onError={() => setCopayErr(true)}
+            className={`${size} rounded-2xl object-cover shadow-md border border-white/20 shrink-0`}
           />
         );
       }
       return (
-        <div className={`${size} rounded-xl bg-[#2B353E] flex items-center justify-center shadow-md border border-white/20 relative overflow-hidden`}>
+        <div className={`${size} rounded-2xl bg-[#2B353E] flex items-center justify-center shadow-md border border-white/20 relative overflow-hidden shrink-0`}>
           <svg viewBox="0 0 64 64" className="w-4/5 h-4/5">
             <defs>
               <linearGradient id="copayTeal" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -204,9 +253,14 @@
       const [vipInput, setVipInput] = useState("");
       const [paywallMsg, setPaywallMsg] = useState("");
 
+      // 【要求 3】建立全新獨立「TripTab 旅遊房間」專用彈窗（確保日常房與旅遊房資料完全隔離唔互通）
+      const [showNewTravelRoomModal, setShowNewTravelRoomModal] = useState(false);
+      const [newTravelRoomTitle, setNewTravelRoomTitle] = useState("");
+
       // 當前房間 ID 與連線狀態
       const [roomId, setRoomId] = useState(getInitialRoomId);
       const [newRoomNameInput, setNewRoomNameInput] = useState("");
+      const [newRoomTypeSelect, setNewRoomTypeSelect] = useState("daily"); // 'daily' | 'triptab'
       const [joinRoomCodeInput, setJoinRoomCodeInput] = useState("");
       const [syncStatus, setSyncStatus] = useState("connecting");
 
@@ -215,7 +269,7 @@
       const [isEditingGroupName, setIsEditingGroupName] = useState(false);
       const [tempGroupName, setTempGroupName] = useState("");
 
-      // 模式：'daily' (純港幣日常版) | 'triptab' (付費升級 TripTab 旅遊記帳版)
+      // 當前房間嘅固定模式：'daily' (純港幣日常房) | 'triptab' (獨立旅遊記帳房)
       const [roomMode, setRoomMode] = useState("daily");
       const [members, setMembers] = useState(DEFAULT_MEMBERS);
       const [customCategories, setCustomCategories] = useState(null);
@@ -224,7 +278,6 @@
       const [customRates, setCustomRates] = useState({});
       const [paidMap, setPaidMap] = useState({});
 
-      // 自訂信用卡手續費百分比 (預設 1.95%) 及預設外幣
       const [cardFeePercent, setCardFeePercent] = useState(1.95);
 
       // 成員改名狀態
@@ -243,7 +296,7 @@
       const [editAmount, setEditAmount] = useState("");
       const [deleteConfirmExp, setDeleteConfirmExp] = useState(null);
 
-      // UI 導航狀態 (expenses | settle | rooms | settings) -> 已刪除獨立消費報告頁，整合入 settle 結算頁
+      // UI 導航狀態
       const [activeTab, setActiveTab] = useState("expenses");
       const [newMemberName, setNewMemberName] = useState("");
       const [liveRates, setLiveRates] = useState(TRIPTAB_RATES);
@@ -261,13 +314,17 @@
       const [category, setCategory] = useState("🍱 食飯埋單");
       const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
 
-      // 結算頁內置報告篩選狀態 (年 / 月 / 日)
+      // 日常版消費報告篩選狀態 (年 / 月 / 日)
       const [reportYear, setReportYear] = useState("ALL");
       const [reportMonth, setReportMonth] = useState("ALL");
       const [reportDay, setReportDay] = useState("ALL");
 
       const rates = useMemo(() => ({ ...liveRates, ...customRates }), [liveRates, customRates]);
       const isTripTabActive = isPro && roomMode === "triptab";
+
+      // 分開統計日常房間與旅遊房間
+      const dailyRoomsList = useMemo(() => myRooms.filter(r => r.mode !== "triptab"), [myRooms]);
+      const travelRoomsList = useMemo(() => myRooms.filter(r => r.mode === "triptab"), [myRooms]);
 
       // 動態活動類別清單
       const activeCategories = useMemo(() => {
@@ -277,7 +334,6 @@
         return isTripTabActive ? DEFAULT_CATEGORIES_TRAVEL : DEFAULT_CATEGORIES_DAILY;
       }, [customCategories, isTripTabActive]);
 
-      // 將當前揀選嘅預設 Currency 自動排喺貨幣選單最頂部
       const sortedCurrencyKeys = useMemo(() => {
         const allKeys = Object.keys(rates);
         return [currency, ...allKeys.filter(k => k !== currency)];
@@ -285,31 +341,32 @@
 
       useEffect(() => {
         if (!activeCategories.includes(category)) {
-          setCategory(activeCategories[0] || "🍱 食飯埋單");
+          setCategory(activeCategories[0] || (isTripTabActive ? "🍱 餐飲美食" : "🍱 食飯埋單"));
         }
-      }, [activeCategories]);
+      }, [activeCategories, isTripTabActive]);
 
       useEffect(() => {
-        localStorage.setItem("copay_my_rooms", JSON.stringify(myRooms));
+        localStorage.setItem("copay_my_rooms_v3", JSON.stringify(myRooms));
       }, [myRooms]);
 
       useEffect(() => {
         localStorage.setItem("copay_v2_pro_unlocked", isPro ? "true" : "false");
       }, [isPro]);
 
+      // 同步更新本地房間清單嘅名稱同模式（保持日常房同旅遊房嚴格分開）
       useEffect(() => {
         if (!roomId || !groupName) return;
         setMyRooms(prev => {
           const exists = prev.some(r => r.id === roomId);
           if (exists) {
-            return prev.map(r => r.id === roomId ? { ...r, name: groupName } : r);
+            return prev.map(r => r.id === roomId ? { ...r, name: groupName, mode: roomMode } : r);
           } else {
-            return [...prev, { id: roomId, name: groupName }];
+            return [...prev, { id: roomId, name: groupName, mode: roomMode }];
           }
         });
-      }, [roomId, groupName]);
+      }, [roomId, groupName, roomMode]);
 
-      // 載入即時匯率函數 (保留刷新即時匯率功能)
+      // 載入即時匯率函數
       const fetchLiveExchangeRates = () => {
         setRateUpdatedText("更新中...");
         fetch("https://open.er-api.com/v6/latest/HKD")
@@ -339,12 +396,15 @@
         fetchLiveExchangeRates();
       }, []);
 
-      // 監聽當前 Firebase 房間數據
+      // 監聽當前 Firebase 房間數據 (每個房間固定自己嘅 roomMode，絕不混用數據)
       useEffect(() => {
         setSyncStatus("connecting");
         setIsEditingGroupName(false);
         setEditingExpId(null);
         setEditingMemberName(null);
+        setReportYear("ALL");
+        setReportMonth("ALL");
+        setReportDay("ALL");
 
         const url = new URL(window.location);
         url.searchParams.set("room", roomId);
@@ -355,15 +415,12 @@
         const handleValue = (snapshot) => {
           const data = snapshot.val();
           if (data) {
-            setGroupName(data.groupName || "日常飯局夾錢 🍱");
             const loadedMode = data.roomMode === "travel" || data.roomMode === "triptab" ? "triptab" : "daily";
+            setGroupName(data.groupName || (loadedMode === "triptab" ? "日本之旅 ✈️" : "日常飯局夾錢 🍱"));
+
             if (loadedMode === "triptab" && isPro) {
               setRoomMode("triptab");
-              if (data.defaultCurrency) {
-                setCurrency(data.defaultCurrency);
-              } else if (currency === "HKD") {
-                setCurrency("JPY");
-              }
+              setCurrency(data.defaultCurrency || "JPY");
             } else {
               setRoomMode("daily");
               setCurrency("HKD");
@@ -409,11 +466,12 @@
             if (data.poolDate) setPoolDate(data.poolDate);
           } else {
             const localRoom = myRooms.find(r => r.id === roomId);
-            const defaultTitle = localRoom ? localRoom.name : "日常飯局夾錢 🍱";
+            const targetMode = localRoom && localRoom.mode === "triptab" ? "triptab" : "daily";
+            const defaultTitle = localRoom ? localRoom.name : (targetMode === "triptab" ? "日本之旅 ✈️" : "日常飯局夾錢 🍱");
             const initialRoomData = {
               roomId: roomId,
               groupName: defaultTitle,
-              roomMode: "daily",
+              roomMode: targetMode,
               defaultCurrency: "JPY",
               cardFeePercent: 1.95,
               members: DEFAULT_MEMBERS,
@@ -443,7 +501,7 @@
       };
 
       // ==========================================
-      // 🏦 公數錢包總額、已用金額及可用餘額 (嚴格防超支)
+      // 🏦 公數錢包總額、已用金額及可用餘額
       // ==========================================
       const poolStats = useMemo(() => {
         const totalContributedHKD = members.reduce((sum, m) => {
@@ -468,7 +526,6 @@
         };
       }, [members, poolContributions, expenses, rates]);
 
-      // 根據用戶設定嘅 cardFeePercent 計算手續費倍數
       const feeMultiplier = useMemo(() => {
         const pct = Math.max(0, Number(cardFeePercent) || 0);
         return 1 + pct / 100;
@@ -524,7 +581,7 @@
       };
 
       // ==========================================
-      // 🏷️ 自訂活動類別新增與刪除 (只保留喺設定頁)
+      // 🏷️ 自訂活動類別新增與刪除
       // ==========================================
       const handleAddCategory = (e) => {
         e.preventDefault();
@@ -555,7 +612,7 @@
       };
 
       // ==========================================
-      // 👥 成員管理：日常免費版與旅遊版人數均無上限！
+      // 👥 成員管理
       // ==========================================
       const handleAddMember = () => {
         const name = newMemberName.trim();
@@ -635,44 +692,110 @@
         });
       };
 
-      // 建立新房間
+      // ==========================================
+      // 🔑 【要求 3 核心邏輯】日常房間與旅遊房間完全獨立創建與切換（資料絕不互通！）
+      // ==========================================
+      const createSeparateRoomWithMode = (customName, targetMode) => {
+        const newId = generateRandomRoomId();
+        const initialRoomData = {
+          roomId: newId,
+          groupName: customName,
+          roomMode: targetMode, // 'daily' 或 'triptab' 永久綁定於該獨立房間
+          defaultCurrency: targetMode === "triptab" ? "JPY" : "HKD",
+          cardFeePercent: 1.95,
+          members: DEFAULT_MEMBERS,
+          expenses: {},
+          customRates: {},
+          paidMap: {},
+          poolContributions: {},
+          poolDate: new Date().toISOString().split("T")[0],
+          createdAt: Date.now()
+        };
+        db.ref(`billmate_rooms/${newId}`).set(initialRoomData);
+        setMyRooms(prev => [...prev, { id: newId, name: customName, mode: targetMode }]);
+        setRoomId(newId);
+        setGroupName(customName);
+        setRoomMode(targetMode);
+        setCurrency(targetMode === "triptab" ? "JPY" : "HKD");
+        setActiveTab("expenses");
+      };
+
+      // 在「房間」頁建立新房間（可揀建立「日常房」或「TripTab 旅遊房」）
       const handleCreateNewRoom = (e) => {
         e.preventDefault();
         const customName = newRoomNameInput.trim();
         if (!customName) return;
 
-        const executeCreate = () => {
-          const newId = generateRandomRoomId();
-          const initialRoomData = {
-            roomId: newId,
-            groupName: customName,
-            roomMode: "daily",
-            defaultCurrency: "JPY",
-            cardFeePercent: 1.95,
-            members: DEFAULT_MEMBERS,
-            expenses: {},
-            customRates: {},
-            paidMap: {},
-            poolContributions: {},
-            poolDate: new Date().toISOString().split("T")[0],
-            createdAt: Date.now()
-          };
-          db.ref(`billmate_rooms/${newId}`).set(initialRoomData);
-          setMyRooms(prev => [...prev, { id: newId, name: customName }]);
-          setRoomId(newId);
-          setGroupName(customName);
-          setNewRoomNameInput("");
-          setActiveTab("expenses");
-        };
-
-        if (!isPro && myRooms.length >= FREE_ROOM_QUOTA) {
-          setPendingAction(() => executeCreate);
-          setPaywallMsg(`免費版支援 ${FREE_ROOM_QUOTA} 個房間額度（目前已使用 ${myRooms.length}/${FREE_ROOM_QUOTA}）。立即升級即可解鎖無限房間 + ✈️ TripTab 旅遊版！`);
+        if (newRoomTypeSelect === "triptab" && !isPro) {
+          setPendingAction(() => () => {
+            createSeparateRoomWithMode(customName, "triptab");
+            setNewRoomNameInput("");
+          });
+          setPaywallMsg("建立「✈️ TripTab 旅遊專用房間」屬於付費功能！解鎖後即可無限開立獨立旅遊房間，同日常開支完全分開唔怕亂！");
           setShowPaywall(true);
           return;
         }
 
-        executeCreate();
+        if (!isPro && myRooms.length >= FREE_ROOM_QUOTA) {
+          setPendingAction(() => () => {
+            createSeparateRoomWithMode(customName, newRoomTypeSelect);
+            setNewRoomNameInput("");
+          });
+          setPaywallMsg(`免費版支援 ${FREE_ROOM_QUOTA} 個日常房間額度（目前已使用 ${myRooms.length}/${FREE_ROOM_QUOTA}）。立即升級即可解鎖無限房間 + ✈️ TripTab 旅遊版！`);
+          setShowPaywall(true);
+          return;
+        }
+
+        createSeparateRoomWithMode(customName, newRoomTypeSelect);
+        setNewRoomNameInput("");
+      };
+
+      // 提交「建立全新獨立 TripTab 旅遊房間」彈窗
+      const handleConfirmCreateTravelRoom = (e) => {
+        e.preventDefault();
+        const name = newTravelRoomTitle.trim() || "日本之旅 ✈️";
+        createSeparateRoomWithMode(name, "triptab");
+        setNewTravelRoomTitle("");
+        setShowNewTravelRoomModal(false);
+      };
+
+      // 【要求 3】當用戶撳「切換日常版 / TripTab 旅遊版」時：
+      // 絕不修改當前房間嘅性質！而係切換去另一間對應性質嘅獨立房間，或者開一間全新獨立房間！
+      const handleSwitchToTripTab = (targetMode) => {
+        if (targetMode === roomMode) return;
+
+        if (targetMode === "triptab") {
+          if (!isPro) {
+            setPendingAction(() => () => {
+              if (travelRoomsList.length > 0) {
+                setRoomId(travelRoomsList[0].id);
+              } else {
+                setNewTravelRoomTitle("日本之旅 ✈️");
+                setShowNewTravelRoomModal(true);
+              }
+            });
+            setPaywallMsg("「✈️ TripTab 旅遊版」屬於付費解鎖功能！解鎖後系統會為你開立全新獨立嘅旅遊專屬房間（與日常飯局帳目 100% 分開，絕不混亂），並享有無限開房權限！");
+            setShowPaywall(true);
+            return;
+          }
+
+          // 已是付費用戶：如果已經有獨立旅遊房間，直接切換過去；如果未有，彈出視窗開一個全新獨立旅遊房間！
+          if (travelRoomsList.length > 0) {
+            setRoomId(travelRoomsList[0].id);
+            setActiveTab("expenses");
+          } else {
+            setNewTravelRoomTitle("日本之旅 ✈️");
+            setShowNewTravelRoomModal(true);
+          }
+        } else {
+          // 想由旅遊版切返去日常版：直接切換去現有嘅日常房間，或者自動開一個新日常房間
+          if (dailyRoomsList.length > 0) {
+            setRoomId(dailyRoomsList[0].id);
+            setActiveTab("expenses");
+          } else {
+            createSeparateRoomWithMode("日常飯局夾錢 🍱", "daily");
+          }
+        }
       };
 
       const handleJoinRoomByCode = (e) => {
@@ -702,66 +825,39 @@
         }
       };
 
-      const handleSwitchToTripTab = (targetMode) => {
-        if (targetMode === "triptab" && !isPro) {
-          setPendingAction(() => () => {
-            setRoomMode("triptab");
-            setCurrency("JPY");
-            db.ref(`billmate_rooms/${roomId}/roomMode`).set("triptab");
-          });
-          setPaywallMsg("「✈️ TripTab 旅遊版」屬於付費解鎖功能！解鎖後即可睇到 Full Version（支援公數錢包、15 國旅遊外幣、自訂信用卡手續費、IG Story 圓餅圖消費報告及無限房間）！");
-          setShowPaywall(true);
-          return;
-        }
-        setRoomMode(targetMode);
-        if (targetMode === "daily") {
-          setCurrency("HKD");
-          setAddCardFee(false);
-          if (payer === POOL_PAYER_KEY) setPayer(members[0] || "我");
-        } else {
-          if (currency === "HKD") setCurrency("JPY");
-        }
-        db.ref(`billmate_rooms/${roomId}/roomMode`).set(targetMode);
-      };
-
       const openExternalTripTabApp = () => {
         const targetUrl = `${TRIPTAB_APP_URL}?room=${encodeURIComponent(roomId)}`;
         window.open(targetUrl, "_blank");
+      };
+
+      // 解鎖成功後：自動帶用戶進入獨立嘅旅遊房間（不會污染原本嘅日常房間！）
+      const unlockAndOpenSeparateTravelRoom = () => {
+        setIsPro(true);
+        setShowPaywall(false);
+        setVipInput("");
+        if (pendingAction) {
+          pendingAction();
+          setPendingAction(null);
+        } else if (travelRoomsList.length > 0) {
+          setRoomId(travelRoomsList[0].id);
+        } else {
+          setNewTravelRoomTitle("日本之旅 ✈️");
+          setShowNewTravelRoomModal(true);
+        }
       };
 
       const handleUnlockWithCode = (e) => {
         e.preventDefault();
         const code = vipInput.trim().toUpperCase();
         if (VALID_VIP_CODES.includes(code)) {
-          setIsPro(true);
-          setShowPaywall(false);
-          setVipInput("");
-          if (pendingAction) {
-            pendingAction();
-            setPendingAction(null);
-          } else {
-            setRoomMode("triptab");
-            setCurrency("JPY");
-            db.ref(`billmate_rooms/${roomId}/roomMode`).set("triptab");
-          }
-          alert("🎉 解鎖成功！已為你開啟 Full Version（TripTab 旅遊版 + 結算圖表報告 + 無限房間）！");
+          unlockAndOpenSeparateTravelRoom();
         } else {
           alert("❌ 解鎖碼無效！測試可用解鎖碼：COPAY2026 或 TRIPTAB");
         }
       };
 
-      const handleSimulatePurchase = (planName) => {
-        setIsPro(true);
-        setShowPaywall(false);
-        if (pendingAction) {
-          pendingAction();
-          setPendingAction(null);
-        } else {
-          setRoomMode("triptab");
-          setCurrency("JPY");
-          db.ref(`billmate_rooms/${roomId}/roomMode`).set("triptab");
-        }
-        alert(`🎉 感謝支持！已成功解鎖【${planName}】Full Version！`);
+      const handleSimulatePurchase = () => {
+        unlockAndOpenSeparateTravelRoom();
       };
 
       const saveGroupName = (e) => {
@@ -856,7 +952,6 @@
         setDeleteConfirmExp(null);
       };
 
-      // 【要求 3】修改匯率與點選預設貨幣（點選後記帳頁自動 Default 成為該貨幣）
       const handleRateChange = (cur, val) => {
         const num = parseFloat(val);
         if (isNaN(num) || num <= 0) return;
@@ -879,7 +974,6 @@
         setNewCurRate("");
       };
 
-      // 【要求 4】喺設定頁更改信用卡海外簽帳手續費百分比
       const handleCardFeePercentChange = (valStr) => {
         const val = parseFloat(valStr);
         if (isNaN(val) || val < 0) {
@@ -981,7 +1075,7 @@
       }, [expenses, members, rates, poolContributions, isTripTabActive, poolStats]);
 
       // ==========================================
-      // 📊 【要求 6 & 7】抄足 TripTab 結算及圖表版面（整合入結算頁，連圓餅圖、排行榜、年月日篩選、Excel 匯出）
+      // 📊 【要求 2】日常版支援年/月/日篩選；TripTab 旅遊版因為係一次性旅行，自動顯示全旅程數據唔再分年月日
       // ==========================================
       const reportAvailableDates = useMemo(() => {
         const years = new Set();
@@ -1002,7 +1096,9 @@
       }, [expenses]);
 
       const tripTabChartAndReport = useMemo(() => {
+        // 如果是 TripTab 旅遊版，唔需要再分年月日，直接統計全個旅遊房間嘅單據；日常版則支援按年月日 Filter
         const list = expenses.filter(e => {
+          if (isTripTabActive) return true;
           if (!e.date) return true;
           const [y, m, d] = e.date.split("-");
           if (reportYear !== "ALL" && y !== reportYear) return false;
@@ -1013,7 +1109,6 @@
 
         const totalFilteredHKD = list.reduce((s, e) => s + toHKD(Number(e.amount), e.currency), 0);
 
-        // 1. 類別佔比圓餅圖數據
         const catMap = {};
         list.forEach(e => {
           const hkd = toHKD(Number(e.amount), e.currency);
@@ -1028,7 +1123,6 @@
           }))
           .sort((a, b) => b.amountHKD - a.amountHKD);
 
-        // 2. 成員個人實際享用排行榜 & 歷史紀錄（含已被刪除但曾參與事件嘅成員）
         const participantSet = new Set(members);
         list.forEach(exp => {
           if (exp.payer && exp.payer !== POOL_PAYER_KEY) participantSet.add(exp.payer);
@@ -1077,7 +1171,7 @@
         const maxShareHKD = personArray.reduce((max, p) => Math.max(max, p.shareHKD), 0);
 
         return { list, totalFilteredHKD, categoryBreakdown, personArray, maxShareHKD };
-      }, [expenses, reportYear, reportMonth, reportDay, members, rates]);
+      }, [expenses, isTripTabActive, reportYear, reportMonth, reportDay, members, rates]);
 
       // 匯出 Excel (.csv)
       const handleExportExcelCSV = () => {
@@ -1087,8 +1181,12 @@
           return;
         }
         let csv = "\uFEFF";
-        csv += `COPAY 消費報告 - ${groupName} (房號 #${roomId})\n`;
-        csv += `篩選範圍：,年份:${reportYear === 'ALL' ? '全部' : reportYear},月份:${reportMonth === 'ALL' ? '全部' : reportMonth},日期:${reportDay === 'ALL' ? '全部' : reportDay}\n\n`;
+        csv += `${isTripTabActive ? "TripTab 旅遊報告" : "COPAY 日常消費報告"} - ${groupName} (房號 #${roomId})\n`;
+        if (!isTripTabActive) {
+          csv += `篩選範圍：,年份:${reportYear === 'ALL' ? '全部' : reportYear},月份:${reportMonth === 'ALL' ? '全部' : reportMonth},日期:${reportDay === 'ALL' ? '全部' : reportDay}\n\n`;
+        } else {
+          csv += `模式：,獨立旅遊專案房間 (全旅程總結)\n\n`;
+        }
         csv += "單據日期,類別,項目名稱,原幣金額,貨幣,折合港幣(HKD),墊支人(狀態),參與分攤成員\n";
 
         tripTabChartAndReport.list.forEach(e => {
@@ -1109,7 +1207,7 @@
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.setAttribute("download", `COPAY_${groupName}_${roomId}_消費報告.csv`);
+        link.setAttribute("download", `${isTripTabActive ? "TripTab" : "COPAY"}_${groupName}_${roomId}_報告.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -1117,7 +1215,7 @@
 
       const shareRoomLink = () => {
         const shareUrl = `${window.location.origin}${window.location.pathname}?room=${encodeURIComponent(roomId)}`;
-        const msg = `💰 一齊用 COPAY 夾錢記帳：「${groupName}」\n🔑 房間代碼：${roomId}\n👉 直接撳連結進入房間：\n${shareUrl}`;
+        const msg = `💰 一齊用 ${isTripTabActive ? "TripTab 旅遊版" : "COPAY"} 夾錢記帳：「${groupName}」\n🔑 房間代碼：${roomId}\n👉 直接撳連結進入房間：\n${shareUrl}`;
         navigator.clipboard.writeText(msg);
         alert(`已複製邀請連結！\n房間名稱：${groupName}\n專屬代碼：${roomId}\n直接貼去 WhatsApp 群組，朋友一撳即入房 📲`);
       };
@@ -1149,7 +1247,6 @@
 
       const paidCount = settlement.transactions.filter(t => !!paidMap[t.key]).length;
 
-      // 計算 SVG Donut Chart 圓餅圖弧度
       let cumulativePercent = 0;
       const radius = 38;
       const circumference = 2 * Math.PI * radius;
@@ -1161,9 +1258,9 @@
           <div className="p-6 pb-4 relative z-10">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2.5">
-                <CopayLogo size="w-9 h-9" />
+                {/* 【要求 1】旅遊版自動切換顯示圖二嘅綠色行李牌 TripTab Logo */}
+                <BrandLogo isTripTab={isTripTabActive} size="w-10 h-10" />
                 <div>
-                  {/* 【要求 2】用旅遊版時 × TripTab 字跟 COPAY 一樣大 */}
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="font-black tracking-wider text-xl text-[#1C2830] drop-shadow-sm leading-none">
                       COPAY
@@ -1178,25 +1275,22 @@
                 </div>
               </div>
 
-              {/* 升級 / TripTab 旅遊版按鈕 */}
+              {/* 【要求 3】撳右上角按鈕時，切換去獨立嘅旅遊房或日常房（兩邊房間資料絕不混用！） */}
               <div className="flex items-center gap-2">
                 {isPro ? (
                   <button
-                    onClick={() => handleSwitchToTripTab(roomMode === "daily" ? "triptab" : "daily")}
+                    onClick={() => handleSwitchToTripTab(isTripTabActive ? "daily" : "triptab")}
                     className={`text-xs px-3.5 py-2 rounded-full font-black tracking-wide shadow-md transition whitespace-nowrap ${
                       isTripTabActive
                         ? "gold-pill text-[#1C2830]"
                         : "bg-[#1C2830]/85 text-amber-300 border border-amber-300/40"
                     }`}
                   >
-                    ✈️ TripTab 旅遊版
+                    {isTripTabActive ? "☕ 返回日常房間" : "✈️ TripTab 旅遊版"}
                   </button>
                 ) : (
                   <button
-                    onClick={() => {
-                      setPaywallMsg("免費日常版提供 2 日試用及 2 個房間 Quota。立即升級即可解鎖 Full Version：開啟 ✈️ TripTab 旅遊版、公數錢包、15國貨幣、IG Story 消費圖表報告及無限房間！");
-                      setShowPaywall(true);
-                    }}
+                    onClick={() => handleSwitchToTripTab("triptab")}
                     className="text-xs bg-[#1C2830]/85 hover:bg-[#1C2830] text-amber-300 px-3.5 py-2 rounded-full font-black backdrop-blur-md transition shadow-md border border-amber-300/40 flex items-center gap-1 whitespace-nowrap"
                   >
                     <span>🔒 升級 TripTab 旅遊版</span>
@@ -1210,7 +1304,7 @@
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-[11px] bg-[#1C2830]/75 text-white px-2.5 py-0.5 rounded-full font-mono font-bold flex items-center gap-1.5 backdrop-blur-md">
                   <span className={`w-2 h-2 rounded-full ${syncStatus === 'synced' ? 'bg-emerald-400' : syncStatus === 'connecting' ? 'bg-amber-300 animate-ping' : 'bg-rose-400'}`}></span>
-                  房號 #{roomId}
+                  {isTripTabActive ? "✈️ 旅遊房" : "☕ 日常房"} #{roomId}
                 </span>
                 {isTripTabActive && (
                   <button
@@ -1219,6 +1313,18 @@
                     className="text-[10px] bg-black/30 text-amber-300 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1 hover:bg-black/45 transition"
                   >
                     <span>🔄 匯率 {rateUpdatedText} (撳此更新)</span>
+                  </button>
+                )}
+                {isTripTabActive && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewTravelRoomTitle("");
+                      setShowNewTravelRoomModal(true);
+                    }}
+                    className="text-[10px] bg-amber-300/90 text-[#1C2830] px-2.5 py-0.5 rounded-full font-black shadow-sm hover:opacity-90 transition"
+                  >
+                    ＋ 開新旅程房
                   </button>
                 )}
               </div>
@@ -1243,7 +1349,7 @@
               ) : (
                 <div className="pt-0.5">
                   <div className="text-xs font-extrabold tracking-widest uppercase text-[#2C4452]">
-                    {isTripTabActive ? "TRIPTAB TRAVEL MODE" : "WELCOME TO COPAY HK"}
+                    {isTripTabActive ? "TRIPTAB TRAVEL ROOM (獨立旅遊帳本)" : "WELCOME TO COPAY HK"}
                   </div>
                   <div className="flex items-center justify-between gap-2">
                     <h1
@@ -1255,7 +1361,6 @@
                     >
                       {groupName}
                     </h1>
-                    {/* 【要求 1 & 8】移除「改名」兩隻字，只留枝筆 ✏️ */}
                     <button
                       type="button"
                       onClick={() => {
@@ -1281,7 +1386,7 @@
               </button>
             </div>
 
-            {/* 總開支摘要卡 (【要求 1】人數無上限，不再顯示 / 4) */}
+            {/* 總開支摘要卡 */}
             <div className="mt-4 glass-dark p-4 rounded-3xl space-y-3">
               <div className="flex justify-between items-end">
                 <div>
@@ -1353,6 +1458,9 @@
                     <h3 className="font-bold text-white text-sm">
                       {isTripTabActive ? "✈️ 新增旅遊開支" : "➕ 新增開支 (HK$)"}
                     </h3>
+                    <span className="text-[10px] text-slate-400">
+                      {isTripTabActive ? "獨立旅遊帳目" : "獨立日常帳目"}
+                    </span>
                   </div>
 
                   <div className="flex gap-2.5">
@@ -1380,7 +1488,6 @@
                     />
                   </div>
 
-                  {/* 【要求 4】已移除 +8%稅 及 +10%稅 按鈕；保留信用卡海外簽帳手續費並連動設定頁百分比 */}
                   <div>
                     <div className="flex justify-between items-center mb-1 ml-1">
                       <label className="text-[10px] text-slate-300 font-bold">
@@ -1635,10 +1742,10 @@
               </>
             )}
 
-            {/* TAB 2: 結算與圖表版面 (【要求 6 & 7】直接抄足圖五 TripTab 嘅結算、IG Story 圓餅圖消費報告、大豪客排行榜及個人墊支結餘) */}
+            {/* TAB 2: 結算與圖表版面 */}
             {activeTab === "settle" && (
               <div className="space-y-4">
-                {/* 1. 自動簡化結算 (連公數多除少補) */}
+                {/* 1. 自動簡化結算 */}
                 <div className="glass-dark p-5 rounded-3xl">
                   <div className="flex justify-between items-center mb-2 border-b border-white/10 pb-3">
                     <div>
@@ -1717,7 +1824,7 @@
                   )}
                 </div>
 
-                {/* 2. 【參照圖五】IG STORY SUMMARY · 消費報告 (連圓餅圖 + 匯出 Excel + 年月日篩選 + 大豪客排行榜) */}
+                {/* 2. IG STORY SUMMARY · 消費報告 */}
                 {isPro ? (
                   <div className="glass-dark p-5 rounded-3xl space-y-5 border border-emerald-400/25">
                     <div className="flex justify-between items-start">
@@ -1726,7 +1833,7 @@
                           📸 IG STORY SUMMARY
                         </span>
                         <h3 className="font-black text-lg text-white">
-                          {groupName} ✈️ · 消費報告
+                          {groupName} {isTripTabActive ? "✈️" : ""} · 消費報告
                         </h3>
                       </div>
                       <button
@@ -1738,21 +1845,23 @@
                       </button>
                     </div>
 
-                    {/* 年 / 月 / 日 篩選器 */}
-                    <div className="grid grid-cols-3 gap-2 pt-1">
-                      <select value={reportYear} onChange={e => setReportYear(e.target.value)} className="text-[11px] bg-white/10 border border-white/15 rounded-xl px-2.5 py-1.5 text-white font-bold focus:outline-none">
-                        <option value="ALL" className="text-slate-900">全部年份</option>
-                        {reportAvailableDates.years.map(y => <option key={y} value={y} className="text-slate-900">{y}年</option>)}
-                      </select>
-                      <select value={reportMonth} onChange={e => setReportMonth(e.target.value)} className="text-[11px] bg-white/10 border border-white/15 rounded-xl px-2.5 py-1.5 text-white font-bold focus:outline-none">
-                        <option value="ALL" className="text-slate-900">全部月份</option>
-                        {reportAvailableDates.months.map(m => <option key={m} value={m} className="text-slate-900">{m}月</option>)}
-                      </select>
-                      <select value={reportDay} onChange={e => setReportDay(e.target.value)} className="text-[11px] bg-white/10 border border-white/15 rounded-xl px-2.5 py-1.5 text-white font-bold focus:outline-none">
-                        <option value="ALL" className="text-slate-900">全部日子</option>
-                        {reportAvailableDates.days.map(d => <option key={d} value={d} className="text-slate-900">{d}日</option>)}
-                      </select>
-                    </div>
+                    {/* 【要求 2】只有「日常版房間」先顯示年/月/日篩選器；「旅遊版房間」因為旅行係一次性，直接隱藏唔分年月日！ */}
+                    {!isTripTabActive && (
+                      <div className="grid grid-cols-3 gap-2 pt-1">
+                        <select value={reportYear} onChange={e => setReportYear(e.target.value)} className="text-[11px] bg-white/10 border border-white/15 rounded-xl px-2.5 py-1.5 text-white font-bold focus:outline-none">
+                          <option value="ALL" className="text-slate-900">全部年份</option>
+                          {reportAvailableDates.years.map(y => <option key={y} value={y} className="text-slate-900">{y}年</option>)}
+                        </select>
+                        <select value={reportMonth} onChange={e => setReportMonth(e.target.value)} className="text-[11px] bg-white/10 border border-white/15 rounded-xl px-2.5 py-1.5 text-white font-bold focus:outline-none">
+                          <option value="ALL" className="text-slate-900">全部月份</option>
+                          {reportAvailableDates.months.map(m => <option key={m} value={m} className="text-slate-900">{m}月</option>)}
+                        </select>
+                        <select value={reportDay} onChange={e => setReportDay(e.target.value)} className="text-[11px] bg-white/10 border border-white/15 rounded-xl px-2.5 py-1.5 text-white font-bold focus:outline-none">
+                          <option value="ALL" className="text-slate-900">全部日子</option>
+                          {reportAvailableDates.days.map(d => <option key={d} value={d} className="text-slate-900">{d}日</option>)}
+                        </select>
+                      </div>
+                    )}
 
                     {/* SVG 圓餅圖 (Donut Chart) + 類別百分比明細 */}
                     <div className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/10">
@@ -1850,7 +1959,7 @@
                 ) : (
                   <div className="glass-dark p-4 rounded-3xl flex items-center justify-between border border-amber-300/30">
                     <div className="text-xs text-slate-200">
-                      📊 <strong>升級 TripTab 旅遊版</strong> 解鎖 IG Story 圓餅圖、大豪客排行榜及匯出 Excel！
+                      📊 <strong>升級付費版</strong> 解鎖 IG Story 圓餅圖、大豪客排行榜及匯出 Excel！
                     </div>
                     <button
                       type="button"
@@ -1865,7 +1974,7 @@
                   </div>
                 )}
 
-                {/* 3. 📊 個人墊支與應付結餘 (包含已刪除但有事件發生嘅成員) */}
+                {/* 3. 📊 個人墊支與應付結餘 */}
                 <div className="glass-dark p-5 rounded-3xl">
                   <h3 className="font-bold text-white text-sm mb-3 border-b border-white/10 pb-2.5">📊 個人墊支與應付結餘</h3>
                   <div className="space-y-2.5">
@@ -1882,7 +1991,6 @@
                       );
                     })}
 
-                    {/* 已刪除但有墊支紀錄嘅成員直接顯示負數 */}
                     {Object.entries(settlement.deletedPayersNegative).map(([delName, negVal]) => (
                       <div key={delName} className="flex justify-between items-center text-sm py-2 border-b border-white/10 last:border-none opacity-85">
                         <span className="font-bold text-rose-300">{delName} <span className="text-[10px] bg-rose-500/20 px-1.5 py-0.5 rounded">已刪成員 (保留紀錄)</span></span>
@@ -1896,29 +2004,57 @@
               </div>
             )}
 
-            {/* TAB 3: 房間管理 (【要求 7】已刪除房間頁面內重複嘅「房間活動類別管理」) */}
+            {/* TAB 3: 房間管理 (【要求 3】日常房間與 TripTab 旅遊房間分開展示、各自獨立 Room ID 絕不混亂) */}
             {activeTab === "rooms" && (
               <div className="space-y-4">
                 <div className="glass-dark p-5 rounded-3xl space-y-3">
                   <div className="flex justify-between items-center">
-                    <h3 className="font-bold text-white text-sm">✨ 建立全新夾錢房間</h3>
+                    <h3 className="font-bold text-white text-sm">✨ 建立全新獨立房間</h3>
                     <span className="text-[10px] bg-white/15 px-2.5 py-0.5 rounded-full text-[#9BE0EE] font-bold">
-                      自動分配 6 位 ID
+                      日常與旅遊帳目完全獨立
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-300 leading-relaxed">
-                    輸入房間名稱（例如「星期五邊爐局」），系統會喺背後自動產生一組獨一無二嘅 6 位代碼，完全唔怕同人撞房！
+                    請選擇要建立「☕ 日常夾錢房間」定係「✈️ TripTab 旅遊房間」，每個房間都會獲分配獨立 6 位代碼，兩邊帳目絕對唔會混埋一齊！
                   </p>
+
+                  {/* 選擇新房間類型 */}
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setNewRoomTypeSelect("daily")}
+                      className={`p-2.5 rounded-2xl border text-left text-xs font-bold transition ${
+                        newRoomTypeSelect === "daily"
+                          ? "bg-[#3A8899]/40 border-[#78C3D2] text-white"
+                          : "bg-white/5 border-white/10 text-slate-400"
+                      }`}
+                    >
+                      ☕ 日常夾錢房 (純港幣)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNewRoomTypeSelect("triptab")}
+                      className={`p-2.5 rounded-2xl border text-left text-xs font-bold transition flex items-center justify-between ${
+                        newRoomTypeSelect === "triptab"
+                          ? "bg-amber-400/25 border-amber-300 text-amber-300"
+                          : "bg-white/5 border-white/10 text-slate-400"
+                      }`}
+                    >
+                      <span>✈️ TripTab 旅遊房</span>
+                      {!isPro && <span>🔒</span>}
+                    </button>
+                  </div>
+
                   <form onSubmit={handleCreateNewRoom} className="flex gap-2 pt-1">
                     <input
                       type="text"
-                      placeholder="輸入新房間名稱 (如：11月飯局)"
+                      placeholder={newRoomTypeSelect === "triptab" ? "輸入旅程名稱 (如：沖繩自駕遊)" : "輸入新房間名稱 (如：11月飯局)"}
                       value={newRoomNameInput}
                       onChange={e => setNewRoomNameInput(e.target.value)}
                       className="flex-1 text-xs bg-white/10 border border-white/15 rounded-2xl px-3.5 py-3 font-bold text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#3A8899]"
                     />
-                    <button type="submit" className="teal-pill text-white text-xs font-bold px-4 rounded-2xl whitespace-nowrap">
-                      {!isPro && myRooms.length >= FREE_ROOM_QUOTA ? "🔒 建立新房" : "＋ 建立新房"}
+                    <button type="submit" className={`text-xs font-black px-4 rounded-2xl whitespace-nowrap ${newRoomTypeSelect === "triptab" ? "gold-pill text-[#1C2830]" : "teal-pill text-white"}`}>
+                      ＋ 建立新房
                     </button>
                   </form>
                 </div>
@@ -1943,15 +2079,19 @@
                   </form>
                 </div>
 
-                <div className="glass-dark p-5 rounded-3xl space-y-3">
+                {/* 分類顯示：1. 日常夾錢房間列表  2. TripTab 旅遊專用房間列表 */}
+                <div className="glass-dark p-5 rounded-3xl space-y-4">
                   <div className="flex justify-between items-center border-b border-white/10 pb-2.5">
-                    <h3 className="font-bold text-white text-sm">📂 我的房間列表</h3>
+                    <h3 className="font-bold text-white text-sm">📂 我的獨立房間列表</h3>
                     <span className="text-[11px] font-bold text-[#78C3D2]">
                       {isPro ? "已解鎖無限房間 ✨" : `免費額度：${myRooms.length} / ${FREE_ROOM_QUOTA}`}
                     </span>
                   </div>
+
+                  {/* 日常房間區塊 */}
                   <div className="space-y-2">
-                    {myRooms.map(r => {
+                    <div className="text-[11px] font-bold text-[#9BE0EE]">☕ COPAY 日常夾錢房間 ({dailyRoomsList.length})</div>
+                    {dailyRoomsList.map(r => {
                       const isCurrent = r.id === roomId;
                       return (
                         <button
@@ -1973,7 +2113,7 @@
                               <span>{r.name}</span>
                             </div>
                             <div className="text-[11px] text-slate-300 font-mono mt-0.5">
-                              房間代碼：#{r.id}
+                              日常房代碼：#{r.id}
                             </div>
                           </div>
                           <span className="text-xs font-bold px-3 py-1 rounded-full bg-white/10">
@@ -1982,6 +2122,67 @@
                         </button>
                       );
                     })}
+                  </div>
+
+                  {/* 旅遊房間區塊 */}
+                  <div className="space-y-2 pt-2 border-t border-white/10">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[11px] font-bold text-amber-300">✈️ TripTab 旅遊專用房間 ({travelRoomsList.length})</span>
+                      {isPro && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNewTravelRoomTitle("");
+                            setShowNewTravelRoomModal(true);
+                          }}
+                          className="text-[10px] text-amber-300 underline font-bold"
+                        >
+                          ＋ 開新旅遊房
+                        </button>
+                      )}
+                    </div>
+                    {travelRoomsList.length === 0 ? (
+                      <div className="text-[11px] text-slate-400 bg-white/5 p-3 rounded-2xl text-center">
+                        暫時未有旅遊專用房間，撳右上角「✈️ TripTab 旅遊版」即可建立獨立旅遊房間！
+                      </div>
+                    ) : (
+                      travelRoomsList.map(r => {
+                        const isCurrent = r.id === roomId;
+                        return (
+                          <button
+                            key={r.id}
+                            type="button"
+                            onClick={() => {
+                              if (!isPro) {
+                                setPaywallMsg("進入「✈️ TripTab 旅遊專用房間」需要升級付費版！");
+                                setShowPaywall(true);
+                                return;
+                              }
+                              setRoomId(r.id);
+                              setActiveTab("expenses");
+                            }}
+                            className={`w-full p-3.5 rounded-2xl border text-left flex justify-between items-center transition ${
+                              isCurrent
+                                ? "bg-amber-400/25 border-amber-300 text-white shadow-md"
+                                : "bg-white/5 border-white/10 text-slate-200 hover:bg-white/10"
+                            }`}
+                          >
+                            <div>
+                              <div className="font-bold text-sm flex items-center gap-2">
+                                {isCurrent && <span className="w-2 h-2 rounded-full bg-amber-300"></span>}
+                                <span>✈️ {r.name}</span>
+                              </div>
+                              <div className="text-[11px] text-amber-200/80 font-mono mt-0.5">
+                                旅遊房代碼：#{r.id}
+                              </div>
+                            </div>
+                            <span className="text-xs font-bold px-3 py-1 rounded-full bg-amber-400/20 text-amber-200">
+                              {isCurrent ? "使用中" : "切換"}
+                            </span>
+                          </button>
+                        );
+                      })
+                    )}
                   </div>
                 </div>
               </div>
@@ -2005,6 +2206,9 @@
                         type="button"
                         onClick={() => {
                           setIsPro(false);
+                          if (dailyRoomsList.length > 0) {
+                            setRoomId(dailyRoomsList[0].id);
+                          }
                           setRoomMode("daily");
                           setCurrency("HKD");
                         }}
@@ -2015,7 +2219,7 @@
                     )}
                   </div>
                   <p className="text-[11px] text-slate-300 leading-relaxed">
-                    免費日常版提供 2 日試用及 2 個房間額度；付費解鎖 <strong>TripTab 旅遊記帳版</strong> 即可睇到 Full Version（啟用公數錢包、15國貨幣匯率、自訂信用卡手續費及 IG Story 消費圖表報告）！
+                    日常項目與旅遊項目使用<strong>唔同嘅獨立房間代碼</strong>，數據完全分開唔會混亂！升級付費版即可無限開立獨立旅遊房間。
                   </p>
                   <div className="grid grid-cols-2 gap-2.5 pt-1">
                     <button
@@ -2023,8 +2227,8 @@
                       onClick={() => handleSwitchToTripTab("daily")}
                       className={`p-3 rounded-2xl border text-left transition ${!isTripTabActive ? 'bg-[#3A8899]/40 border-[#78C3D2] text-white' : 'bg-white/5 border-white/10 text-slate-300'}`}
                     >
-                      <div className="font-bold text-xs mb-0.5">COPAY 日常版</div>
-                      <div className="text-[10px] opacity-80">免費 2 日試用 · 飯局夾租</div>
+                      <div className="font-bold text-xs mb-0.5">☕ 日常夾錢房間</div>
+                      <div className="text-[10px] opacity-80">獨立日常帳目 · 年月日報告</div>
                     </button>
                     <button
                       type="button"
@@ -2032,10 +2236,10 @@
                       className={`p-3 rounded-2xl border text-left transition ${isTripTabActive ? 'bg-amber-400/25 border-amber-300 text-white' : 'bg-white/5 border-white/10 text-slate-300'}`}
                     >
                       <div className="font-bold text-xs mb-0.5 flex items-center justify-between">
-                        <span>✈️ TripTab 旅遊版</span>
+                        <span>✈️ TripTab 旅遊房</span>
                         {!isPro && <span>🔒 按此解鎖</span>}
                       </div>
-                      <div className="text-[10px] opacity-80">公數錢包 · 15國貨幣</div>
+                      <div className="text-[10px] opacity-80">獨立新房 · 公數與外幣</div>
                     </button>
                   </div>
 
@@ -2043,7 +2247,7 @@
                     <button
                       type="button"
                       onClick={() => {
-                        setPaywallMsg("立即解鎖即可睇到 Full Version（包含 ✈️ TripTab 旅遊版、公數錢包、📊 IG Story 消費報告及無限房間）！");
+                        setPaywallMsg("立即解鎖即可睇到 Full Version（包含開立獨立 ✈️ TripTab 旅遊房、公數錢包、📊 IG Story 消費報告及無限房間）！");
                         setShowPaywall(true);
                       }}
                       className="w-full py-2.5 rounded-2xl gold-pill text-[#1C2830] font-black text-xs shadow-md"
@@ -2075,10 +2279,10 @@
                   </p>
                 </div>
 
-                {/* 【要求 1 & 8】參與成員管理：日常免費版與旅遊版人數均無上限！刪除「改名」兩隻字，只留枝筆 ✏️ */}
+                {/* 參與成員管理 */}
                 <div className="glass-dark p-5 rounded-3xl space-y-3.5">
                   <div className="flex justify-between items-center border-b border-white/10 pb-2.5">
-                    <h3 className="font-bold text-white text-sm">👥 參與成員 ({members.length}人)</h3>
+                    <h3 className="font-bold text-white text-sm">👥 當前房間成員 ({members.length}人)</h3>
                   </div>
                   <div className="flex gap-2">
                     <input type="text" placeholder="新增成員名字" value={newMemberName} onChange={e => setNewMemberName(e.target.value)} className="flex-1 text-sm bg-white/10 border border-white/15 rounded-2xl px-4 py-2.5 text-white placeholder-slate-400 focus:outline-none" />
@@ -2088,7 +2292,7 @@
                   {editingMemberName && (
                     <div className="bg-black/35 p-3 rounded-2xl border border-[#78C3D2]/40 space-y-2">
                       <div className="text-[10px] font-bold text-[#9BE0EE]">
-                        ✏️ 將「{editingMemberName}」改名為（所有歷史單據會自動同步）：
+                        ✏️ 將「{editingMemberName}」改名為（此房間所有單據會自動同步）：
                       </div>
                       <div className="flex gap-2">
                         <input
@@ -2180,10 +2384,9 @@
                   </div>
                 </div>
 
-                {/* 【要求 3 & 4】TripTab 旅遊版專屬：自訂信用卡手續費百分比 + 點選預設貨幣及修改唱錢匯率 */}
+                {/* TripTab 旅遊版專屬：自訂信用卡手續費百分比 + 點選預設貨幣及修改唱錢匯率 */}
                 {isTripTabActive && (
                   <>
-                    {/* 【要求 4】信用卡海外簽帳手續費百分比設定 */}
                     <div className="glass-dark p-5 rounded-3xl space-y-2.5 border border-amber-300/30">
                       <div className="flex justify-between items-center">
                         <div>
@@ -2205,7 +2408,6 @@
                       </div>
                     </div>
 
-                    {/* 【要求 3】TripTab 唱錢匯率鎖定 + 點選設為記帳預設貨幣 */}
                     <div className="glass-dark p-5 rounded-3xl space-y-3.5 border border-amber-300/30">
                       <div className="flex justify-between items-center border-b border-white/10 pb-2.5">
                         <div>
@@ -2271,7 +2473,7 @@
             )}
           </div>
 
-          {/* 底部 4 格方形磨砂玻璃導航欄 (已移除獨立消費報告分頁，整合入結算頁) */}
+          {/* 底部 4 格方形磨砂玻璃導航欄 */}
           <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto px-5 pb-4 pt-2 z-40 bg-gradient-to-t from-[#141C22] via-[#141C22]/90 to-transparent">
             <div className="grid grid-cols-4 gap-2.5">
               <button
@@ -2317,6 +2519,58 @@
               </button>
             </div>
           </div>
+
+          {/* ✈️ 【要求 3 新增】建立全新獨立 TripTab 旅遊房間彈窗 (確保日常帳目與旅遊帳目 100% 獨立分開) */}
+          {showNewTravelRoomModal && (
+            <div className="fixed inset-0 bg-black/65 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <div className="glass-dark max-w-sm w-full rounded-[2rem] p-6 shadow-2xl space-y-4 border border-amber-300/40">
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-2.5">
+                    <BrandLogo isTripTab={true} size="w-10 h-10" />
+                    <div>
+                      <h3 className="font-black text-base text-amber-300">✈️ 開立獨立 TripTab 旅遊房</h3>
+                      <p className="text-[11px] text-slate-300">與日常房間完全分開，自動分配新 6 位代碼</p>
+                    </div>
+                  </div>
+                  <button onClick={() => setShowNewTravelRoomModal(false)} className="text-slate-300 hover:text-white text-xl font-bold leading-none">×</button>
+                </div>
+
+                <p className="text-xs text-slate-200 leading-relaxed bg-white/5 p-3 rounded-2xl border border-white/10">
+                  💡 為避免日常開支同旅行開支混亂，每次去旅行都會為你建立一個<strong>全新獨立嘅旅遊專屬房間</strong>（付費用戶可無限開房）！
+                </p>
+
+                <form onSubmit={handleConfirmCreateTravelRoom} className="space-y-3">
+                  <div>
+                    <label className="block text-[10px] text-slate-300 font-bold mb-1">輸入今次旅行房間名稱：</label>
+                    <input
+                      type="text"
+                      placeholder="例如：沖繩自駕遊 2027 / 東京之旅"
+                      value={newTravelRoomTitle}
+                      onChange={e => setNewTravelRoomTitle(e.target.value)}
+                      autoFocus
+                      className="w-full text-sm bg-white/95 text-slate-900 font-extrabold px-4 py-3 rounded-2xl focus:outline-none"
+                      required
+                    />
+                  </div>
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setShowNewTravelRoomModal(false)}
+                      className="flex-1 py-3 rounded-2xl bg-white/15 text-white text-xs font-bold"
+                    >
+                      取消
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex-1 py-3 rounded-2xl gold-pill text-[#1C2830] text-xs font-black shadow-lg"
+                    >
+                      🚀 立即建立旅遊房
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
 
           {/* 🏦 公數錢包管理彈窗 */}
           {showPoolModal && (
@@ -2449,10 +2703,10 @@
               <div className="glass-dark max-w-sm w-full rounded-[2rem] p-6 shadow-2xl space-y-4 border border-amber-300/30">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-2.5">
-                    <CopayLogo size="w-9 h-9" />
+                    <BrandLogo isTripTab={true} size="w-10 h-10" />
                     <div>
                       <h2 className="font-black text-base text-white">解鎖 COPAY × TripTab 完整版</h2>
-                      <p className="text-[11px] text-amber-300 font-bold">免費日常版 2 日試用 · 付費解鎖 Full Version</p>
+                      <p className="text-[11px] text-amber-300 font-bold">日常與旅遊獨立分房 · 付費解鎖無限房間</p>
                     </div>
                   </div>
                   <button onClick={() => setShowPaywall(false)} className="text-slate-300 hover:text-white text-xl font-bold leading-none">×</button>
@@ -2463,7 +2717,7 @@
                 </div>
 
                 <div className="space-y-2 text-xs text-slate-200 bg-white/5 p-3.5 rounded-2xl border border-white/10">
-                  <div className="flex items-center gap-2"><span>✈️</span> <strong>解鎖 TripTab 旅遊版</strong>（15國貨幣一鍵設為預設）</div>
+                  <div className="flex items-center gap-2"><span>✈️</span> <strong>獨立開立 TripTab 旅遊房間</strong>（與日常帳目 100% 分開）</div>
                   <div className="flex items-center gap-2"><span>🏦</span> <strong>公數錢包管理 (連日期記錄 + 防超支保護)</strong></div>
                   <div className="flex items-center gap-2"><span>📸</span> <strong>IG Story 圓餅圖消費報告 + 大豪客排行榜 + 匯出 Excel</strong></div>
                   <div className="flex items-center gap-2"><span>💳</span> <strong>自訂信用卡海外簽帳手續費 %</strong> ＋ 無限房間額度</div>
@@ -2477,7 +2731,7 @@
                   >
                     <div className="text-[10px] font-bold text-amber-300">單次旅行買斷</div>
                     <div className="text-base font-black text-white">HK$ 28</div>
-                    <div className="text-[10px] text-slate-300">撳此即睇 Full Version</div>
+                    <div className="text-[10px] text-slate-300">撳此即開獨立旅遊房</div>
                   </button>
                   <button
                     type="button"
@@ -2486,7 +2740,7 @@
                   >
                     <div className="text-[10px] font-black text-[#1C2830]">最抵玩 🔥</div>
                     <div className="text-base font-black">HK$ 18 <span className="text-xs font-bold">/月</span></div>
-                    <div className="text-[10px] font-semibold opacity-85">撳此即睇 Full Version</div>
+                    <div className="text-[10px] font-semibold opacity-85">撳此即開獨立旅遊房</div>
                   </button>
                 </div>
 
