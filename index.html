@@ -118,7 +118,7 @@
     const CHART_COLORS = ["#10B981", "#F59E0B", "#3B82F6", "#EC4899", "#8B5CF6", "#14B8A6", "#F97316"];
 
     const DEFAULT_MEMBERS = ["我", "Alex", "Chloe", "Sam"];
-    // 【修改 1】預設活動類別只保留「食飯、車費、團購」3 個，其他由用戶自行新增
+    // 預設活動類別只保留「食飯、車費、團購」3 個，其他由用戶自行新增
     const DEFAULT_CATEGORIES_DAILY = ["🍱 食飯", "🚕 車費", "📦 團購"];
     const DEFAULT_CATEGORIES_TRAVEL = ["🍱 食飯", "🚕 車費", "📦 團購"];
     const FREE_ROOM_QUOTA = 2;
@@ -266,8 +266,12 @@
       const [customRates, setCustomRates] = useState({});
       const [paidMap, setPaidMap] = useState({});
 
-      // 【修改 3】控制「最近單據明細」預設最多顯示 3 筆，點擊後展開全部
+      // 日常版控制「最近單據明細」預設最多顯示 3 筆，點擊後展開全部
       const [showAllExpenses, setShowAllExpenses] = useState(false);
+
+      // 旅遊版專屬：控制記帳表單收起/展開，以及每日分組 (Day 1, Day 2...) 摺疊狀態
+      const [isTravelFormCollapsed, setIsTravelFormCollapsed] = useState(false);
+      const [collapsedDays, setCollapsedDays] = useState({});
 
       const [cardFeePercent, setCardFeePercent] = useState(1.95);
 
@@ -317,7 +321,7 @@
       const dailyRoomsList = useMemo(() => myRooms.filter(r => r.mode !== "triptab"), [myRooms]);
       const travelRoomsList = useMemo(() => myRooms.filter(r => r.mode === "triptab"), [myRooms]);
 
-      // 動態活動類別清單 (預設只有 3 個：食飯、車費、團購)
+      // 動態活動類別清單
       const activeCategories = useMemo(() => {
         if (Array.isArray(customCategories) && customCategories.length > 0) {
           return customCategories;
@@ -392,6 +396,8 @@
         setEditingExpId(null);
         setEditingMemberName(null);
         setShowAllExpenses(false);
+        setIsTravelFormCollapsed(false);
+        setCollapsedDays({});
         setReportYear("ALL");
         setReportMonth("ALL");
         setReportDay("ALL");
@@ -981,6 +987,42 @@
       }, [expenses, rates]);
 
       // ==========================================
+      // 📅 【要求 1 & 4】旅遊版第一頁專屬：按日期 (Day 1, Day 2...) 分組計算每日用咗幾多錢（不顯示人均）
+      // ==========================================
+      const travelDailyGroups = useMemo(() => {
+        if (!expenses || expenses.length === 0) return [];
+        // 找出所有不重複日期，由舊至新排以計算 Day 1, Day 2...
+        const uniqueDatesAsc = Array.from(new Set(expenses.map(e => e.date || "未知日期"))).sort();
+        const dayIndexMap = {};
+        uniqueDatesAsc.forEach((d, idx) => {
+          dayIndexMap[d] = idx + 1;
+        });
+
+        // 顯示時按最新日期排上面 (Day 3 -> Day 2 -> Day 1)
+        const uniqueDatesDesc = [...uniqueDatesAsc].reverse();
+        return uniqueDatesDesc.map(d => {
+          const items = expenses.filter(e => (e.date || "未知日期") === d);
+          const dayTotalHKD = items.reduce((sum, e) => sum + toHKD(Number(e.amount), e.currency), 0);
+          const parts = d.split("-");
+          const shortDate = parts.length === 3 ? `${parts[1]}/${parts[2]}` : d;
+          return {
+            date: d,
+            shortDate,
+            dayNum: dayIndexMap[d] || 1,
+            items,
+            dayTotalHKD
+          };
+        });
+      }, [expenses, rates]);
+
+      const toggleDayCollapse = (dateKey) => {
+        setCollapsedDays(prev => ({
+          ...prev,
+          [dateKey]: !prev[dateKey]
+        }));
+      };
+
+      // ==========================================
       // ⚡ 結算與重算邏輯
       // ==========================================
       const settlement = useMemo(() => {
@@ -1229,10 +1271,181 @@
 
       const paidCount = settlement.transactions.filter(t => !!paidMap[t.key]).length;
 
-      // 【修改 3】決定「最近單據明細」顯示幾多筆（預設最多 3 筆，點擊後顯示全部）
+      // 日常版決定「最近單據明細」顯示幾多筆（預設最多 3 筆，點擊後顯示全部）
       const visibleExpenses = useMemo(() => {
         return showAllExpenses ? expenses : expenses.slice(0, 3);
       }, [expenses, showAllExpenses]);
+
+      // 渲染單筆開支卡片共用函數
+      const renderExpenseItemCard = (exp) => {
+        const isPayerDeleted = exp.payer !== POOL_PAYER_KEY && !members.includes(exp.payer);
+        return (
+          <div key={exp.id} className="glass-dark p-4 rounded-3xl flex flex-col gap-2">
+            {editingExpId === exp.id ? (
+              <div className="space-y-2.5 bg-black/30 p-3 rounded-2xl">
+                <div className="text-[10px] font-bold text-[#78C3D2]">✏️ 修改單據名稱與金額</div>
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={e => setEditTitle(e.target.value)}
+                  className="w-full text-sm bg-white/90 rounded-xl px-3 py-2 font-bold text-slate-900 focus:outline-none"
+                />
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    pattern="[0-9]*"
+                    step="any"
+                    value={editAmount}
+                    onChange={e => setEditAmount(e.target.value)}
+                    className="flex-1 text-sm bg-white/90 rounded-xl px-3 py-2 font-bold text-slate-900 focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => saveEditExpense(exp)}
+                    className="teal-pill text-white text-xs font-bold px-4 rounded-xl"
+                  >
+                    儲存
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditingExpId(null)}
+                    className="bg-white/20 text-white text-xs font-bold px-3 rounded-xl"
+                  >
+                    取消
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] bg-white/15 text-slate-200 px-2 py-1 rounded-lg font-bold">{exp.category}</span>
+                    <span className="font-bold text-white text-sm">{exp.title}</span>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-black text-amber-300 text-sm">
+                      {(!exp.currency || exp.currency === "HKD") ? `HK$ ${Number(exp.amount).toLocaleString()}` : `${exp.currency} ${Number(exp.amount).toLocaleString()}`}
+                    </p>
+                    {exp.currency && exp.currency !== "HKD" && (
+                      <p className="text-[10px] text-slate-300">≈ HK$ {Math.round(toHKD(exp.amount, exp.currency)).toLocaleString()}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="text-[11px] text-slate-300 mt-0.5">
+                  <p>
+                    <span className={`font-bold ${exp.payer === POOL_PAYER_KEY ? "text-amber-300" : isPayerDeleted ? "text-rose-300" : "text-[#78C3D2]"}`}>
+                      {exp.payer}{isPayerDeleted ? " (已刪成員·負數記帳)" : ""}
+                    </span> 支付 • {(exp.splitWith || []).filter(m => members.includes(m)).length}人夾 ({(exp.splitWith || []).filter(m => members.includes(m)).join(", ")})
+                  </p>
+                </div>
+                <div className="flex justify-between items-center pt-2 mt-1 border-t border-white/10">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingExpId(exp.id);
+                      setEditTitle(exp.title);
+                      setEditAmount(String(exp.amount));
+                    }}
+                    className="text-[10px] text-[#9BE0EE] font-bold bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full transition"
+                  >
+                    ✏️ 修改單據
+                  </button>
+                  <span className="text-[10px] text-slate-400">📅 {exp.date}</span>
+                  <button
+                    type="button"
+                    onClick={() => setDeleteConfirmExp(exp)}
+                    className="text-[10px] text-rose-300 font-bold bg-rose-500/20 hover:bg-rose-500/30 px-3 py-1 rounded-full transition"
+                  >
+                    🗑️ 刪除
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        );
+      };
+
+      // 渲染結算卡片共用函數 (【要求 2】將「自動簡化結算」改為「自動結算（連公數多除小補）」)
+      const renderSettlementCard = () => (
+        <div className="glass-dark p-5 rounded-3xl">
+          <div className="flex justify-between items-center mb-2 border-b border-white/10 pb-3">
+            <div>
+              <h3 className="font-bold text-white text-sm">
+                ⚡ {isTripTabActive ? "自動結算（連公數多除小補）" : "自動對沖結算清單 (HK$)"}
+              </h3>
+            </div>
+            <button onClick={copyToWhatsApp} className="teal-pill text-white text-[11px] px-3.5 py-1.5 rounded-full font-bold whitespace-nowrap">
+              📲 複製 WhatsApp 清單
+            </button>
+          </div>
+
+          {settlement.transactions.length === 0 ? (
+            <div className="text-center py-8 text-slate-300 text-xs bg-white/5 rounded-2xl mt-3">
+              🌿 目前收支平衡，互不相欠！
+            </div>
+          ) : (
+            <div className="space-y-2.5 mt-3">
+              {settlement.transactions.map((t) => {
+                const isPaid = !!paidMap[t.key];
+                return (
+                  <div
+                    key={t.key}
+                    className={`flex items-center justify-between p-3.5 rounded-2xl border transition-all ${
+                      isPaid
+                        ? "bg-emerald-900/30 border-emerald-400/30 opacity-70"
+                        : "bg-white/10 border-white/10"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="w-6 h-6 rounded-full bg-amber-400/20 text-amber-300 flex items-center justify-center text-xs">💸</span>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className={`font-bold text-sm ${isPaid ? "line-through text-slate-400" : "text-white"}`}>
+                          {t.from}
+                        </span>
+                        <span className="text-xs text-slate-300">➡️ 過數畀</span>
+                        <span className={`font-bold text-sm ${isPaid ? "line-through text-slate-400" : "text-[#78C3D2]"}`}>
+                          {t.to}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2.5">
+                      <span className={`font-black text-sm ${isPaid ? "line-through text-emerald-300" : "text-amber-300"}`}>
+                        HK$ {t.amount.toLocaleString()}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => toggleSettlementPaid(t.key)}
+                        className={`w-8 h-8 rounded-full text-sm font-black flex items-center justify-center transition shadow-md ${
+                          isPaid
+                            ? "bg-emerald-500 text-white"
+                            : "bg-white/15 border border-emerald-400/50 text-emerald-300 hover:bg-emerald-500 hover:text-white"
+                        }`}
+                      >
+                        ✓
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {paidCount > 0 && (
+                <div className="flex justify-between items-center pt-2 px-1 text-[11px] text-slate-300">
+                  <span>已完成 {paidCount} / {settlement.transactions.length} 筆過數</span>
+                  <button
+                    type="button"
+                    onClick={resetAllPaidStatus}
+                    className="text-amber-300 font-bold hover:underline"
+                  >
+                    重設狀態
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      );
 
       let cumulativePercent = 0;
       const radius = 38;
@@ -1371,16 +1584,16 @@
               </button>
             </div>
 
-            {/* 總開支摘要卡 */}
+            {/* 總開支摘要卡 (【要求 3】已移除「人均約 HK$ XXX」，只顯示「共 X 筆消費」) */}
             <div className="mt-4 glass-dark p-4 rounded-3xl space-y-3">
               <div className="flex justify-between items-end">
                 <div>
                   <p className="text-[11px] text-slate-300 mb-0.5">
-                    總開支 (港幣 HK$)
+                    {isTripTabActive ? "旅程總消費折合 (HKD)" : "總開支 (港幣 HK$)"}
                   </p>
                   <p className="text-3xl font-black tracking-tight text-white">HK$ {Math.round(totalHKD).toLocaleString()}</p>
                   <p className="text-[10px] text-slate-300 mt-0.5">
-                    人均約 HK$ {members.length > 0 ? Math.round(totalHKD / members.length).toLocaleString() : 0} • 共 {expenses.length} 筆消費
+                    共 {expenses.length} 筆消費
                   </p>
                 </div>
                 <div className="text-right">
@@ -1435,403 +1648,315 @@
           {/* 主要內容區 */}
           <div className="px-5 flex-1 space-y-4 relative z-10">
             
-            {/* TAB 1: 新增開支 ＋ 【位置互換】自動對沖結算清單 */}
+            {/* ================================================================= */}
+            {/* TAB 1: 第一頁 (旅遊版：新開支 + 每日用咗幾多錢；日常版：新開支 + 自動對沖結算清單) */}
+            {/* ================================================================= */}
             {activeTab === "expenses" && (
               <>
-                <form onSubmit={handleAddExpense} className="glass-dark p-5 rounded-3xl space-y-3.5">
-                  <div className="flex justify-between items-center border-b border-white/10 pb-2.5">
-                    <h3 className="font-bold text-white text-sm">
-                      {isTripTabActive ? "✈️ 新增旅遊開支" : "➕ 新增開支 (HK$)"}
+                {/* 【要求 5】旅遊版刪除 Trip Timeline 同「按旅程日數自動分組」，直接將「✍️ 記低一筆新開支 · 預設貨幣：XXX」搬上呢個位 */}
+                {isTripTabActive && (
+                  <div className="flex justify-between items-center px-1 pt-1">
+                    <h3 className="font-black text-white text-sm flex items-center gap-1.5">
+                      <span>✍️ 記低一筆新開支 · 預設貨幣：<span className="text-amber-300">{currency}</span></span>
                     </h3>
-                    <span className="text-[10px] text-slate-400">
-                      {isTripTabActive ? "獨立旅遊帳目" : "獨立日常帳目"}
-                    </span>
-                  </div>
-
-                  <div className="flex gap-2.5">
-                    <div className="flex-1">
-                      <label className="block text-[10px] text-slate-300 font-bold mb-1 ml-1">類別</label>
-                      <select value={category} onChange={e => setCategory(e.target.value)} className="w-full text-xs bg-white/10 border border-white/15 rounded-2xl px-3 py-2.5 text-white font-medium focus:outline-none focus:ring-2 focus:ring-[#3A8899]">
-                        {activeCategories.map(opt => <option key={opt} value={opt} className="text-slate-900">{opt}</option>)}
-                      </select>
-                    </div>
-                    <div className="flex-1">
-                      <label className="block text-[10px] text-slate-300 font-bold mb-1 ml-1">單據日期</label>
-                      <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full text-xs bg-white/10 border border-white/15 rounded-2xl px-3 py-2.5 text-white font-medium focus:outline-none focus:ring-2 focus:ring-[#3A8899]" required />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] text-slate-300 font-bold mb-1 ml-1">單據 / 項目名稱</label>
-                    <input
-                      type="text"
-                      placeholder={isTripTabActive ? "例如: 敘敘苑燒肉、租車油錢、Donki手信" : "例如: 譚仔午餐、的士車費、網購團購"}
-                      value={title}
-                      onChange={e => setTitle(e.target.value)}
-                      className="w-full text-sm bg-white/10 border border-white/15 rounded-2xl px-4 py-2.5 text-white font-medium focus:outline-none focus:ring-2 focus:ring-[#3A8899] placeholder-slate-400"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <div className="flex justify-between items-center mb-1 ml-1">
-                      <label className="text-[10px] text-slate-300 font-bold">
-                        {isTripTabActive ? `消費金額 (${currency})` : "消費金額 (港幣 HK$)"}
-                      </label>
-                    </div>
-
-                    <div className="flex gap-2">
-                      {!isTripTabActive && (
-                        <div className="bg-white/10 border border-white/15 rounded-2xl px-3.5 py-2.5 flex items-center justify-center font-black text-sm text-[#78C3D2]">
-                          HK$
-                        </div>
-                      )}
-                      <input
-                        type="number"
-                        inputMode="decimal"
-                        pattern="[0-9]*"
-                        step="any"
-                        placeholder="輸入金額"
-                        value={amount}
-                        onChange={e => setAmount(e.target.value)}
-                        className={`flex-1 text-base bg-white/10 border rounded-2xl px-4 py-2.5 font-bold text-white focus:outline-none focus:ring-2 placeholder-slate-400 ${
-                          isExceedingPoolBalance ? "border-rose-400 focus:ring-rose-500" : "border-white/15 focus:ring-[#3A8899]"
-                        }`}
-                        required
-                      />
-                      {isTripTabActive && (
-                        <select
-                          value={currency}
-                          onChange={e => handleSelectDefaultCurrency(e.target.value)}
-                          className="gold-pill rounded-2xl px-3.5 py-2.5 text-xs font-black text-[#1C2830] focus:outline-none"
-                        >
-                          {sortedCurrencyKeys.map(c => <option key={c} value={c} className="text-slate-900">{c}</option>)}
-                        </select>
-                      )}
-                    </div>
-
-                    {isTripTabActive && (
-                      <div className="flex items-center justify-between mt-2 px-1">
-                        <label className="flex items-center gap-1.5 text-[11px] text-slate-200 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={addCardFee}
-                            onChange={e => setAddCardFee(e.target.checked)}
-                            className="rounded accent-amber-400"
-                          />
-                          <span>💳 信用卡海外簽帳 (+{cardFeePercent}% 手續費)</span>
-                        </label>
-                        {amount && currency !== "HKD" && (
-                          <span className="text-[11px] font-bold text-amber-300">
-                            ≈ HK$ {currentInputHKD.toFixed(1)}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* 邊個墊支先？ */}
-                  <div className="text-xs">
-                    <div className="flex justify-between items-center mb-1.5 mx-1">
-                      <label className="text-[10px] text-slate-300 font-bold">邊個墊支 / 出錢？</label>
-                      {isTripTabActive && (
-                        <button
-                          type="button"
-                          onClick={() => setShowPoolModal(true)}
-                          className="text-[10px] text-amber-300 font-bold hover:underline"
-                        >
-                          🏦 公數餘額: HK$ {poolStats.remainingPoolHKD.toLocaleString()} (管理)
-                        </button>
-                      )}
-                    </div>
-                    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-                      {isTripTabActive && (
-                        <button
-                          type="button"
-                          onClick={() => setPayer(POOL_PAYER_KEY)}
-                          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
-                            payer === POOL_PAYER_KEY
-                              ? "gold-pill text-[#1C2830] border-amber-200"
-                              : "bg-amber-400/15 text-amber-300 border-amber-300/30 hover:bg-amber-400/25"
-                          }`}
-                        >
-                          {POOL_PAYER_KEY} (剩 HK${Math.round(poolStats.remainingPoolHKD)})
-                        </button>
-                      )}
-                      {members.map(m => (
-                        <button key={m} type="button" onClick={() => setPayer(m)} className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${payer === m ? 'teal-pill text-white' : 'bg-white/10 text-slate-300 hover:bg-white/20'}`}>
-                          {m}
-                        </button>
-                      ))}
-                    </div>
-
-                    {isExceedingPoolBalance && (
-                      <div className="mt-2 bg-rose-500/25 border border-rose-400/50 rounded-2xl p-2.5 text-[11px] text-rose-200 flex items-center justify-between gap-2">
-                        <div>
-                          🚫 <strong>超出公數餘額！</strong>呢筆單折合 <strong>HK$ {currentInputHKD.toFixed(1)}</strong>，但公數錢包只剩 <strong>HK$ {poolStats.remainingPoolHKD.toFixed(1)}</strong>。
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setShowPoolModal(true)}
-                          className="bg-rose-500 text-white font-bold px-2.5 py-1 rounded-xl whitespace-nowrap text-[10px] shadow"
-                        >
-                          即刻加碼注資
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* 邊個夾份？ */}
-                  <div className="text-xs">
-                    <div className="flex justify-between items-center mb-1.5 mx-1">
-                      <label className="text-[10px] text-slate-300 font-bold">邊個夾份？</label>
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {members.map(m => {
-                        const isSelected = splitWith.includes(m);
-                        return (
-                          <button key={m} type="button" onClick={() => {
-                            if (isSelected) {
-                              if (splitWith.length > 1) setSplitWith(splitWith.filter(x => x !== m));
-                            } else {
-                              setSplitWith([...splitWith, m]);
-                            }
-                          }} className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all border ${isSelected ? 'bg-[#3A8899]/40 border-[#78C3D2] text-white font-bold' : 'bg-transparent border-white/15 text-slate-400 opacity-60'}`}>
-                            {isSelected ? '✓ ' : ''}{m}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                  
-                  <div className="pt-1">
-                    <button
-                      type="submit"
-                      disabled={isExceedingPoolBalance}
-                      className={`w-full font-bold py-3.5 rounded-full transition-all text-sm tracking-wide ${
-                        isExceedingPoolBalance
-                          ? "bg-rose-500/40 text-rose-200 cursor-not-allowed border border-rose-400/40"
-                          : isTripTabActive
-                          ? "gold-pill text-[#1C2830] active:scale-98"
-                          : "teal-pill text-white active:scale-98"
-                      }`}
-                    >
-                      {isExceedingPoolBalance
-                        ? "🚫 公數錢包餘額不足（請先注資或改個人墊支）"
-                        : "＋ 同步加入開支"}
-                    </button>
-                  </div>
-                </form>
-
-                {/* 【修改 2：位置互換】將「⚡ 自動對沖結算清單」直接放喺新增開支下面！ */}
-                <div className="glass-dark p-5 rounded-3xl">
-                  <div className="flex justify-between items-center mb-2 border-b border-white/10 pb-3">
-                    <div>
-                      <h3 className="font-bold text-white text-sm">
-                        ⚡ {isTripTabActive ? "自動簡化結算 (連公數多除少補)" : "自動對沖結算清單 (HK$)"}
-                      </h3>
-                    </div>
-                    <button onClick={copyToWhatsApp} className="teal-pill text-white text-[11px] px-3.5 py-1.5 rounded-full font-bold whitespace-nowrap">
-                      📲 複製 WhatsApp 清單
-                    </button>
-                  </div>
-
-                  {settlement.transactions.length === 0 ? (
-                    <div className="text-center py-8 text-slate-300 text-xs bg-white/5 rounded-2xl mt-3">
-                      🌿 目前收支平衡，互不相欠！
-                    </div>
-                  ) : (
-                    <div className="space-y-2.5 mt-3">
-                      {settlement.transactions.map((t) => {
-                        const isPaid = !!paidMap[t.key];
-                        return (
-                          <div
-                            key={t.key}
-                            className={`flex items-center justify-between p-3.5 rounded-2xl border transition-all ${
-                              isPaid
-                                ? "bg-emerald-900/30 border-emerald-400/30 opacity-70"
-                                : "bg-white/10 border-white/10"
-                            }`}
-                          >
-                            <div className="flex items-center gap-2">
-                              <span className="w-6 h-6 rounded-full bg-amber-400/20 text-amber-300 flex items-center justify-center text-xs">💸</span>
-                              <div className="flex items-center gap-1.5 flex-wrap">
-                                <span className={`font-bold text-sm ${isPaid ? "line-through text-slate-400" : "text-white"}`}>
-                                  {t.from}
-                                </span>
-                                <span className="text-xs text-slate-300">➡️ 過數畀</span>
-                                <span className={`font-bold text-sm ${isPaid ? "line-through text-slate-400" : "text-[#78C3D2]"}`}>
-                                  {t.to}
-                                </span>
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-2.5">
-                              <span className={`font-black text-sm ${isPaid ? "line-through text-emerald-300" : "text-amber-300"}`}>
-                                HK$ {t.amount.toLocaleString()}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => toggleSettlementPaid(t.key)}
-                                className={`w-8 h-8 rounded-full text-sm font-black flex items-center justify-center transition shadow-md ${
-                                  isPaid
-                                    ? "bg-emerald-500 text-white"
-                                    : "bg-white/15 border border-emerald-400/50 text-emerald-300 hover:bg-emerald-500 hover:text-white"
-                                }`}
-                              >
-                                ✓
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
-
-                      {paidCount > 0 && (
-                        <div className="flex justify-between items-center pt-2 px-1 text-[11px] text-slate-300">
-                          <span>已完成 {paidCount} / {settlement.transactions.length} 筆過數</span>
-                          <button
-                            type="button"
-                            onClick={resetAllPaidStatus}
-                            className="text-amber-300 font-bold hover:underline"
-                          >
-                            重設狀態
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
-
-            {/* TAB 2: 【位置互換】最近單據明細（預設最多 3 筆 + 撳右邊展開全部）＋ 消費圖表報告 */}
-            {activeTab === "settle" && (
-              <div className="space-y-4">
-                {/* 1. 【修改 2 & 3】最近單據明細（預設最多顯示 3 筆，右邊按鈕顯示全部幾多筆，撳落去展開全部） */}
-                <div className="space-y-2.5">
-                  <div className="flex justify-between items-center px-2">
-                    <span className="font-bold text-slate-200 text-xs">最近單據明細</span>
                     <button
                       type="button"
-                      onClick={() => setShowAllExpenses(prev => !prev)}
-                      className="font-bold bg-white/15 hover:bg-white/25 text-[#9BE0EE] px-3 py-1 rounded-full text-[11px] transition flex items-center gap-1 shadow-sm border border-white/15"
+                      onClick={() => setIsTravelFormCollapsed(prev => !prev)}
+                      className="text-[11px] font-bold bg-black/35 hover:bg-black/50 text-white px-3 py-1.5 rounded-full border border-white/20 transition whitespace-nowrap"
                     >
-                      <span>
-                        {showAllExpenses
-                          ? `收起明細 (共 ${expenses.length} 筆) ▲`
-                          : `顯示全部 (共 ${expenses.length} 筆) ▼`}
-                      </span>
+                      {isTravelFormCollapsed ? "＋ 展開表單" : "✕ 收起表單"}
                     </button>
                   </div>
+                )}
 
-                  {expenses.length === 0 ? (
-                    <div className="glass-dark p-8 rounded-3xl text-center text-xs text-slate-300">
-                      暫時未有開支記錄，去記帳頁入第一筆數啦！🤝
+                {(!isTripTabActive || !isTravelFormCollapsed) && (
+                  <form onSubmit={handleAddExpense} className="glass-dark p-5 rounded-3xl space-y-3.5">
+                    {!isTripTabActive && (
+                      <div className="flex justify-between items-center border-b border-white/10 pb-2.5">
+                        <h3 className="font-bold text-white text-sm">
+                          ➕ 新增開支 (HK$)
+                        </h3>
+                        <span className="text-[10px] text-slate-400">
+                          獨立日常帳目
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="flex gap-2.5">
+                      <div className="flex-1">
+                        <label className="block text-[10px] text-slate-300 font-bold mb-1 ml-1">類別</label>
+                        <select value={category} onChange={e => setCategory(e.target.value)} className="w-full text-xs bg-white/10 border border-white/15 rounded-2xl px-3 py-2.5 text-white font-medium focus:outline-none focus:ring-2 focus:ring-[#3A8899]">
+                          {activeCategories.map(opt => <option key={opt} value={opt} className="text-slate-900">{opt}</option>)}
+                        </select>
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-[10px] text-slate-300 font-bold mb-1 ml-1">單據日期</label>
+                        <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full text-xs bg-white/10 border border-white/15 rounded-2xl px-3 py-2.5 text-white font-medium focus:outline-none focus:ring-2 focus:ring-[#3A8899]" required />
+                      </div>
                     </div>
-                  ) : (
-                    <>
-                      {visibleExpenses.map(exp => {
-                        const isPayerDeleted = exp.payer !== POOL_PAYER_KEY && !members.includes(exp.payer);
+
+                    <div>
+                      <label className="block text-[10px] text-slate-300 font-bold mb-1 ml-1">單據 / 項目名稱</label>
+                      <input
+                        type="text"
+                        placeholder={isTripTabActive ? "開支項目 (例如: 居酒屋消夜 / 美ら海水族館門票)" : "例如: 譚仔午餐、的士車費、網購團購"}
+                        value={title}
+                        onChange={e => setTitle(e.target.value)}
+                        className="w-full text-sm bg-white/10 border border-white/15 rounded-2xl px-4 py-2.5 text-white font-medium focus:outline-none focus:ring-2 focus:ring-[#3A8899] placeholder-slate-400"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between items-center mb-1 ml-1">
+                        <label className="text-[10px] text-slate-300 font-bold">
+                          {isTripTabActive ? `消費金額 (${currency})` : "消費金額 (港幣 HK$)"}
+                        </label>
+                      </div>
+
+                      <div className="flex gap-2">
+                        {!isTripTabActive && (
+                          <div className="bg-white/10 border border-white/15 rounded-2xl px-3.5 py-2.5 flex items-center justify-center font-black text-sm text-[#78C3D2]">
+                            HK$
+                          </div>
+                        )}
+                        <input
+                          type="number"
+                          inputMode="decimal"
+                          pattern="[0-9]*"
+                          step="any"
+                          placeholder="輸入金額"
+                          value={amount}
+                          onChange={e => setAmount(e.target.value)}
+                          className={`flex-1 text-base bg-white/10 border rounded-2xl px-4 py-2.5 font-bold text-white focus:outline-none focus:ring-2 placeholder-slate-400 ${
+                            isExceedingPoolBalance ? "border-rose-400 focus:ring-rose-500" : "border-white/15 focus:ring-[#3A8899]"
+                          }`}
+                          required
+                        />
+                        {isTripTabActive && (
+                          <select
+                            value={currency}
+                            onChange={e => handleSelectDefaultCurrency(e.target.value)}
+                            className="gold-pill rounded-2xl px-3.5 py-2.5 text-xs font-black text-[#1C2830] focus:outline-none"
+                          >
+                            {sortedCurrencyKeys.map(c => <option key={c} value={c} className="text-slate-900">{c}</option>)}
+                          </select>
+                        )}
+                      </div>
+
+                      {isTripTabActive && (
+                        <div className="flex items-center justify-between mt-2 px-1">
+                          <label className="flex items-center gap-1.5 text-[11px] text-slate-200 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={addCardFee}
+                              onChange={e => setAddCardFee(e.target.checked)}
+                              className="rounded accent-amber-400"
+                            />
+                            <span>💳 信用卡海外簽帳 (+{cardFeePercent}% 手續費)</span>
+                          </label>
+                          {amount && currency !== "HKD" && (
+                            <span className="text-[11px] font-bold text-amber-300">
+                              ≈ HK$ {currentInputHKD.toFixed(1)}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 邊個墊支先？ */}
+                    <div className="text-xs">
+                      <div className="flex justify-between items-center mb-1.5 mx-1">
+                        <label className="text-[10px] text-slate-300 font-bold">邊個墊支 / 出錢？</label>
+                        {isTripTabActive && (
+                          <button
+                            type="button"
+                            onClick={() => setShowPoolModal(true)}
+                            className="text-[10px] text-amber-300 font-bold hover:underline"
+                          >
+                            🏦 公數餘額: HK$ {poolStats.remainingPoolHKD.toLocaleString()} (管理)
+                          </button>
+                        )}
+                      </div>
+                      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+                        {isTripTabActive && (
+                          <button
+                            type="button"
+                            onClick={() => setPayer(POOL_PAYER_KEY)}
+                            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
+                              payer === POOL_PAYER_KEY
+                                ? "gold-pill text-[#1C2830] border-amber-200"
+                                : "bg-amber-400/15 text-amber-300 border-amber-300/30 hover:bg-amber-400/25"
+                            }`}
+                          >
+                            {POOL_PAYER_KEY} (剩 HK${Math.round(poolStats.remainingPoolHKD)})
+                          </button>
+                        )}
+                        {members.map(m => (
+                          <button key={m} type="button" onClick={() => setPayer(m)} className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${payer === m ? 'teal-pill text-white' : 'bg-white/10 text-slate-300 hover:bg-white/20'}`}>
+                            {m}
+                          </button>
+                        ))}
+                      </div>
+
+                      {isExceedingPoolBalance && (
+                        <div className="mt-2 bg-rose-500/25 border border-rose-400/50 rounded-2xl p-2.5 text-[11px] text-rose-200 flex items-center justify-between gap-2">
+                          <div>
+                            🚫 <strong>超出公數餘額！</strong>呢筆單折合 <strong>HK$ {currentInputHKD.toFixed(1)}</strong>，但公數錢包只剩 <strong>HK$ {poolStats.remainingPoolHKD.toFixed(1)}</strong>。
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setShowPoolModal(true)}
+                            className="bg-rose-500 text-white font-bold px-2.5 py-1 rounded-xl whitespace-nowrap text-[10px] shadow"
+                          >
+                            即刻加碼注資
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 邊個夾份？ */}
+                    <div className="text-xs">
+                      <div className="flex justify-between items-center mb-1.5 mx-1">
+                        <label className="text-[10px] text-slate-300 font-bold">邊個夾份？</label>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {members.map(m => {
+                          const isSelected = splitWith.includes(m);
+                          return (
+                            <button key={m} type="button" onClick={() => {
+                              if (isSelected) {
+                                if (splitWith.length > 1) setSplitWith(splitWith.filter(x => x !== m));
+                              } else {
+                                setSplitWith([...splitWith, m]);
+                              }
+                            }} className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all border ${isSelected ? 'bg-[#3A8899]/40 border-[#78C3D2] text-white font-bold' : 'bg-transparent border-white/15 text-slate-400 opacity-60'}`}>
+                              {isSelected ? '✓ ' : ''}{m}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    
+                    <div className="pt-1">
+                      <button
+                        type="submit"
+                        disabled={isExceedingPoolBalance}
+                        className={`w-full font-bold py-3.5 rounded-full transition-all text-sm tracking-wide ${
+                          isExceedingPoolBalance
+                            ? "bg-rose-500/40 text-rose-200 cursor-not-allowed border border-rose-400/40"
+                            : isTripTabActive
+                            ? "gold-pill text-[#1C2830] active:scale-98"
+                            : "teal-pill text-white active:scale-98"
+                        }`}
+                      >
+                        {isExceedingPoolBalance
+                          ? "🚫 公數錢包餘額不足（請先注資或改個人墊支）"
+                          : "＋ 同步加入開支"}
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                {/* 【要求 1 & 4】旅遊版第一頁下方：像 TripTab 一樣顯示「每日用咗幾多錢 (Day 1, Day 2...)」，不顯示每日人均！ */}
+                {isTripTabActive ? (
+                  <div className="space-y-3">
+                    {travelDailyGroups.length === 0 ? (
+                      <div className="glass-dark p-8 rounded-3xl text-center text-xs text-slate-300">
+                        暫時未有旅遊開支記錄，喺上面記低第一筆消費啦！✈️
+                      </div>
+                    ) : (
+                      travelDailyGroups.map(group => {
+                        const isCollapsed = !!collapsedDays[group.date];
                         return (
-                          <div key={exp.id} className="glass-dark p-4 rounded-3xl flex flex-col gap-2">
-                            {editingExpId === exp.id ? (
-                              <div className="space-y-2.5 bg-black/30 p-3 rounded-2xl">
-                                <div className="text-[10px] font-bold text-[#78C3D2]">✏️ 修改單據名稱與金額</div>
-                                <input
-                                  type="text"
-                                  value={editTitle}
-                                  onChange={e => setEditTitle(e.target.value)}
-                                  className="w-full text-sm bg-white/90 rounded-xl px-3 py-2 font-bold text-slate-900 focus:outline-none"
-                                />
-                                <div className="flex gap-2">
-                                  <input
-                                    type="number"
-                                    inputMode="decimal"
-                                    pattern="[0-9]*"
-                                    step="any"
-                                    value={editAmount}
-                                    onChange={e => setEditAmount(e.target.value)}
-                                    className="flex-1 text-sm bg-white/90 rounded-xl px-3 py-2 font-bold text-slate-900 focus:outline-none"
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => saveEditExpense(exp)}
-                                    className="teal-pill text-white text-xs font-bold px-4 rounded-xl"
-                                  >
-                                    儲存
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => setEditingExpId(null)}
-                                    className="bg-white/20 text-white text-xs font-bold px-3 rounded-xl"
-                                  >
-                                    取消
-                                  </button>
-                                </div>
+                          <div key={group.date} className="space-y-2">
+                            {/* 每日統計橫幅 (參照圖三 Day 1, Day 2 膠囊設計，已移除人均字眼) */}
+                            <button
+                              type="button"
+                              onClick={() => toggleDayCollapse(group.date)}
+                              className="w-full glass-dark px-4 py-3 rounded-2xl flex items-center justify-between border border-white/15 hover:bg-white/10 transition"
+                            >
+                              <div className="flex items-center gap-2.5">
+                                <span className="bg-emerald-600/90 text-white text-[11px] font-black px-2.5 py-0.5 rounded-full shadow-sm">
+                                  Day {group.dayNum}
+                                </span>
+                                <span className="text-xs font-bold text-white">
+                                  {group.shortDate} ({group.items.length} 筆)
+                                </span>
                               </div>
-                            ) : (
-                              <>
-                                <div className="flex justify-between items-start">
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-[10px] bg-white/15 text-slate-200 px-2 py-1 rounded-lg font-bold">{exp.category}</span>
-                                    <span className="font-bold text-white text-sm">{exp.title}</span>
-                                  </div>
-                                  <div className="text-right">
-                                    <p className="font-black text-amber-300 text-sm">
-                                      {(!exp.currency || exp.currency === "HKD") ? `HK$ ${Number(exp.amount).toLocaleString()}` : `${exp.currency} ${Number(exp.amount).toLocaleString()}`}
-                                    </p>
-                                    {exp.currency && exp.currency !== "HKD" && (
-                                      <p className="text-[10px] text-slate-300">≈ HK$ {Math.round(toHKD(exp.amount, exp.currency)).toLocaleString()}</p>
-                                    )}
-                                  </div>
-                                </div>
-                                <div className="text-[11px] text-slate-300 mt-0.5">
-                                  <p>
-                                    <span className={`font-bold ${exp.payer === POOL_PAYER_KEY ? "text-amber-300" : isPayerDeleted ? "text-rose-300" : "text-[#78C3D2]"}`}>
-                                      {exp.payer}{isPayerDeleted ? " (已刪成員·負數記帳)" : ""}
-                                    </span> 支付 • 畀 {(exp.splitWith || []).filter(m => members.includes(m)).join(", ")} 平分
-                                  </p>
-                                </div>
-                                <div className="flex justify-between items-center pt-2 mt-1 border-t border-white/10">
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setEditingExpId(exp.id);
-                                      setEditTitle(exp.title);
-                                      setEditAmount(String(exp.amount));
-                                    }}
-                                    className="text-[10px] text-[#9BE0EE] font-bold bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full transition"
-                                  >
-                                    ✏️ 修改單據
-                                  </button>
-                                  <span className="text-[10px] text-slate-400">📅 {exp.date}</span>
-                                  <button
-                                    type="button"
-                                    onClick={() => setDeleteConfirmExp(exp)}
-                                    className="text-[10px] text-rose-300 font-bold bg-rose-500/20 hover:bg-rose-500/30 px-3 py-1 rounded-full transition"
-                                  >
-                                    🗑️ 刪除
-                                  </button>
-                                </div>
-                              </>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-black text-amber-300">
+                                  HK$ {Math.round(group.dayTotalHKD).toLocaleString()}
+                                </span>
+                                <span className="text-[10px] text-slate-300">
+                                  {isCollapsed ? "▼" : "▲"}
+                                </span>
+                              </div>
+                            </button>
+
+                            {!isCollapsed && (
+                              <div className="space-y-2 pl-1">
+                                {group.items.map(exp => renderExpenseItemCard(exp))}
+                              </div>
                             )}
                           </div>
                         );
-                      })}
+                      })
+                    )}
+                  </div>
+                ) : (
+                  /* 日常版第一頁下方：保持不變，顯示「自動對沖結算清單」 */
+                  renderSettlementCard()
+                )}
+              </>
+            )}
 
-                      {/* 當單據超過 3 筆而又未展開時，底部亦提供提示按鈕 */}
-                      {expenses.length > 3 && !showAllExpenses && (
-                        <button
-                          type="button"
-                          onClick={() => setShowAllExpenses(true)}
-                          className="w-full py-2.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 text-xs font-bold text-[#9BE0EE] transition"
-                        >
-                          👀 顯示全部 {expenses.length} 筆帳目（尚有 {expenses.length - 3} 筆）
-                        </button>
-                      )}
-                    </>
-                  )}
-                </div>
+            {/* ================================================================= */}
+            {/* TAB 2: 第二頁 (旅遊版：自動結算 + 圖表報告；日常版：最近單據明細 + 圖表報告) */}
+            {/* ================================================================= */}
+            {activeTab === "settle" && (
+              <div className="space-y-4">
+                {/* 【要求 1 & 2】旅遊版喺第二頁頂部顯示「自動結算（連公數多除小補）」；日常版保持顯示「最近單據明細（最多 3 筆）」 */}
+                {isTripTabActive ? (
+                  renderSettlementCard()
+                ) : (
+                  <div className="space-y-2.5">
+                    <div className="flex justify-between items-center px-2">
+                      <span className="font-bold text-slate-200 text-xs">最近單據明細</span>
+                      <button
+                        type="button"
+                        onClick={() => setShowAllExpenses(prev => !prev)}
+                        className="font-bold bg-white/15 hover:bg-white/25 text-[#9BE0EE] px-3 py-1 rounded-full text-[11px] transition flex items-center gap-1 shadow-sm border border-white/15"
+                      >
+                        <span>
+                          {showAllExpenses
+                            ? `收起明細 (共 ${expenses.length} 筆) ▲`
+                            : `顯示全部 (共 ${expenses.length} 筆) ▼`}
+                        </span>
+                      </button>
+                    </div>
+
+                    {expenses.length === 0 ? (
+                      <div className="glass-dark p-8 rounded-3xl text-center text-xs text-slate-300">
+                        暫時未有開支記錄，去記帳頁入第一筆數啦！🤝
+                      </div>
+                    ) : (
+                      <>
+                        {visibleExpenses.map(exp => renderExpenseItemCard(exp))}
+
+                        {expenses.length > 3 && !showAllExpenses && (
+                          <button
+                            type="button"
+                            onClick={() => setShowAllExpenses(true)}
+                            className="w-full py-2.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 text-xs font-bold text-[#9BE0EE] transition"
+                          >
+                            👀 顯示全部 {expenses.length} 筆帳目（尚有 {expenses.length - 3} 筆）
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
 
                 {/* 2. IG STORY SUMMARY · 消費報告 */}
                 {isPro ? (
@@ -2357,7 +2482,7 @@
                   </div>
                 </div>
 
-                {/* 【修改 1】活動類別設定：預設只放「食飯、車費、團購」3 個，其他由用戶自己新增 */}
+                {/* 活動類別設定：預設只放「食飯、車費、團購」3 個 */}
                 <div className="glass-dark p-5 rounded-3xl space-y-3.5">
                   <div className="flex justify-between items-center border-b border-white/10 pb-2.5">
                     <h3 className="font-bold text-white text-sm">🏷️ 活動類別設定 (自由加減)</h3>
@@ -2480,7 +2605,7 @@
             )}
           </div>
 
-          {/* 底部 4 格方形磨砂玻璃導航欄 */}
+          {/* 底部 4 格方形磨砂玻璃導航欄 (根據旅遊版 / 日常版智能顯示分頁名稱) */}
           <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto px-5 pb-4 pt-2 z-40 bg-gradient-to-t from-[#141C22] via-[#141C22]/90 to-transparent">
             <div className="grid grid-cols-4 gap-2.5">
               <button
@@ -2489,9 +2614,11 @@
                   activeTab === "expenses" ? "nav-square-active text-white scale-105" : "nav-square text-slate-300 hover:text-white"
                 }`}
               >
-                <span className="text-base leading-none">⚡</span>
+                <span className="text-base leading-none">{isTripTabActive ? "📝" : "⚡"}</span>
                 <span className="text-[10px] font-bold tracking-tight">
-                  記帳及結算{settlement.transactions.length > 0 ? `(${paidCount}/${settlement.transactions.length})` : ""}
+                  {isTripTabActive
+                    ? "記帳"
+                    : `記帳及結算${settlement.transactions.length > 0 ? `(${paidCount}/${settlement.transactions.length})` : ""}`}
                 </span>
               </button>
 
@@ -2503,7 +2630,9 @@
               >
                 <span className="text-base leading-none">📊</span>
                 <span className="text-[10px] font-bold tracking-tight">
-                  明細及圖表({expenses.length})
+                  {isTripTabActive
+                    ? `結算 & 圖表${settlement.transactions.length > 0 ? `(${paidCount}/${settlement.transactions.length})` : ""}`
+                    : `明細及圖表(${expenses.length})`}
                 </span>
               </button>
 
