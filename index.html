@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-HK">
+<html lang="en-GB">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
@@ -39,7 +39,15 @@
     input, select, textarea {
       user-select: auto;
     }
-    /* 參照圖二：溫暖奶油黃頂部 + 奶白柔和立體卡片風格 */
+    /* 消除 iOS Safari 預設 select 扁平框，確保與隔離日期框 100% 一樣大細 */
+    .ios-uniform-field {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      height: 48px;
+      border-radius: 1rem;
+    }
+    /* 溫暖奶油黃頂部 + 奶白柔和立體卡片風格 */
     .butter-bg {
       background: linear-gradient(180deg, #DFC478 0%, #E6CE8A 260px, #FAF8F3 260px, #FAF8F3 100%);
     }
@@ -71,7 +79,6 @@
       box-shadow: 0 8px 20px rgba(218, 185, 98, 0.38);
       color: #2C261E !important;
     }
-    /* 將舊深色主題文字與輸入框無縫轉為圖二淺色柔和暖調 */
     .glass-dark .text-white {
       color: #2C261E !important;
     }
@@ -144,6 +151,14 @@
     // 公數錢包固定代號
     const POOL_PAYER_KEY = "🏦 公數錢包";
 
+    // 【要求 2】將任何 YYYY-MM-DD 日期統一轉為英式 DD/MM/YYYY 格式
+    const formatDateUK = (isoDateStr) => {
+      if (!isoDateStr || typeof isoDateStr !== "string") return "";
+      const parts = isoDateStr.split("-");
+      if (parts.length !== 3) return isoDateStr;
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    };
+
     // TripTab 旅遊版專屬多國貨幣清單
     const TRIPTAB_RATES = {
       HKD: 1.0,
@@ -166,7 +181,6 @@
     const CHART_COLORS = ["#E5B94B", "#10B981", "#3B82F6", "#F97316", "#8B5CF6", "#EC4899", "#14B8A6"];
 
     const DEFAULT_MEMBERS = ["我", "Alex", "Chloe", "Sam"];
-    // 預設活動類別只保留「食飯、車費、團購」3 個，其他由用戶自行新增
     const DEFAULT_CATEGORIES_DAILY = ["🍱 食飯", "🚕 車費", "📦 團購"];
     const DEFAULT_CATEGORIES_TRAVEL = ["🍱 食飯", "🚕 車費", "📦 團購"];
     const FREE_ROOM_QUOTA = 2;
@@ -1035,7 +1049,7 @@
       }, [expenses, rates]);
 
       // ==========================================
-      // 📅 旅遊版第一頁專屬：按日期 (Day 1, Day 2...) 分組計算每日用咗幾多錢（不顯示人均）
+      // 📅 旅遊版第一頁專屬：按日期 (Day 1, Day 2...) 分組，日期顯示改用英式 DD/MM/YYYY
       // ==========================================
       const travelDailyGroups = useMemo(() => {
         if (!expenses || expenses.length === 0) return [];
@@ -1049,11 +1063,9 @@
         return uniqueDatesDesc.map(d => {
           const items = expenses.filter(e => (e.date || "未知日期") === d);
           const dayTotalHKD = items.reduce((sum, e) => sum + toHKD(Number(e.amount), e.currency), 0);
-          const parts = d.split("-");
-          const shortDate = parts.length === 3 ? `${parts[1]}/${parts[2]}` : d;
           return {
             date: d,
-            shortDate,
+            ukDate: formatDateUK(d),
             dayNum: dayIndexMap[d] || 1,
             items,
             dayTotalHKD
@@ -1243,7 +1255,7 @@
         return { list, totalFilteredHKD, categoryBreakdown, personArray, maxShareHKD };
       }, [expenses, isTripTabActive, reportYear, reportMonth, reportDay, members, rates]);
 
-      // 匯出 Excel (.csv)
+      // 匯出 Excel (.csv) (日期統一用英式 DD/MM/YYYY)
       const handleExportExcelCSV = () => {
         if (!isPro) {
           setPaywallMsg("「📥 匯出 Excel 消費報告」屬於付費版功能，升級後即可下載完整 Excel 報表！");
@@ -1253,18 +1265,18 @@
         let csv = "\uFEFF";
         csv += `${isTripTabActive ? "TripTab 旅遊報告" : "COPAY 日常消費報告"} - ${groupName} (房號 #${roomId})\n`;
         if (!isTripTabActive) {
-          csv += `篩選範圍：,年份:${reportYear === 'ALL' ? '全部' : reportYear},月份:${reportMonth === 'ALL' ? '全部' : reportMonth},日期:${reportDay === 'ALL' ? '全部' : reportDay}\n\n`;
+          csv += `篩選範圍：,日子:${reportDay === 'ALL' ? '全部' : reportDay},月份:${reportMonth === 'ALL' ? '全部' : reportMonth},年份:${reportYear === 'ALL' ? '全部' : reportYear}\n\n`;
         } else {
           csv += `模式：,獨立旅遊專案房間 (全旅程總結)\n\n`;
         }
-        csv += "單據日期,類別,項目名稱,原幣金額,貨幣,折合港幣(HKD),墊支人(狀態),參與分攤成員\n";
+        csv += "單據日期(DD/MM/YYYY),類別,項目名稱,原幣金額,貨幣,折合港幣(HKD),墊支人(狀態),參與分攤成員\n";
 
         tripTabChartAndReport.list.forEach(e => {
           const hkd = Math.round(toHKD(Number(e.amount), e.currency));
           const payerStatus = (e.payer !== POOL_PAYER_KEY && !members.includes(e.payer)) ? `${e.payer} (已刪除)` : e.payer;
           const splitsText = (e.splitWith || []).filter(p => members.includes(p)).join(" / ");
           const safeTitle = `"${String(e.title || "").replace(/"/g, '""')}"`;
-          csv += `${e.date},${e.category},${safeTitle},${e.amount},${e.currency || "HKD"},${hkd},"${payerStatus}","${splitsText}"\n`;
+          csv += `${formatDateUK(e.date)},${e.category},${safeTitle},${e.amount},${e.currency || "HKD"},${hkd},"${payerStatus}","${splitsText}"\n`;
         });
 
         csv += "\n成員消費匯總 (包括已刪除但有事件紀錄之成員)\n";
@@ -1317,12 +1329,11 @@
 
       const paidCount = settlement.transactions.filter(t => !!paidMap[t.key]).length;
 
-      // 日常版決定「最近單據明細」顯示幾多筆（預設最多 3 筆，點擊後顯示全部）
       const visibleExpenses = useMemo(() => {
         return showAllExpenses ? expenses : expenses.slice(0, 3);
       }, [expenses, showAllExpenses]);
 
-      // 渲染單筆開支卡片共用函數
+      // 渲染單筆開支卡片共用函數 (日期顯示已改為英式 DD/MM/YYYY)
       const renderExpenseItemCard = (exp) => {
         const isPayerDeleted = exp.payer !== POOL_PAYER_KEY && !members.includes(exp.payer);
         return (
@@ -1397,7 +1408,7 @@
                   >
                     ✏️ 修改單據
                   </button>
-                  <span className="text-[10px] text-[#A69D8E]">📅 {exp.date}</span>
+                  <span className="text-[10px] text-[#A69D8E]">📅 {formatDateUK(exp.date)}</span>
                   <button
                     type="button"
                     onClick={() => setDeleteConfirmExp(exp)}
@@ -1500,7 +1511,7 @@
       return (
         <div className="max-w-md mx-auto min-h-screen butter-bg flex flex-col pb-28 shadow-2xl relative overflow-x-hidden">
           
-          {/* 參照圖二左邊畫面：溫暖奶油黃頂部 Header 區域 */}
+          {/* 溫暖奶油黃頂部 Header 區域 */}
           <div className="p-6 pb-8 relative z-10 bg-[#DFC478]">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2.5">
@@ -1543,7 +1554,7 @@
               </div>
             </div>
 
-            {/* Hero 標題區 (仿照圖二 "Good morning, ZiYi." 粗體深色排版) */}
+            {/* Hero 標題區 */}
             <div className="space-y-1.5 mb-4">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-[11px] bg-white/85 text-[#2C261E] px-2.5 py-0.5 rounded-full font-mono font-bold flex items-center gap-1.5 shadow-sm">
@@ -1630,7 +1641,7 @@
               </button>
             </div>
 
-            {/* 參照圖二白色圓角膠囊資訊欄 (26.0°C / 46.0% 橫幅樣式) */}
+            {/* 白色圓角膠囊資訊欄 */}
             <div className="mt-4 bg-white text-[#2C261E] p-4 rounded-3xl shadow-md space-y-3 border border-white">
               <div className="flex justify-between items-end">
                 <div>
@@ -1648,14 +1659,14 @@
                 </div>
               </div>
 
-              {/* TripTab 旅遊版專屬：公數錢包即時餘額進度條 */}
+              {/* TripTab 旅遊版專屬：公數錢包即時餘額進度條 (公數日期已改為英式 DD/MM/YYYY) */}
               {isTripTabActive && (
                 <div className="pt-3 border-t border-[#F0EAE0]">
                   <div className="flex justify-between items-center mb-1.5">
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="text-xs font-bold text-[#9C7316]">🏦 公數錢包可用餘額</span>
                       <span className="text-[10px] bg-[#F7F4EC] px-2 py-0.5 rounded-full text-[#7D7465] font-medium">
-                        📅 {poolDate} ｜ 已用 HK$ {Math.round(poolStats.totalSpentFromPoolHKD).toLocaleString()} / 總額 HK$ {Math.round(poolStats.totalContributedHKD).toLocaleString()}
+                        📅 {formatDateUK(poolDate)} ｜ 已用 HK$ {Math.round(poolStats.totalSpentFromPoolHKD).toLocaleString()} / 總額 HK$ {Math.round(poolStats.totalContributedHKD).toLocaleString()}
                       </span>
                     </div>
                     <button
@@ -1691,11 +1702,11 @@
             </div>
           </div>
 
-          {/* 參照圖二下半部：大圓角暖白主體內容區 (rounded-t-[2.5rem]) */}
+          {/* 大圓角暖白主體內容區 */}
           <div className="px-5 pt-5 -mt-4 bg-[#FAF8F3] rounded-t-[2.5rem] flex-1 space-y-4 relative z-20 shadow-[0_-8px_24px_rgba(0,0,0,0.04)]">
             
             {/* ================================================================= */}
-            {/* TAB 1: 第一頁 (旅遊版：新開支 + 每日用咗幾多錢；日常版：新開支 + 自動對沖結算清單) */}
+            {/* TAB 1: 第一頁 */}
             {/* ================================================================= */}
             {activeTab === "expenses" && (
               <>
@@ -1727,16 +1738,39 @@
                       </div>
                     )}
 
-                    <div className="flex gap-2.5">
-                      <div className="flex-1">
+                    {/* 【要求 1 & 2】「類別」與「單據日期」喺手機上 100% 同高同大 (48px)，且日期強制顯示英式 DD/MM/YYYY */}
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <div>
                         <label className="block text-[10px] text-slate-300 font-bold mb-1 ml-1">類別</label>
-                        <select value={category} onChange={e => setCategory(e.target.value)} className="w-full text-xs bg-white/10 border border-white/15 rounded-2xl px-3 py-2.5 text-white font-medium focus:outline-none focus:ring-2 focus:ring-[#DFC478]">
-                          {activeCategories.map(opt => <option key={opt} value={opt} className="text-slate-900">{opt}</option>)}
-                        </select>
+                        <div className="relative">
+                          <select
+                            value={category}
+                            onChange={e => setCategory(e.target.value)}
+                            className="ios-uniform-field w-full text-sm bg-[#F7F4EC] border border-[#EAE3D5] px-3.5 pr-8 text-[#2C261E] font-bold focus:outline-none focus:ring-2 focus:ring-[#DFC478]"
+                          >
+                            {activeCategories.map(opt => <option key={opt} value={opt} className="text-slate-900">{opt}</option>)}
+                          </select>
+                          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-[#7D7465]">
+                            ▼
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex-1">
+
+                      <div>
                         <label className="block text-[10px] text-slate-300 font-bold mb-1 ml-1">單據日期</label>
-                        <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full text-xs bg-white/10 border border-white/15 rounded-2xl px-3 py-2.5 text-white font-medium focus:outline-none focus:ring-2 focus:ring-[#DFC478]" required />
+                        <div className="relative ios-uniform-field w-full bg-[#F7F4EC] border border-[#EAE3D5] px-3.5 flex items-center justify-between">
+                          <span className="text-sm font-bold text-[#2C261E] tracking-tight">
+                            {formatDateUK(date)}
+                          </span>
+                          <span className="text-xs opacity-65">📅</span>
+                          <input
+                            type="date"
+                            value={date}
+                            onChange={e => setDate(e.target.value)}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            required
+                          />
+                        </div>
                       </div>
                     </div>
 
@@ -1747,7 +1781,7 @@
                         placeholder={isTripTabActive ? "開支項目 (例如: 居酒屋消夜 / 美ら海水族館門票)" : "例如: 譚仔午餐、的士車費、網購團購"}
                         value={title}
                         onChange={e => setTitle(e.target.value)}
-                        className="w-full text-sm bg-white/10 border border-white/15 rounded-2xl px-4 py-2.5 text-white font-medium focus:outline-none focus:ring-2 focus:ring-[#DFC478] placeholder-slate-400"
+                        className="w-full text-sm bg-white/10 border border-white/15 rounded-2xl px-4 py-3 text-white font-medium focus:outline-none focus:ring-2 focus:ring-[#DFC478] placeholder-slate-400"
                         required
                       />
                     </div>
@@ -1901,7 +1935,7 @@
                   </form>
                 )}
 
-                {/* 旅遊版第一頁下方：顯示「每日用咗幾多錢 (Day 1, Day 2...)」 */}
+                {/* 旅遊版第一頁下方：顯示「每日用咗幾多錢 (Day 1, Day 2...)」，日期已改為英式 DD/MM/YYYY */}
                 {isTripTabActive ? (
                   <div className="space-y-3">
                     {travelDailyGroups.length === 0 ? (
@@ -1923,7 +1957,7 @@
                                   Day {group.dayNum}
                                 </span>
                                 <span className="text-xs font-bold text-[#2C261E]">
-                                  {group.shortDate} ({group.items.length} 筆)
+                                  {group.ukDate} ({group.items.length} 筆)
                                 </span>
                               </div>
                               <div className="flex items-center gap-2">
@@ -1954,7 +1988,7 @@
             )}
 
             {/* ================================================================= */}
-            {/* TAB 2: 第二頁 (旅遊版：自動結算 + 圖表報告；日常版：最近單據明細 + 圖表報告) */}
+            {/* TAB 2: 第二頁 */}
             {/* ================================================================= */}
             {activeTab === "settle" && (
               <div className="space-y-4">
@@ -1999,7 +2033,7 @@
                   </div>
                 )}
 
-                {/* 2. IG STORY SUMMARY · 消費報告 */}
+                {/* 2. IG STORY SUMMARY · 消費報告 (日常版篩選器改為英式順序：日子 / 月份 / 年份) */}
                 {isPro ? (
                   <div className="glass-dark p-5 rounded-3xl space-y-5">
                     <div className="flex justify-between items-start">
@@ -2020,20 +2054,20 @@
                       </button>
                     </div>
 
-                    {/* 只有「日常版房間」先顯示年/月/日篩選器 */}
+                    {/* 日常版篩選器按英式順序排列：日 (DD) / 月 (MM) / 年 (YYYY) */}
                     {!isTripTabActive && (
                       <div className="grid grid-cols-3 gap-2 pt-1">
-                        <select value={reportYear} onChange={e => setReportYear(e.target.value)} className="text-[11px] bg-white/10 border border-white/15 rounded-xl px-2.5 py-1.5 text-white font-bold focus:outline-none">
-                          <option value="ALL" className="text-slate-900">全部年份</option>
-                          {reportAvailableDates.years.map(y => <option key={y} value={y} className="text-slate-900">{y}年</option>)}
+                        <select value={reportDay} onChange={e => setReportDay(e.target.value)} className="text-[11px] bg-white/10 border border-white/15 rounded-xl px-2.5 py-1.5 text-white font-bold focus:outline-none">
+                          <option value="ALL" className="text-slate-900">全部日子</option>
+                          {reportAvailableDates.days.map(d => <option key={d} value={d} className="text-slate-900">{d}日</option>)}
                         </select>
                         <select value={reportMonth} onChange={e => setReportMonth(e.target.value)} className="text-[11px] bg-white/10 border border-white/15 rounded-xl px-2.5 py-1.5 text-white font-bold focus:outline-none">
                           <option value="ALL" className="text-slate-900">全部月份</option>
                           {reportAvailableDates.months.map(m => <option key={m} value={m} className="text-slate-900">{m}月</option>)}
                         </select>
-                        <select value={reportDay} onChange={e => setReportDay(e.target.value)} className="text-[11px] bg-white/10 border border-white/15 rounded-xl px-2.5 py-1.5 text-white font-bold focus:outline-none">
-                          <option value="ALL" className="text-slate-900">全部日子</option>
-                          {reportAvailableDates.days.map(d => <option key={d} value={d} className="text-slate-900">{d}日</option>)}
+                        <select value={reportYear} onChange={e => setReportYear(e.target.value)} className="text-[11px] bg-white/10 border border-white/15 rounded-xl px-2.5 py-1.5 text-white font-bold focus:outline-none">
+                          <option value="ALL" className="text-slate-900">全部年份</option>
+                          {reportAvailableDates.years.map(y => <option key={y} value={y} className="text-slate-900">{y}年</option>)}
                         </select>
                       </div>
                     )}
@@ -2193,29 +2227,34 @@
                     請選擇要建立「☕ 日常夾錢房間」定係「✈️ TripTab 旅遊房間」，每個房間都會獲分配獨立 6 位代碼，兩邊帳目絕對唔會混埋一齊！
                   </p>
 
-                  <div className="grid grid-cols-2 gap-2 pt-1">
+                  {/* 【要求 3】Mobile Friendly 雙欄按鈕排版，加入 whitespace-nowrap 防止手機斷字 */}
+                  <div className="grid grid-cols-2 gap-2.5 pt-1">
                     <button
                       type="button"
                       onClick={() => setNewRoomTypeSelect("daily")}
-                      className={`p-2.5 rounded-2xl border text-left text-xs font-bold transition ${
+                      className={`p-3 rounded-2xl border text-left transition flex flex-col justify-between ${
                         newRoomTypeSelect === "daily"
                           ? "bg-[#F5E6B8] border-[#D4B259] text-[#2C261E]"
                           : "bg-white/5 border-white/10 text-slate-400"
                       }`}
                     >
-                      ☕ 日常夾錢房 (純港幣)
+                      <div className="font-black text-xs whitespace-nowrap">☕ 日常夾錢房</div>
+                      <div className="text-[10px] opacity-80 mt-0.5 whitespace-nowrap">純港幣 HK$</div>
                     </button>
                     <button
                       type="button"
                       onClick={() => setNewRoomTypeSelect("triptab")}
-                      className={`p-2.5 rounded-2xl border text-left text-xs font-bold transition flex items-center justify-between ${
+                      className={`p-3 rounded-2xl border text-left transition flex flex-col justify-between ${
                         newRoomTypeSelect === "triptab"
                           ? "bg-[#F5E6B8] border-[#D4B259] text-[#2C261E]"
                           : "bg-white/5 border-white/10 text-slate-400"
                       }`}
                     >
-                      <span>✈️ TripTab 旅遊房</span>
-                      {!isPro && <span>🔒</span>}
+                      <div className="flex items-center justify-between gap-1 w-full">
+                        <span className="font-black text-xs whitespace-nowrap">✈️ TripTab 旅遊房</span>
+                        {!isPro && <span className="text-[10px] shrink-0">🔒</span>}
+                      </div>
+                      <div className="text-[10px] opacity-80 mt-0.5 whitespace-nowrap">公數與外幣</div>
                     </button>
                   </div>
 
@@ -2365,13 +2404,13 @@
             {activeTab === "settings" && (
               <div className="space-y-4">
                 <div className="glass-dark p-5 rounded-3xl space-y-3">
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center flex-wrap gap-1">
                     <h3 className="font-bold text-white text-sm flex items-center gap-1.5">
                       <span>✈️ TripTab 旅遊記帳版</span>
                       {isPro ? (
-                        <span className="text-[10px] bg-[#E8CD7D] text-[#2C261E] px-2 py-0.5 rounded-full font-black">已解鎖 Full Version</span>
+                        <span className="text-[10px] bg-[#E8CD7D] text-[#2C261E] px-2 py-0.5 rounded-full font-black whitespace-nowrap">已解鎖 Full Version</span>
                       ) : (
-                        <span className="text-[10px] bg-rose-50 text-rose-500 border border-rose-200 px-2 py-0.5 rounded-full font-bold">🔒 未解鎖 (免費日常版 2 日試用)</span>
+                        <span className="text-[10px] bg-rose-50 text-rose-500 border border-rose-200 px-2 py-0.5 rounded-full font-bold whitespace-nowrap">🔒 未解鎖 (免費2日試用)</span>
                       )}
                     </h3>
                     {isPro && (
@@ -2385,7 +2424,7 @@
                           setRoomMode("daily");
                           setCurrency("HKD");
                         }}
-                        className="text-[10px] bg-white/10 hover:bg-white/20 text-slate-300 px-2 py-1 rounded-lg"
+                        className="text-[10px] bg-white/10 hover:bg-white/20 text-slate-300 px-2 py-1 rounded-lg whitespace-nowrap"
                       >
                         🔄 變回未解鎖狀態
                       </button>
@@ -2394,25 +2433,40 @@
                   <p className="text-[11px] text-slate-300 leading-relaxed">
                     日常項目與旅遊項目使用<strong>唔同嘅獨立房間代碼</strong>，數據完全分開唔會混亂！升級付費版即可無限開立獨立旅遊房間。
                   </p>
+
+                  {/* 【要求 3 修正】徹底解決圖二喺手機上「✈️ TripTab 旅遊房 / 🔒 按此解鎖」擠埋一齊斷行嘅問題 */}
                   <div className="grid grid-cols-2 gap-2.5 pt-1">
                     <button
                       type="button"
                       onClick={() => handleSwitchToTripTab("daily")}
-                      className={`p-3 rounded-2xl border text-left transition ${!isTripTabActive ? 'bg-[#F5E6B8] border-[#D4B259] text-[#2C261E]' : 'bg-white/5 border-white/10 text-slate-300'}`}
+                      className={`p-3.5 rounded-2xl border text-left transition flex flex-col justify-between ${
+                        !isTripTabActive
+                          ? "bg-[#F5E6B8] border-[#D4B259] text-[#2C261E] shadow-sm"
+                          : "bg-white/5 border-white/10 text-slate-300"
+                      }`}
                     >
-                      <div className="font-bold text-xs mb-0.5">☕ 日常夾錢房間</div>
-                      <div className="text-[10px] opacity-80">獨立日常帳目 · 年月日報告</div>
+                      <div className="font-black text-xs whitespace-nowrap">☕ 日常夾錢房間</div>
+                      <div className="text-[10px] opacity-80 mt-1 whitespace-nowrap">獨立日常帳目 · 報告</div>
                     </button>
+
                     <button
                       type="button"
                       onClick={() => handleSwitchToTripTab("triptab")}
-                      className={`p-3 rounded-2xl border text-left transition ${isTripTabActive ? 'bg-[#F5E6B8] border-[#D4B259] text-[#2C261E]' : 'bg-white/5 border-white/10 text-slate-300'}`}
+                      className={`p-3.5 rounded-2xl border text-left transition flex flex-col justify-between ${
+                        isTripTabActive
+                          ? "bg-[#F5E6B8] border-[#D4B259] text-[#2C261E] shadow-sm"
+                          : "bg-white/5 border-white/10 text-slate-300"
+                      }`}
                     >
-                      <div className="font-bold text-xs mb-0.5 flex items-center justify-between">
-                        <span>✈️ TripTab 旅遊房</span>
-                        {!isPro && <span>🔒 按此解鎖</span>}
+                      <div className="flex items-center justify-between gap-1 w-full">
+                        <span className="font-black text-xs whitespace-nowrap">✈️ TripTab 旅遊房</span>
+                        {!isPro && (
+                          <span className="text-[9px] bg-[#2C261E] text-[#F7DF94] px-1.5 py-0.5 rounded-md font-bold whitespace-nowrap shrink-0">
+                            🔒 解鎖
+                          </span>
+                        )}
                       </div>
-                      <div className="text-[10px] opacity-80">獨立新房 · 公數與外幣</div>
+                      <div className="text-[10px] opacity-80 mt-1 whitespace-nowrap">獨立新房 · 公數與外幣</div>
                     </button>
                   </div>
 
@@ -2523,7 +2577,7 @@
                   </div>
                 </div>
 
-                {/* 【要求 1】已移除「(自由加減)」，只顯示「🏷️ 活動類別設定」 */}
+                {/* 活動類別設定 */}
                 <div className="glass-dark p-5 rounded-3xl space-y-3.5">
                   <div className="flex justify-between items-center border-b border-white/10 pb-2.5">
                     <h3 className="font-bold text-white text-sm">🏷️ 活動類別設定</h3>
@@ -2646,7 +2700,7 @@
             )}
           </div>
 
-          {/* 參照圖二底部：4 格溫暖白/奶油黃圓角方形導航欄 */}
+          {/* 底部 4 格溫暖白/奶油黃圓角方形導航欄 */}
           <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto px-5 pb-4 pt-2 z-40 bg-gradient-to-t from-[#FAF8F3] via-[#FAF8F3]/95 to-transparent">
             <div className="grid grid-cols-4 gap-2.5">
               <button
@@ -2751,7 +2805,7 @@
             </div>
           )}
 
-          {/* 🏦 公數錢包管理彈窗 */}
+          {/* 🏦 公數錢包管理彈窗 (公數日期選擇器已改為英式 DD/MM/YYYY) */}
           {showPoolModal && (
             <div className="fixed inset-0 bg-black/45 backdrop-blur-sm z-50 flex items-center justify-center p-4">
               <div className="glass-dark max-w-sm w-full rounded-[2rem] p-6 shadow-2xl space-y-4">
@@ -2781,13 +2835,19 @@
                 </div>
 
                 <div>
-                  <label className="block text-[10px] text-slate-300 font-bold mb-1">📅 公數注資 / 建立日期</label>
-                  <input
-                    type="date"
-                    value={poolDate}
-                    onChange={e => handlePoolDateChange(e.target.value)}
-                    className="w-full text-xs bg-white/10 border border-white/15 rounded-xl px-3 py-2 text-white font-bold focus:outline-none"
-                  />
+                  <label className="block text-[10px] text-slate-300 font-bold mb-1">📅 公數注資 / 建立日期 (DD/MM/YYYY)</label>
+                  <div className="relative ios-uniform-field w-full bg-[#F7F4EC] border border-[#EAE3D5] px-3.5 flex items-center justify-between">
+                    <span className="text-xs font-bold text-[#2C261E]">
+                      {formatDateUK(poolDate)}
+                    </span>
+                    <span className="text-xs opacity-65">📅</span>
+                    <input
+                      type="date"
+                      value={poolDate}
+                      onChange={e => handlePoolDateChange(e.target.value)}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                  </div>
                 </div>
 
                 <form onSubmit={handleBatchTopUpPool} className="space-y-1.5">
