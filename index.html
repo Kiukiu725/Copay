@@ -3099,4 +3099,108 @@
                   🗑️
                 </div>
                 <div className="space-y-1">
-                  <h3 className="font-black text-base text-white">確定要刪除呢筆單據
+                  <h3 className="font-black text-base text-white">確定要刪除呢筆單據？</h3>
+                  <p className="text-xs text-slate-300">
+                    「<span className="font-bold text-amber-300">{deleteConfirmExp.title}</span>」
+                    ({(!deleteConfirmExp.currency || deleteConfirmExp.currency === "HKD") ? "HK$" : deleteConfirmExp.currency} {Number(deleteConfirmExp.amount).toLocaleString()})
+                  </p>
+                  <p className="text-[11px] text-slate-400">刪除後所有成員嘅夾錢結算會即時重新計算。</p>
+                </div>
+                <div className="flex gap-2.5 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setDeleteConfirmExp(null)}
+                    className="flex-1 py-2.5 rounded-2xl bg-[#F7F4EC] text-[#7D7465] text-xs font-bold transition"
+                  >
+                    取消
+                  </button>
+                  <button
+                    type="button"
+                    onClick={confirmDeleteExpense}
+                    className="flex-1 py-2.5 rounded-2xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold shadow-lg transition"
+                  >
+                    確定刪除
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ================================================================= */}
+          {/* 👑 【早鳥優惠 (Early Bird) 包裝收費牆】「Copay Travel 早鳥永久解鎖：$38 (原價 $88)」 */}
+          {/* ================================================================= */}
+          {showPaywall && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <div className="glass-dark max-w-sm w-full rounded-[2rem] p-5 sm:p-6 shadow-2xl space-y-4">
+                <div className="flex justify-between items-start gap-2">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <BrandLogo isTravel={true} size="w-10 h-10" />
+                    <div className="min-w-0">
+                      <span className="inline-block text-[10px] font-black uppercase tracking-wider bg-rose-100 text-rose-600 px-2 py-0.5 rounded-full mb-1">
+                        🔥 限時 43 折早鳥優惠 (Early Bird)
+                      </span>
+                      <h2 className="font-black text-sm sm:text-base text-white leading-snug">
+                        {paywallTriggerTitle}
+                      </h2>
+                    </div>
+                  </div>
+                  <button onClick={() => setShowPaywall(false)} className="shrink-0 text-slate-300 hover:text-white text-xl font-bold leading-none">×</button>
+                </div>
+
+                <div className="bg-[#FDF8EA] border border-[#7FA8C4] p-3.5 rounded-2xl text-xs text-[#376885] leading-relaxed font-medium">
+                  {paywallMsg}
+                </div>
+
+                <div className="space-y-2 text-xs text-slate-200 bg-white/5 p-3.5 rounded-2xl border border-white/10">
+                  <div className="flex items-center gap-2"><span>✈️</span> <strong>無限建立海外旅遊房間 (Copay Travel)</strong></div>
+                  <div className="flex items-center gap-2"><span>💱</span> <strong>15 國旅遊外幣實時匯率轉換</strong> + 鎖定唱錢匯率</div>
+                  <div className="flex items-center gap-2"><span>🏦</span> <strong>公數錢包管理 (防超支保護)</strong> + 信用卡手續費</div>
+                  <div className="flex items-center gap-2"><span>⚖️</span> <strong>進階不等額拆帳邏輯</strong> + 一鍵匯出 CSV 試算表</div>
+                  <div className="flex items-center gap-2 text-[#B5851D]"><span>🤖</span> <strong>免費包攬未來「AI 掃描單據自動入帳」升級</strong></div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleSimulatePurchase}
+                  className="w-full p-4 rounded-2xl gold-pill text-center transition shadow-lg active:scale-98 space-y-1"
+                >
+                  <div className="text-[11px] font-black uppercase tracking-wider text-white/90">
+                    ⚡ 趁加價前鎖定終身權限 · 一次買斷免月費
+                  </div>
+                  <div className="text-base sm:text-lg font-black flex items-center justify-center gap-2">
+                    <span>Copay Travel 早鳥永久解鎖：$38</span>
+                    <span className="text-xs font-normal line-through opacity-75">(原價 $88)</span>
+                  </div>
+                </button>
+
+                <form onSubmit={handleUnlockWithCode} className="pt-2 border-t border-white/10">
+                  <label className="block text-[10px] text-slate-300 font-bold mb-1">已有早鳥 VIP 解鎖碼？（測試碼：COPAY2026 或 COPAYPRO）</label>
+                  <div className="flex items-center gap-2 w-full">
+                    <input
+                      type="text"
+                      placeholder="輸入解鎖碼"
+                      value={vipInput}
+                      onChange={e => setVipInput(e.target.value)}
+                      className="flex-1 min-w-0 text-xs bg-white/10 border border-white/15 rounded-xl px-3 py-2 font-mono uppercase text-white focus:outline-none"
+                    />
+                    <button type="submit" className="shrink-0 teal-pill text-xs font-black px-4 py-2 rounded-xl whitespace-nowrap">
+                      兌換
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    const rootElement = document.getElementById("root");
+    if (ReactDOM.createRoot) {
+      ReactDOM.createRoot(rootElement).render(<App />);
+    } else {
+      ReactDOM.render(<App />, rootElement);
+    }
+  </script>
+</body>
+</html>
