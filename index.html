@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Copay" />
   <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="theme-color" content="#D8BC72" />
+  <meta name="theme-color" content="#C5D2DF" />
 
   <!-- App Logo 設定 -->
   <link rel="icon" type="image/png" href="Copay.png" />
@@ -34,8 +34,8 @@
     html, body {
       -webkit-tap-highlight-color: transparent;
       user-select: none;
-      background-color: #EFE9DC;
-      color: #2C261E;
+      background-color: #C7D3DF;
+      color: #2D3640;
       overflow-x: hidden;
       width: 100%;
       margin: 0;
@@ -45,27 +45,23 @@
       user-select: auto;
       min-width: 0;
     }
+    /* 參照左上圖：晨霧藍 (#C5D2DF) 過渡到暖灰 (#D6D8DA) 嘅極簡水平色塊頂部，配幾何海鷗剪影 */
     .safe-top-header {
-      padding-top: max(1.25rem, calc(env(safe-area-inset-top) + 0.75rem));
-      /* 頂部香檳暖金漸層 + 精緻幾何星芒暗花 (SVG Damask Pattern) */
-      background-color: #D8BC72;
-      background-image: 
-        radial-gradient(circle at 88% 14%, rgba(255, 252, 240, 0.55) 0%, rgba(255, 252, 240, 0) 48%),
-        radial-gradient(circle at 12% 80%, rgba(168, 130, 45, 0.22) 0%, transparent 55%),
-        url("data:image/svg+xml,%3Csvg width='52' height='52' viewBox='0 0 52 52' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%232C261E' stroke-width='0.7' stroke-opacity='0.075'%3E%3Cpath d='M26 0 L52 26 L26 52 L0 26 Z'/%3E%3Ccircle cx='26' cy='26' r='10'/%3E%3Ccircle cx='26' cy='26' r='3' fill='%232C261E' fill-opacity='0.05'/%3E%3Cpath d='M26 10 L26 42 M10 26 L42 26' stroke-dasharray='2 2'/%3E%3Cpath d='M0 6 L6 0 M46 0 L52 6 M0 46 L6 52 M46 52 L52 46'/%3E%3C/g%3E%3C/svg%3E"),
-        linear-gradient(140deg, #E6CE8A 0%, #D5B667 52%, #C4A14E 100%) !important;
+      padding-top: max(1.5rem, calc(env(safe-area-inset-top) + 0.85rem));
+      background: linear-gradient(180deg, #C5D2DF 0%, #C5D2DF 58%, #D6D8DA 58%, #D6D8DA 100%) !important;
       position: relative;
       overflow: hidden;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.45);
     }
-    /* 頂部右側若隱若現嘅立體羅盤雙環暗花浮水印 */
+    /* 右下角極簡幾何海鷗與夕陽海岸線剪影 */
     .safe-top-header::after {
       content: "";
       position: absolute;
-      right: -36px;
-      top: 28px;
-      width: 210px;
-      height: 210px;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23FFFFFF' stroke-opacity='0.16' stroke-width='1.5'%3E%3Ccircle cx='50' cy='50' r='44' stroke-dasharray='4 3'/%3E%3Ccircle cx='50' cy='50' r='34'/%3E%3Cpath d='M50 6 L50 94 M6 50 L94 50 M19 19 L81 81 M81 19 L19 81' stroke-opacity='0.1'/%3E%3C/g%3E%3C/svg%3E");
+      right: 16px;
+      bottom: 8px;
+      width: 68px;
+      height: 48px;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 80 56' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 50 H80' stroke='%23E8B48A' stroke-width='3' stroke-opacity='0.55'/%3E%3Cpath d='M48 49 L44 26 L38 24 L44 21 L49 23 L52 34 L66 44 L54 49 Z' fill='%23FFFFFF' fill-opacity='0.88'/%3E%3Cpath d='M51 33 L64 43 L52 44 Z' fill='%235B6573' fill-opacity='0.75'/%3E%3Cpath d='M38 24 L42 22.5 L42 25 Z' fill='%23E59A5C'/%3E%3C/svg%3E");
       background-size: contain;
       background-repeat: no-repeat;
       pointer-events: none;
@@ -83,102 +79,133 @@
       -moz-appearance: none;
       appearance: none;
       height: 46px;
-      border-radius: 1rem;
+      border-radius: 0.9rem;
     }
-    /* 下半部主體背景：暖杏仁米色 + 細膩斜織十字暗花，令純白卡片立體浮現 */
+    /* 參照左上與右上圖：全頁水平柔和色帶 (晨霧藍 -> 海霧灰 -> 暖沙駝色 -> 日落杏桃) */
     .butter-bg {
-      background-color: #F4EFE6;
-      background-image: url("data:image/svg+xml,%3Csvg width='32' height='32' viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%239C7B38' stroke-width='0.6' stroke-opacity='0.08'%3E%3Cpath d='M16 12 L16 20 M12 16 L20 16'/%3E%3Ccircle cx='0' cy='0' r='1.5' fill='%239C7B38' fill-opacity='0.06'/%3E%3Ccircle cx='32' cy='0' r='1.5' fill='%239C7B38' fill-opacity='0.06'/%3E%3Ccircle cx='0' cy='32' r='1.5' fill='%239C7B38' fill-opacity='0.06'/%3E%3Ccircle cx='32' cy='32' r='1.5' fill='%239C7B38' fill-opacity='0.06'/%3E%3C/g%3E%3C/svg%3E");
+      background: linear-gradient(
+        180deg,
+        #C5D2DF 0%,
+        #D6D8DA 26%,
+        #DFD5CA 54%,
+        #E8CEB6 78%,
+        #F0BFA0 94%,
+        #2B303A 94%,
+        #2B303A 100%
+      ) !important;
+      background-attachment: fixed !important;
     }
     .bg-\[\#FAF8F3\] {
-      background-color: #F4EFE6 !important;
-      background-image: 
-        radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.7) 0%, transparent 65%),
-        url("data:image/svg+xml,%3Csvg width='32' height='32' viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%239C7B38' stroke-width='0.6' stroke-opacity='0.08'%3E%3Cpath d='M16 12 L16 20 M12 16 L20 16'/%3E%3Ccircle cx='16' cy='16' r='5' stroke-opacity='0.04'/%3E%3Ccircle cx='0' cy='0' r='1' fill='%239C7B38' fill-opacity='0.07'/%3E%3Ccircle cx='32' cy='0' r='1' fill='%239C7B38' fill-opacity='0.07'/%3E%3C/g%3E%3C/svg%3E") !important;
-      border-top: 1px solid rgba(255, 255, 255, 0.85);
+      background: transparent !important;
+      box-shadow: none !important;
+      border-top: none !important;
     }
+    /* 極簡霧面半透明色塊卡片 (Flat Minimalist Matte Card) */
     .glass-dark {
-      background: rgba(255, 255, 255, 0.96);
-      backdrop-filter: blur(12px);
-      border: 1px solid #EAE0CE;
-      box-shadow: 0 12px 28px -6px rgba(120, 95, 45, 0.1), 0 2px 6px rgba(120, 95, 45, 0.04);
-      color: #2C261E;
+      background: rgba(255, 255, 255, 0.78) !important;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.65) !important;
+      box-shadow: 0 8px 24px rgba(45, 54, 64, 0.05) !important;
+      color: #2D3640 !important;
     }
     .teal-pill {
-      background: linear-gradient(135deg, #E6C975 0%, #CFA94A 100%);
-      color: #2C261E !important;
-      box-shadow: 0 6px 16px rgba(195, 155, 56, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      background: #36414F !important;
+      color: #F4ECE4 !important;
+      box-shadow: 0 4px 14px rgba(45, 54, 64, 0.16) !important;
     }
     .gold-pill {
-      background: linear-gradient(135deg, #2C261E 0%, #463D31 100%);
-      color: #F7DF94 !important;
-      box-shadow: 0 6px 18px rgba(44, 38, 30, 0.25);
+      background: #E59F71 !important;
+      color: #232A32 !important;
+      box-shadow: 0 4px 14px rgba(229, 159, 113, 0.3) !important;
+    }
+    /* 參照右上圖與左上圖底部：深炭灰藍 (#2B303A) 極簡 Dock 欄 */
+    .fixed.bottom-0 {
+      background: #2B303A !important;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 0.6rem !important;
     }
     .nav-square {
-      background: #FFFFFF;
-      border: 1px solid #E6DEC8;
-      box-shadow: 0 4px 12px rgba(140, 115, 60, 0.07);
-      color: #8C8273 !important;
+      background: transparent !important;
+      border: 1px solid transparent !important;
+      box-shadow: none !important;
+      color: #8E97A4 !important;
     }
     .nav-square-active {
-      background: linear-gradient(145deg, #E8CD7D, #D5B152);
-      border: 1px solid #C49E3D;
-      box-shadow: 0 8px 20px rgba(212, 175, 80, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.45);
-      color: #2C261E !important;
+      background: rgba(255, 255, 255, 0.1) !important;
+      border: 1px solid rgba(240, 191, 160, 0.35) !important;
+      box-shadow: none !important;
+      color: #F0BFA0 !important;
     }
-    .glass-dark .text-white {
-      color: #2C261E !important;
+    .glass-dark .text-white,
+    .glass-dark .text-\[\#2C261E\] {
+      color: #2D3640 !important;
     }
     .glass-dark .text-slate-200,
     .glass-dark .text-slate-300,
-    .text-slate-300 {
-      color: #7A7060 !important;
+    .text-slate-300,
+    .text-\[\#7D7465\],
+    .text-\[\#8C8273\] {
+      color: #636E7B !important;
     }
-    .glass-dark .text-slate-400 {
-      color: #A39887 !important;
+    .glass-dark .text-slate-400,
+    .text-\[\#A69D8E\] {
+      color: #8E97A4 !important;
     }
     .glass-dark .text-amber-300,
-    .glass-dark .text-amber-200 {
-      color: #B5851D !important;
+    .glass-dark .text-amber-200,
+    .text-\[\#B5851D\],
+    .text-\[\#9C7316\],
+    .text-\[\#8C6715\] {
+      color: #C46D3B !important;
     }
     .glass-dark .text-\[\#78C3D2\],
     .glass-dark .text-\[\#9BE0EE\] {
-      color: #9C7316 !important;
+      color: #4A6984 !important;
     }
     .glass-dark .text-emerald-300 {
-      color: #1F8A58 !important;
+      color: #2E7D65 !important;
     }
     .glass-dark .text-rose-300,
     .glass-dark .text-rose-200 {
-      color: #D94E4E !important;
+      color: #C95252 !important;
     }
     .glass-dark .bg-white\/10,
     .glass-dark .bg-white\/15,
     .glass-dark .bg-white\/5,
     .glass-dark .bg-black\/30,
     .glass-dark .bg-black\/35,
-    .glass-dark .bg-black\/40 {
-      background-color: #F7F3EA !important;
-      color: #2C261E !important;
+    .glass-dark .bg-black\/40,
+    .bg-\[\#F7F4EC\] {
+      background-color: #EEF1F4 !important;
+      color: #2D3640 !important;
+    }
+    .bg-\[\#F5E6B8\],
+    .bg-\[\#FDF8EA\] {
+      background-color: #F3E1D0 !important;
+      border-color: #DFA87E !important;
+      color: #2D3640 !important;
     }
     .glass-dark .border-white\/10,
     .glass-dark .border-white\/15,
-    .glass-dark .border-white\/20 {
-      border-color: #E8DFCE !important;
+    .glass-dark .border-white\/20,
+    .border-\[\#EAE3D5\],
+    .border-\[\#F0EAE0\] {
+      border-color: #DCE2E8 !important;
     }
     .glass-dark input,
     .glass-dark select {
-      color: #2C261E !important;
+      color: #2D3640 !important;
     }
     .glass-dark input::placeholder {
-      color: #B2A896 !important;
+      color: #9BA3AE !important;
     }
     .scrollbar-none::-webkit-scrollbar {
       display: none;
     }
   </style>
 </head>
-<body class="antialiased min-h-screen font-sans text-[#2C261E]">
+<body class="antialiased min-h-screen font-sans text-[#2D3640]">
   <div id="root"></div>
 
   <script type="text/babel">
@@ -223,7 +250,8 @@
       VND: 0.00031
     };
 
-    const CHART_COLORS = ["#E5B94B", "#10B981", "#3B82F6", "#F97316", "#8B5CF6", "#EC4899", "#14B8A6"];
+    // 北歐莫蘭迪配色圓餅圖
+    const CHART_COLORS = ["#5A7D9A", "#E59F71", "#6C8C74", "#8D7B68", "#A48094", "#709793", "#D48C70"];
 
     const DEFAULT_MEMBERS = ["我", "Alex", "Chloe", "Sam"];
     const DEFAULT_CATEGORIES_DAILY = ["🍱 食飯", "🚕 車費", "📦 團購"];
@@ -244,7 +272,6 @@
       return (raw || "").trim().toUpperCase().replace(/[.#$\[\]\/\s]/g, "");
     };
 
-    // 預設載入 Copay Lite (日常夾錢免費房間)
     const getStoredRooms = () => {
       try {
         const saved = JSON.parse(localStorage.getItem("copay_brand_rooms_v1"));
@@ -281,10 +308,10 @@
               src="Copay.png"
               alt="Copay Logo"
               onError={() => setCopayErr(true)}
-              className={`${size} rounded-2xl object-cover shadow-md border border-white/60`}
+              className={`${size} rounded-2xl object-cover shadow-sm border border-white/60`}
             />
             {isTravel && (
-              <span className="absolute -bottom-1 -right-1 bg-[#2C261E] text-[#F7DF94] text-[9px] font-black px-1 py-0.2 rounded-md border border-white/40 shadow">
+              <span className="absolute -bottom-1 -right-1 bg-[#2D3640] text-[#F0BFA0] text-[9px] font-black px-1 py-0.2 rounded-md border border-white/40 shadow">
                 ✈️
               </span>
             )}
@@ -292,16 +319,16 @@
         );
       }
       return (
-        <div className={`${size} rounded-2xl bg-[#2B353E] flex items-center justify-center shadow-md border border-white/60 relative overflow-hidden shrink-0`}>
+        <div className={`${size} rounded-2xl bg-[#2D3640] flex items-center justify-center shadow-sm border border-white/60 relative overflow-hidden shrink-0`}>
           <svg viewBox="0 0 64 64" className="w-4/5 h-4/5">
             <defs>
               <linearGradient id="copayTeal" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#3B7A8C" />
-                <stop offset="100%" stopColor="#1F4E5B" />
+                <stop offset="0%" stopColor="#6D94B0" />
+                <stop offset="100%" stopColor="#466882" />
               </linearGradient>
               <linearGradient id="copayGold" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#FAD074" />
-                <stop offset="100%" stopColor="#D99B43" />
+                <stop offset="0%" stopColor="#F2C19E" />
+                <stop offset="100%" stopColor="#D99466" />
               </linearGradient>
             </defs>
             <rect x="28" y="8" width="8" height="48" rx="4" fill="url(#copayTeal)" />
@@ -1565,22 +1592,22 @@
       return (
         <div className="max-w-md w-full mx-auto min-h-screen butter-bg flex flex-col pb-28 shadow-2xl relative overflow-x-hidden">
           
-          {/* 頂部香檳暖金暗花 Header 區域 */}
-          <div className="px-4 sm:px-6 pb-8 safe-top-header relative z-10">
+          {/* 北歐晨霧藍 × 海霧灰極簡色塊頂部 Header */}
+          <div className="px-4 sm:px-6 pb-7 safe-top-header relative z-10">
             <div className="flex justify-between items-center gap-2 mb-4">
               <div className="flex items-center gap-2.5 min-w-0">
                 <BrandLogo isTravel={isTravelMode} size="w-9 h-9 sm:w-10 sm:h-10" />
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="font-black tracking-wider text-xl text-[#2C261E] leading-none">
-                      Copay
+                    <span className="font-black tracking-tight text-xl text-[#2D3640] leading-none">
+                      Copay.
                     </span>
                     {isTravelMode ? (
-                      <span className="text-[11px] bg-[#2C261E] text-[#F7DF94] px-2.5 py-0.5 rounded-full font-black tracking-wide shadow-sm whitespace-nowrap">
+                      <span className="text-[10px] bg-[#2D3640] text-[#F0BFA0] px-2.5 py-0.5 rounded-full font-black tracking-wide shadow-sm whitespace-nowrap">
                         Travel ✈️
                       </span>
                     ) : (
-                      <span className="text-[11px] bg-white/80 text-[#2C261E] px-2.5 py-0.5 rounded-full font-extrabold tracking-wide shadow-sm whitespace-nowrap">
+                      <span className="text-[10px] bg-white/75 text-[#4A5562] px-2.5 py-0.5 rounded-full font-extrabold tracking-wide shadow-sm whitespace-nowrap">
                         Lite 日常
                       </span>
                     )}
@@ -1590,8 +1617,8 @@
 
               <div className="flex items-center shrink-0">
                 {isPro ? (
-                  <span className="text-[11px] bg-[#2C261E] text-[#F7DF94] px-3 py-1.5 rounded-full font-black tracking-wide shadow-sm whitespace-nowrap">
-                    👑 Copay Travel 已永久解鎖
+                  <span className="text-[11px] bg-[#2D3640] text-[#F0BFA0] px-3 py-1.5 rounded-full font-black tracking-wide shadow-sm whitespace-nowrap">
+                    👑 Travel Pro 已解鎖
                   </span>
                 ) : (
                   <button
@@ -1601,33 +1628,17 @@
                         "趁限時早鳥優惠以 HK$ 38（原價 $88）一次買斷，即可永久解鎖「海外旅遊 (Copay Travel)」：支援 15 國實時匯率轉換、公數錢包管理、進階拆帳，並免費包攬未來 AI 掃描單據更新！"
                       )
                     }
-                    className="text-[11px] sm:text-xs bg-[#2C261E] hover:opacity-90 text-[#F7DF94] px-3 py-2 rounded-full font-black transition shadow-sm flex items-center gap-1.5 whitespace-nowrap"
+                    className="text-[11px] sm:text-xs bg-[#2D3640] hover:opacity-90 text-[#F4ECE4] px-3 py-2 rounded-full font-black transition shadow-sm flex items-center gap-1.5 whitespace-nowrap"
                   >
-                    <span>🔥 早鳥 $38</span>
-                    <span className="text-[10px] text-[#A69D8E] line-through font-normal">$88</span>
+                    <span className="text-[#F0BFA0]">🔥 早鳥 $38</span>
+                    <span className="text-[10px] text-[#8E97A4] line-through font-normal">$88</span>
                   </button>
                 )}
               </div>
             </div>
 
-            {/* Hero 標題區 */}
-            <div className="space-y-1.5 mb-3.5">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-[10px] sm:text-[11px] bg-white/85 text-[#2C261E] px-2.5 py-0.5 rounded-full font-mono font-bold flex items-center gap-1.5 shadow-sm whitespace-nowrap">
-                  <span className={`w-2 h-2 rounded-full ${syncStatus === 'synced' ? 'bg-emerald-500' : syncStatus === 'connecting' ? 'bg-amber-500 animate-ping' : 'bg-rose-500'}`}></span>
-                  {isTravelMode ? "✈️ 海外旅遊房" : "☕ 日常夾錢房"} #{roomId}
-                </span>
-                {isTravelMode && (
-                  <button
-                    type="button"
-                    onClick={fetchLiveExchangeRates}
-                    className="text-[10px] bg-[#2C261E]/15 text-[#2C261E] px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1 hover:bg-[#2C261E]/25 transition whitespace-nowrap"
-                  >
-                    <span>🔄 匯率 {rateUpdatedText}</span>
-                  </button>
-                )}
-              </div>
-
+            {/* 參照左上圖 "Mon. / 9:30 • Mar, 15 • 74%" 極簡大字體排版 */}
+            <div className="space-y-1 mb-4">
               {isEditingGroupName ? (
                 <form onSubmit={saveGroupName} className="flex items-center gap-2 pt-1 w-full">
                   <input
@@ -1636,44 +1647,63 @@
                     onChange={e => setTempGroupName(e.target.value)}
                     placeholder="輸入房間名稱..."
                     autoFocus
-                    className="flex-1 min-w-0 bg-white text-[#2C261E] font-extrabold text-base sm:text-lg px-3 py-1.5 rounded-2xl focus:outline-none shadow-md"
+                    className="flex-1 min-w-0 bg-white text-[#2D3640] font-extrabold text-base sm:text-lg px-3 py-1.5 rounded-2xl focus:outline-none shadow-sm"
                   />
-                  <button type="submit" className="shrink-0 bg-[#2C261E] text-[#F7DF94] text-xs font-bold px-3 py-2 rounded-xl">
+                  <button type="submit" className="shrink-0 bg-[#2D3640] text-white text-xs font-bold px-3 py-2 rounded-xl">
                     儲存
                   </button>
-                  <button type="button" onClick={() => setIsEditingGroupName(false)} className="shrink-0 bg-white/60 text-[#2C261E] text-xs font-bold px-2.5 py-2 rounded-xl">
+                  <button type="button" onClick={() => setIsEditingGroupName(false)} className="shrink-0 bg-white/60 text-[#2D3640] text-xs font-bold px-2.5 py-2 rounded-xl">
                     取消
                   </button>
                 </form>
               ) : (
-                <div className="pt-0.5">
-                  <div className="text-[10px] sm:text-[11px] font-extrabold tracking-widest uppercase text-[#5E4E2B]">
-                    {isTravelMode ? "COPAY TRAVEL · 海外旅遊多幣種專案" : "COPAY LITE · 日常港幣夾錢"}
-                  </div>
-                  <div className="flex items-center justify-between gap-2">
-                    <h1
-                      onClick={() => {
-                        setTempGroupName(groupName);
-                        setIsEditingGroupName(true);
-                      }}
-                      className="text-2xl sm:text-3xl font-black tracking-tight text-[#2C261E] cursor-pointer hover:opacity-85 leading-tight break-words min-w-0"
-                    >
-                      {groupName}
-                    </h1>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setTempGroupName(groupName);
-                        setIsEditingGroupName(true);
-                      }}
-                      title="修改名稱"
-                      className="shrink-0 w-8 h-8 rounded-full bg-white/80 hover:bg-white text-[#2C261E] flex items-center justify-center text-xs shadow-sm transition"
-                    >
-                      ✏️
-                    </button>
-                  </div>
+                <div className="flex items-center justify-between gap-2">
+                  <h1
+                    onClick={() => {
+                      setTempGroupName(groupName);
+                      setIsEditingGroupName(true);
+                    }}
+                    className="text-3xl sm:text-4xl font-black tracking-tight text-[#2D3640] cursor-pointer hover:opacity-85 leading-tight break-words min-w-0"
+                  >
+                    {groupName}
+                  </h1>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTempGroupName(groupName);
+                      setIsEditingGroupName(true);
+                    }}
+                    title="修改名稱"
+                    className="shrink-0 w-8 h-8 rounded-full bg-white/65 hover:bg-white text-[#2D3640] flex items-center justify-center text-xs shadow-sm transition"
+                  >
+                    ✏️
+                  </button>
                 </div>
               )}
+
+              {/* 仿照圖中 "9:30 • MON 15 MAR • 74%" 極簡圓點分隔資訊列 */}
+              <div className="flex items-center gap-1.5 flex-wrap text-[11px] font-bold text-[#4F5B67] pt-0.5">
+                <span className="inline-flex items-center gap-1">
+                  <span className={`w-2 h-2 rounded-full ${syncStatus === 'synced' ? 'bg-emerald-600' : syncStatus === 'connecting' ? 'bg-amber-500 animate-ping' : 'bg-rose-500'}`}></span>
+                  <span>#{roomId}</span>
+                </span>
+                <span>•</span>
+                <span>{isTravelMode ? "COPAY TRAVEL" : "COPAY LITE"}</span>
+                <span>•</span>
+                <span>{members.length} 人</span>
+                {isTravelMode && (
+                  <>
+                    <span>•</span>
+                    <button
+                      type="button"
+                      onClick={fetchLiveExchangeRates}
+                      className="underline hover:text-[#2D3640] transition"
+                    >
+                      匯率 {rateUpdatedText} ↻
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
 
             {/* 首頁醒目「＋ 新增房間」按鈕 */}
@@ -1685,63 +1715,63 @@
                   setModalRoomNameInput("");
                   setShowCreateRoomModal(true);
                 }}
-                className="flex-1 bg-[#2C261E] text-[#F7DF94] font-black text-xs sm:text-sm py-3 px-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg hover:opacity-95 active:scale-98 transition whitespace-nowrap"
+                className="flex-1 bg-[#2D3640] text-[#F4ECE4] font-black text-xs sm:text-sm py-3 px-4 rounded-2xl flex items-center justify-center gap-2 shadow-md hover:opacity-95 active:scale-98 transition whitespace-nowrap"
               >
-                <span className="text-base leading-none">＋</span>
+                <span className="text-base leading-none text-[#F0BFA0]">＋</span>
                 <span>新增房間 (日常 / 海外旅遊)</span>
               </button>
 
               <button
                 type="button"
                 onClick={shareRoomLink}
-                className="shrink-0 bg-white/90 hover:bg-white text-[#2C261E] font-bold text-xs py-3 px-3.5 rounded-2xl flex items-center justify-center gap-1 shadow-md active:scale-95 transition whitespace-nowrap"
+                className="shrink-0 bg-white/80 hover:bg-white text-[#2D3640] font-bold text-xs py-3 px-3.5 rounded-2xl flex items-center justify-center gap-1 shadow-sm active:scale-95 transition whitespace-nowrap"
               >
                 <span>🔗 邀請 (#{roomId})</span>
               </button>
             </div>
 
-            {/* 白色圓角膠囊資訊欄 */}
-            <div className="mt-3.5 bg-white/95 backdrop-blur-md text-[#2C261E] p-4 rounded-3xl shadow-lg space-y-3 border border-white">
+            {/* 霧面資訊總覽卡 */}
+            <div className="mt-3.5 glass-dark p-4 rounded-3xl space-y-3">
               <div className="flex justify-between items-end gap-2">
                 <div className="min-w-0">
-                  <p className="text-[11px] text-[#8C8273] font-bold mb-0.5">
+                  <p className="text-[11px] text-[#636E7B] font-bold mb-0.5">
                     {isTravelMode ? "旅程總消費折合 (HKD)" : "總開支 (港幣 HK$)"}
                   </p>
-                  <p className="text-2xl sm:text-3xl font-black tracking-tight text-[#2C261E] truncate">HK$ {Math.round(totalHKD).toLocaleString()}</p>
-                  <p className="text-[10px] text-[#9E9587] font-semibold mt-0.5">
+                  <p className="text-2xl sm:text-3xl font-black tracking-tight text-[#2D3640] truncate">HK$ {Math.round(totalHKD).toLocaleString()}</p>
+                  <p className="text-[10px] text-[#8E97A4] font-semibold mt-0.5">
                     共 {expenses.length} 筆消費
                   </p>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="text-[11px] text-[#8C8273] font-bold mb-0.5">參與成員</p>
-                  <p className="text-base font-black text-[#9C7316]">{members.length} 人</p>
+                  <p className="text-[11px] text-[#636E7B] font-bold mb-0.5">參與成員</p>
+                  <p className="text-base font-black text-[#4A6984]">{members.length} 人</p>
                 </div>
               </div>
 
               {/* Copay Travel 專屬：公數錢包即時餘額進度條 */}
               {isTravelMode && (
-                <div className="pt-3 border-t border-[#F0EAE0]">
+                <div className="pt-3 border-t border-[#DCE2E8]">
                   <div className="flex justify-between items-center gap-2 mb-1.5">
                     <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-                      <span className="text-xs font-bold text-[#9C7316] whitespace-nowrap">🏦 公數錢包可用餘額</span>
-                      <span className="text-[10px] bg-[#F7F4EC] px-2 py-0.5 rounded-full text-[#7D7465] font-medium">
+                      <span className="text-xs font-bold text-[#2D3640] whitespace-nowrap">🏦 公數錢包可用餘額</span>
+                      <span className="text-[10px] bg-[#EEF1F4] px-2 py-0.5 rounded-full text-[#636E7B] font-medium">
                         📅 {formatDateUK(poolDate)} ｜ 已用 HK$ {Math.round(poolStats.totalSpentFromPoolHKD).toLocaleString()} / 總額 HK$ {Math.round(poolStats.totalContributedHKD).toLocaleString()}
                       </span>
                     </div>
                     <button
                       type="button"
                       onClick={() => setShowPoolModal(true)}
-                      className="shrink-0 text-[10px] teal-pill font-black px-2.5 py-1 rounded-full hover:opacity-90 whitespace-nowrap"
+                      className="shrink-0 text-[10px] gold-pill font-black px-2.5 py-1 rounded-full hover:opacity-90 whitespace-nowrap"
                     >
                       ＋ 每人注資公數
                     </button>
                   </div>
 
                   <div className="flex items-center justify-between gap-3">
-                    <div className="flex-1 h-2 bg-[#F0EAE0] rounded-full overflow-hidden">
+                    <div className="flex-1 h-2 bg-[#DCE2E8] rounded-full overflow-hidden">
                       <div
                         className={`h-full transition-all duration-300 ${
-                          poolStats.remainingPoolHKD <= 0 ? "bg-rose-500" : "bg-gradient-to-r from-[#DFC478] to-emerald-500"
+                          poolStats.remainingPoolHKD <= 0 ? "bg-rose-500" : "bg-gradient-to-r from-[#5A7D9A] to-[#E59F71]"
                         }`}
                         style={{
                           width: `${
@@ -1752,7 +1782,7 @@
                         }}
                       />
                     </div>
-                    <span className={`shrink-0 font-mono font-black text-sm ${poolStats.remainingPoolHKD <= 0 ? "text-rose-500" : "text-emerald-600"}`}>
+                    <span className={`shrink-0 font-mono font-black text-sm ${poolStats.remainingPoolHKD <= 0 ? "text-rose-500" : "text-[#2E7D65]"}`}>
                       HK$ {poolStats.remainingPoolHKD.toLocaleString()}
                     </span>
                   </div>
@@ -1761,8 +1791,8 @@
             </div>
           </div>
 
-          {/* 大圓角暖杏仁米色暗花主體內容區 */}
-          <div className="px-3.5 sm:px-5 pt-5 -mt-4 bg-[#FAF8F3] rounded-t-[2.25rem] flex-1 space-y-4 relative z-20 shadow-[0_-10px_28px_rgba(90,70,30,0.08)]">
+          {/* 主體內容區 (透明底色，直接呈現背後嘅海霧灰 -> 暖沙色 -> 日落杏桃色水平色帶) */}
+          <div className="px-3.5 sm:px-5 pt-3 bg-[#FAF8F3] flex-1 space-y-4 relative z-20">
             
             {/* ================================================================= */}
             {/* TAB 1: 第一頁 */}
@@ -1771,13 +1801,13 @@
               <>
                 {isTravelMode && (
                   <div className="flex justify-between items-center gap-2 px-1 pt-1">
-                    <h3 className="font-black text-[#2C261E] text-xs sm:text-sm flex items-center gap-1 min-w-0">
-                      <span className="truncate">✍️ 記低一筆新開支 · 預設貨幣：<span className="text-[#B5851D]">{currency}</span></span>
+                    <h3 className="font-black text-[#2D3640] text-xs sm:text-sm flex items-center gap-1 min-w-0">
+                      <span className="truncate">✍️ 記低一筆新開支 · 預設貨幣：<span className="text-[#C46D3B]">{currency}</span></span>
                     </h3>
                     <button
                       type="button"
                       onClick={() => setIsTravelFormCollapsed(prev => !prev)}
-                      className="shrink-0 text-[10px] sm:text-[11px] font-bold bg-[#EFE9DA] hover:bg-[#E5DEC9] text-[#2C261E] px-2.5 py-1.5 rounded-full transition whitespace-nowrap"
+                      className="shrink-0 text-[10px] sm:text-[11px] font-bold bg-white/75 hover:bg-white text-[#2D3640] px-2.5 py-1.5 rounded-full transition whitespace-nowrap shadow-sm"
                     >
                       {isTravelFormCollapsed ? "＋ 展開表單" : "✕ 收起表單"}
                     </button>
@@ -1804,7 +1834,7 @@
                           <select
                             value={category}
                             onChange={e => setCategory(e.target.value)}
-                            className="ios-uniform-field w-full text-xs sm:text-sm bg-[#F7F4EC] border border-[#EAE3D5] px-3 pr-7 text-[#2C261E] font-bold focus:outline-none focus:ring-2 focus:ring-[#DFC478]"
+                            className="ios-uniform-field w-full text-xs sm:text-sm bg-[#F7F4EC] border border-[#EAE3D5] px-3 pr-7 text-[#2C261E] font-bold focus:outline-none focus:ring-2 focus:ring-[#5A7D9A]"
                           >
                             {activeCategories.map(opt => <option key={opt} value={opt} className="text-slate-900">{opt}</option>)}
                           </select>
@@ -1839,7 +1869,7 @@
                         placeholder={isTravelMode ? "開支項目 (例如: 居酒屋消夜 / 門票)" : "例如: 譚仔午餐、的士車費、網購團購"}
                         value={title}
                         onChange={e => setTitle(e.target.value)}
-                        className="w-full min-w-0 text-sm bg-white/10 border border-white/15 rounded-2xl px-3.5 py-3 text-white font-medium focus:outline-none focus:ring-2 focus:ring-[#DFC478] placeholder-slate-400"
+                        className="w-full min-w-0 text-sm bg-white/10 border border-white/15 rounded-2xl px-3.5 py-3 text-white font-medium focus:outline-none focus:ring-2 focus:ring-[#5A7D9A] placeholder-slate-400"
                         required
                       />
                     </div>
@@ -1879,7 +1909,7 @@
                           value={amount}
                           onChange={e => setAmount(e.target.value)}
                           className={`flex-1 min-w-0 text-base bg-white/10 border rounded-2xl px-3.5 py-2.5 font-bold text-white focus:outline-none focus:ring-2 placeholder-slate-400 ${
-                            isExceedingPoolBalance ? "border-rose-400 focus:ring-rose-500" : "border-white/15 focus:ring-[#DFC478]"
+                            isExceedingPoolBalance ? "border-rose-400 focus:ring-rose-500" : "border-white/15 focus:ring-[#5A7D9A]"
                           }`}
                           required
                         />
@@ -1887,7 +1917,7 @@
                           <select
                             value={currency}
                             onChange={e => handleSelectDefaultCurrency(e.target.value)}
-                            className="shrink-0 teal-pill rounded-2xl px-3 py-2.5 text-xs font-black focus:outline-none"
+                            className="shrink-0 gold-pill rounded-2xl px-3 py-2.5 text-xs font-black focus:outline-none"
                           >
                             {sortedCurrencyKeys.map(c => (
                               <option key={c} value={c} className="text-slate-900">
@@ -1905,7 +1935,7 @@
                               type="checkbox"
                               checked={addCardFee}
                               onChange={e => setAddCardFee(e.target.checked)}
-                              className="rounded accent-[#D4B259]"
+                              className="rounded accent-[#36414F]"
                             />
                             <span>💳 信用卡海外簽帳 (+{cardFeePercent}% 手續費)</span>
                           </label>
@@ -1939,7 +1969,7 @@
                             onClick={() => setPayer(POOL_PAYER_KEY)}
                             className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
                               payer === POOL_PAYER_KEY
-                                ? "teal-pill border-[#C9A64E]"
+                                ? "gold-pill border-[#D99466]"
                                 : "bg-[#F7F4EC] text-[#9C7316] border-[#EAE3D5]"
                             }`}
                           >
@@ -2051,7 +2081,7 @@
                 {isTravelMode ? (
                   <div className="space-y-3">
                     {travelDailyGroups.length === 0 ? (
-                      <div className="glass-dark p-8 rounded-3xl text-center text-xs text-[#7A7060] font-medium">
+                      <div className="glass-dark p-8 rounded-3xl text-center text-xs text-[#636E7B] font-medium">
                         暫時未有旅遊開支記錄，喺上面記低第一筆消費啦！✈️
                       </div>
                     ) : (
@@ -2109,11 +2139,11 @@
                 ) : (
                   <div className="space-y-2.5">
                     <div className="flex justify-between items-center px-2">
-                      <span className="font-bold text-[#6E6558] text-xs">最近單據明細</span>
+                      <span className="font-bold text-[#2D3640] text-xs">最近單據明細</span>
                       <button
                         type="button"
                         onClick={() => setShowAllExpenses(prev => !prev)}
-                        className="font-bold bg-[#EFE9DA] hover:bg-[#E5DEC9] text-[#8C6715] px-3 py-1 rounded-full text-[11px] transition flex items-center gap-1 shadow-sm whitespace-nowrap"
+                        className="font-bold bg-white/75 hover:bg-white text-[#2D3640] px-3 py-1 rounded-full text-[11px] transition flex items-center gap-1 shadow-sm whitespace-nowrap"
                       >
                         <span>
                           {showAllExpenses
@@ -2124,7 +2154,7 @@
                     </div>
 
                     {expenses.length === 0 ? (
-                      <div className="glass-dark p-8 rounded-3xl text-center text-xs text-[#7A7060] font-medium">
+                      <div className="glass-dark p-8 rounded-3xl text-center text-xs text-[#636E7B] font-medium">
                         暫時未有開支記錄，去記帳頁入第一筆數啦！🤝
                       </div>
                     ) : (
@@ -2135,7 +2165,7 @@
                           <button
                             type="button"
                             onClick={() => setShowAllExpenses(true)}
-                            className="w-full py-2.5 rounded-2xl bg-[#EFE9DA] hover:bg-[#E5DEC9] text-xs font-bold text-[#8C6715] transition"
+                            className="w-full py-2.5 rounded-2xl bg-white/75 hover:bg-white text-xs font-bold text-[#2D3640] shadow-sm transition"
                           >
                             👀 顯示全部 {expenses.length} 筆帳目（尚有 {expenses.length - 3} 筆）
                           </button>
@@ -2187,7 +2217,7 @@
                   <div className="flex items-center gap-3 sm:gap-4 bg-white/5 p-3.5 sm:p-4 rounded-2xl border border-white/10">
                     <div className="relative w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center shrink-0">
                       <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                        <circle cx="50" cy="50" r={radius} stroke="#EAE3D5" strokeWidth="12" fill="transparent" />
+                        <circle cx="50" cy="50" r={radius} stroke="#DCE2E8" strokeWidth="12" fill="transparent" />
                         {chartAndReportData.categoryBreakdown.map((item, idx) => {
                           const pct = chartAndReportData.totalFilteredHKD > 0 ? item.amountHKD / chartAndReportData.totalFilteredHKD : 0;
                           const strokeDasharray = `${pct * circumference} ${circumference}`;
@@ -2264,9 +2294,9 @@
                               </div>
                               <span className="shrink-0 font-black text-white whitespace-nowrap">HK$ {Math.round(p.shareHKD).toLocaleString()}</span>
                             </div>
-                            <div className="w-full h-1.5 bg-[#EAE3D5] rounded-full overflow-hidden">
+                            <div className="w-full h-1.5 bg-[#DCE2E8] rounded-full overflow-hidden">
                               <div
-                                className="h-full bg-gradient-to-r from-[#DFC478] to-[#C29B38] rounded-full transition-all duration-300"
+                                className="h-full bg-gradient-to-r from-[#5A7D9A] to-[#E59F71] rounded-full transition-all duration-300"
                                 style={{ width: `${barWidth}%` }}
                               />
                             </div>
@@ -2347,7 +2377,7 @@
                       placeholder="輸入 6 位房間代碼 (如 X7K9P2)"
                       value={joinRoomCodeInput}
                       onChange={e => setJoinRoomCodeInput(e.target.value.toUpperCase())}
-                      className="flex-1 min-w-0 text-xs bg-white/10 border border-white/15 rounded-2xl px-3 py-3 font-mono font-bold uppercase text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#DFC478]"
+                      className="flex-1 min-w-0 text-xs bg-white/10 border border-white/15 rounded-2xl px-3 py-3 font-mono font-bold uppercase text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#5A7D9A]"
                     />
                     <button type="submit" className="shrink-0 teal-pill text-xs font-bold px-3.5 py-3 rounded-2xl whitespace-nowrap transition">
                       加入房間
@@ -2701,7 +2731,7 @@
                                 value={rates[cur]}
                                 onClick={e => e.stopPropagation()}
                                 onChange={e => handleRateChange(cur, e.target.value)}
-                                className="w-16 sm:w-20 shrink-0 text-right bg-white rounded-lg px-1.5 py-1 font-mono font-bold text-[11px] sm:text-xs text-[#2C261E] border border-[#EAE3D5] focus:outline-none focus:ring-1 focus:ring-[#DFC478]"
+                                className="w-16 sm:w-20 shrink-0 text-right bg-white rounded-lg px-1.5 py-1 font-mono font-bold text-[11px] sm:text-xs text-[#2C261E] border border-[#EAE3D5] focus:outline-none focus:ring-1 focus:ring-[#5A7D9A]"
                               />
                             </div>
                           );
@@ -2714,13 +2744,13 @@
             )}
           </div>
 
-          {/* 底部 4 格溫暖白/奶油黃圓角方形導航欄 */}
-          <div className="fixed bottom-0 left-0 right-0 max-w-md w-full mx-auto px-3 sm:px-5 pt-2 safe-bottom-dock z-40 bg-gradient-to-t from-[#F4EFE6] via-[#F4EFE6]/95 to-transparent">
+          {/* 參照右上圖與左上圖底部：深炭灰藍 (#2B303A) 極簡 Dock 欄 */}
+          <div className="fixed bottom-0 left-0 right-0 max-w-md w-full mx-auto px-3 sm:px-5 pt-2 safe-bottom-dock z-40">
             <div className="grid grid-cols-4 gap-2">
               <button
                 onClick={() => setActiveTab("expenses")}
-                className={`py-2.5 px-1 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all min-w-0 ${
-                  activeTab === "expenses" ? "nav-square-active scale-[1.03]" : "nav-square"
+                className={`py-2 px-1 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all min-w-0 ${
+                  activeTab === "expenses" ? "nav-square-active" : "nav-square"
                 }`}
               >
                 <span className="text-base leading-none">{isTravelMode ? "📝" : "⚡"}</span>
@@ -2733,8 +2763,8 @@
 
               <button
                 onClick={() => setActiveTab("settle")}
-                className={`py-2.5 px-1 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all min-w-0 ${
-                  activeTab === "settle" ? "nav-square-active scale-[1.03]" : "nav-square"
+                className={`py-2 px-1 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all min-w-0 ${
+                  activeTab === "settle" ? "nav-square-active" : "nav-square"
                 }`}
               >
                 <span className="text-base leading-none">📊</span>
@@ -2747,8 +2777,8 @@
 
               <button
                 onClick={() => setActiveTab("rooms")}
-                className={`py-2.5 px-1 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all min-w-0 ${
-                  activeTab === "rooms" ? "nav-square-active scale-[1.03]" : "nav-square"
+                className={`py-2 px-1 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all min-w-0 ${
+                  activeTab === "rooms" ? "nav-square-active" : "nav-square"
                 }`}
               >
                 <span className="text-base leading-none">🔑</span>
@@ -2757,8 +2787,8 @@
 
               <button
                 onClick={() => setActiveTab("settings")}
-                className={`py-2.5 px-1 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all min-w-0 ${
-                  activeTab === "settings" ? "nav-square-active scale-[1.03]" : "nav-square"
+                className={`py-2 px-1 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all min-w-0 ${
+                  activeTab === "settings" ? "nav-square-active" : "nav-square"
                 }`}
               >
                 <span className="text-base leading-none">⚙️</span>
@@ -2777,11 +2807,11 @@
                   <div className="flex items-center gap-2.5 min-w-0">
                     <BrandLogo isTravel={modalSelectedMode === "travel"} size="w-10 h-10" />
                     <div className="min-w-0">
-                      <h3 className="font-black text-base text-[#2C261E] truncate">＋ 新增 Copay 房間</h3>
-                      <p className="text-[11px] text-[#7D7465]">請選擇房間場景（日常與旅遊帳目獨立分開）</p>
+                      <h3 className="font-black text-base text-[#2D3640] truncate">＋ 新增 Copay 房間</h3>
+                      <p className="text-[11px] text-[#636E7B]">請選擇房間場景（日常與旅遊帳目獨立分開）</p>
                     </div>
                   </div>
-                  <button onClick={() => setShowCreateRoomModal(false)} className="shrink-0 text-[#A69D8E] hover:text-[#2C261E] text-xl font-bold leading-none">×</button>
+                  <button onClick={() => setShowCreateRoomModal(false)} className="shrink-0 text-[#8E97A4] hover:text-[#2D3640] text-xl font-bold leading-none">×</button>
                 </div>
 
                 <div className="space-y-2.5">
@@ -2789,20 +2819,20 @@
                     onClick={() => setModalSelectedMode("daily")}
                     className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
                       modalSelectedMode === "daily"
-                        ? "bg-[#FDF8EA] border-[#D4B259] shadow-md"
-                        : "bg-[#F7F4EC] border-transparent opacity-80 hover:opacity-100"
+                        ? "bg-[#F3E1D0] border-[#DFA87E] shadow-sm"
+                        : "bg-[#EEF1F4] border-transparent opacity-80 hover:opacity-100"
                     }`}
                   >
                     <div className="flex justify-between items-center mb-1">
                       <div className="flex items-center gap-2">
                         <span className="text-base">☕</span>
-                        <span className="font-black text-sm text-[#2C261E]">日常夾錢 (Copay Lite)</span>
+                        <span className="font-black text-sm text-[#2D3640]">日常夾錢 (Copay Lite)</span>
                       </div>
                       <span className="text-[10px] bg-emerald-100 text-emerald-700 font-black px-2.5 py-0.5 rounded-full">
                         免費 Free
                       </span>
                     </div>
-                    <p className="text-[11px] text-[#7D7465] pl-6">
+                    <p className="text-[11px] text-[#636E7B] pl-6">
                       純港幣 HK$ 記帳 · 適合朋友食飯、買餸、夾租、唱K打波極速平分
                     </p>
                   </div>
@@ -2811,29 +2841,29 @@
                     onClick={() => setModalSelectedMode("travel")}
                     className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
                       modalSelectedMode === "travel"
-                        ? "bg-[#FDF8EA] border-[#2C261E] shadow-md"
-                        : "bg-[#F7F4EC] border-transparent opacity-85 hover:opacity-100"
+                        ? "bg-[#F3E1D0] border-[#2D3640] shadow-sm"
+                        : "bg-[#EEF1F4] border-transparent opacity-85 hover:opacity-100"
                     }`}
                   >
                     <div className="flex justify-between items-center gap-1 mb-1.5 flex-wrap">
                       <div className="flex items-center gap-1.5">
                         <span className="text-base">✈️</span>
-                        <span className="font-black text-sm text-[#2C261E]">海外旅遊 (Copay Travel)</span>
+                        <span className="font-black text-sm text-[#2D3640]">海外旅遊 (Copay Travel)</span>
                       </div>
                       {isPro ? (
-                        <span className="text-[10px] bg-[#2C261E] text-[#F7DF94] font-black px-2.5 py-0.5 rounded-full">
+                        <span className="text-[10px] bg-[#2D3640] text-[#F0BFA0] font-black px-2.5 py-0.5 rounded-full">
                           PRO 已永久解鎖 ✨
                         </span>
                       ) : (
                         <div className="flex items-center gap-1">
-                          <span className="text-[10px] text-[#A69D8E] line-through font-semibold">原價 $88</span>
-                          <span className="text-[10px] bg-[#2C261E] text-[#F7DF94] font-black px-2 py-0.5 rounded-full">
+                          <span className="text-[10px] text-[#8E97A4] line-through font-semibold">原價 $88</span>
+                          <span className="text-[10px] bg-[#2D3640] text-[#F0BFA0] font-black px-2 py-0.5 rounded-full">
                             🔥 早鳥 $38
                           </span>
                         </div>
                       )}
                     </div>
-                    <div className="pl-6 space-y-1 text-[11px] text-[#6E6558]">
+                    <div className="pl-6 space-y-1 text-[11px] text-[#4F5B67]">
                       <div>• 💱 <strong>15 國旅遊外幣實時匯率轉換</strong> + 鎖定唱錢匯率</div>
                       <div>• 🏦 <strong>公數錢包 (Common Pool)</strong> 防超支與結餘退算</div>
                       <div>• ⚖️ <strong>進階不等額拆帳</strong> + 一鍵匯出 CSV 試算表</div>
@@ -2844,7 +2874,7 @@
 
                 <form onSubmit={handleModalCreateRoomSubmit} className="space-y-3 pt-1">
                   <div>
-                    <label className="block text-[10px] text-[#7D7465] font-bold mb-1 ml-1">
+                    <label className="block text-[10px] text-[#636E7B] font-bold mb-1 ml-1">
                       {modalSelectedMode === "travel" ? "✈️ 輸入海外旅程名稱：" : "☕ 輸入日常聚會/房間名稱："}
                     </label>
                     <input
@@ -2853,7 +2883,7 @@
                       value={modalRoomNameInput}
                       onChange={e => setModalRoomNameInput(e.target.value)}
                       autoFocus
-                      className="w-full min-w-0 text-sm bg-[#F7F4EC] text-[#2C261E] font-extrabold px-4 py-3 rounded-2xl border border-[#EAE3D5] focus:outline-none focus:ring-2 focus:ring-[#DFC478]"
+                      className="w-full min-w-0 text-sm bg-[#EEF1F4] text-[#2D3640] font-extrabold px-4 py-3 rounded-2xl border border-[#DCE2E8] focus:outline-none focus:ring-2 focus:ring-[#5A7D9A]"
                       required
                     />
                   </div>
@@ -2861,13 +2891,13 @@
                     <button
                       type="button"
                       onClick={() => setShowCreateRoomModal(false)}
-                      className="flex-1 py-3 rounded-2xl bg-[#F7F4EC] text-[#7D7465] text-xs font-bold"
+                      className="flex-1 py-3 rounded-2xl bg-[#EEF1F4] text-[#636E7B] text-xs font-bold"
                     >
                       取消
                     </button>
                     <button
                       type="submit"
-                      className={`flex-1 py-3 rounded-2xl text-xs font-black shadow-lg ${
+                      className={`flex-1 py-3 rounded-2xl text-xs font-black shadow-md ${
                         modalSelectedMode === "travel" ? "gold-pill" : "teal-pill"
                       }`}
                     >
@@ -3050,7 +3080,7 @@
                   onClick={handleSimulatePurchase}
                   className="w-full p-4 rounded-2xl teal-pill text-center transition shadow-lg active:scale-98 space-y-1"
                 >
-                  <div className="text-[11px] font-black uppercase tracking-wider">
+                  <div className="text-[11px] font-black uppercase tracking-wider text-[#F0BFA0]">
                     ⚡ 趁加價前鎖定終身權限 · 一次買斷免月費
                   </div>
                   <div className="text-base sm:text-lg font-black flex items-center justify-center gap-2">
