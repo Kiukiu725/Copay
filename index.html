@@ -10,11 +10,124 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Copay" />
   <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="theme-color" content="#C5D2DF" />
+  <meta name="theme-color" content="#EAE6DF" />
 
-  <!-- App Logo 設定 -->
-  <link rel="icon" type="image/png" href="Copay.png" />
-  <link rel="apple-touch-icon" href="Copay.png" />
+  <!-- 預設指向 GitHub 上嘅 PNG (同時支援 Copay.png / Copay_2.png / copay.png) -->
+  <link id="dynamic-favicon" rel="icon" type="image/png" href="Copay.png" />
+  <link id="dynamic-apple-icon" rel="apple-touch-icon" sizes="180x180" href="Copay.png" />
+
+  <!-- ✨ iOS 主畫面 Logo 終極保障腳本：自動檢測 GitHub 圖片，若因檔名大小寫或緩存未載入，即時用 Canvas 1:1 繪製圖二高清 512x512 PNG 注入 iPhone 主畫面 Icon！ -->
+  <script>
+    (function ensureCopayHomeScreenIcon() {
+      function generateFallbackCopayIconDataURL() {
+        const canvas = document.createElement("canvas");
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext("2d");
+
+        // 1. 圖二深灰藍柔和漸層背景 (#384049 -> #282E35)
+        const bgGrad = ctx.createLinearGradient(0, 0, 512, 512);
+        bgGrad.addColorStop(0, "#3D4650");
+        bgGrad.addColorStop(1, "#262C33");
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, 512, 512);
+
+        // 2. 右上角暖金色柔光暈 (Glow)
+        const glowGrad = ctx.createRadialGradient(295, 165, 5, 295, 165, 95);
+        glowGrad.addColorStop(0, "rgba(246, 193, 107, 0.55)");
+        glowGrad.addColorStop(0.5, "rgba(246, 193, 107, 0.18)");
+        glowGrad.addColorStop(1, "rgba(246, 193, 107, 0)");
+        ctx.fillStyle = glowGrad;
+        ctx.beginPath();
+        ctx.arc(295, 165, 95, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 3. 中央垂直青藍柱 ($)
+        const barGrad = ctx.createLinearGradient(236, 95, 276, 330);
+        barGrad.addColorStop(0, "#3B7282");
+        barGrad.addColorStop(1, "#234C59");
+        ctx.fillStyle = barGrad;
+        ctx.beginPath();
+        ctx.roundRect(238, 92, 36, 240, 12);
+        ctx.fill();
+
+        // 4. 立體 S 形深青藍絲帶主體
+        const sGrad = ctx.createLinearGradient(180, 120, 330, 310);
+        sGrad.addColorStop(0, "#356A7A");
+        sGrad.addColorStop(0.5, "#2B5B6C");
+        sGrad.addColorStop(1, "#1D424F");
+        ctx.strokeStyle = sGrad;
+        ctx.lineWidth = 40;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(298, 162);
+        ctx.bezierCurveTo(265, 120, 195, 130, 198, 176);
+        ctx.bezierCurveTo(200, 222, 315, 210, 315, 262);
+        ctx.bezierCurveTo(315, 305, 230, 308, 205, 268);
+        ctx.stroke();
+
+        // 5. 圖二標誌性右上角暖金色立體水滴弧帶
+        const goldGrad = ctx.createLinearGradient(250, 128, 320, 180);
+        goldGrad.addColorStop(0, "#FCE092");
+        goldGrad.addColorStop(0.5, "#EAA956");
+        goldGrad.addColorStop(1, "#C58337");
+        ctx.strokeStyle = goldGrad;
+        ctx.lineWidth = 34;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(256, 136);
+        ctx.quadraticCurveTo(292, 132, 306, 162);
+        ctx.stroke();
+
+        // 6. 底部 "copay" 淺冰藍圓體字樣
+        ctx.fillStyle = "#B2C8CE";
+        ctx.font = "bold 78px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "alphabetic";
+        ctx.fillText("copay", 256, 422);
+
+        return canvas.toDataURL("image/png");
+      }
+
+      // 先即時掛載高清 Canvas Icon 確保 iOS 100% 讀到，再探測 GitHub 上嘅實體 PNG
+      window.addEventListener("DOMContentLoaded", () => {
+        const fallbackDataUrl = generateFallbackCopayIconDataURL();
+        const appleIconLink = document.getElementById("dynamic-apple-icon");
+        const favIconLink = document.getElementById("dynamic-favicon");
+
+        const candidateFiles = ["Copay.png", "Copay_2.png", "copay.png", "./Copay.png", "./Copay_2.png"];
+        let found = false;
+
+        candidateFiles.forEach((src) => {
+          const img = new Image();
+          img.onload = function () {
+            if (!found) {
+              found = true;
+              // 將成功載入嘅 GitHub PNG 畫入正方形 Canvas 轉為標準 DataURL，徹底解決 iOS Safari 緩存與路徑問題
+              try {
+                const c = document.createElement("canvas");
+                c.width = 512;
+                c.height = 512;
+                const ctx = c.getContext("2d");
+                ctx.drawImage(img, 0, 0, 512, 512);
+                const dataUrl = c.toDataURL("image/png");
+                if (appleIconLink) appleIconLink.href = dataUrl;
+                if (favIconLink) favIconLink.href = dataUrl;
+              } catch (e) {
+                if (appleIconLink) appleIconLink.href = src;
+                if (favIconLink) favIconLink.href = src;
+              }
+            }
+          };
+          img.src = src;
+        });
+
+        // 預設先寫入 1:1 還原嘅高清圖二 DataURL，保證任何情況下「加入主畫面」都有靚 Logo
+        if (appleIconLink) appleIconLink.href = fallbackDataUrl;
+        if (favIconLink) favIconLink.href = fallbackDataUrl;
+      });
+    })();
+  </script>
 
   <!-- React 18 & Babel CDN -->
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -34,8 +147,8 @@
     html, body {
       -webkit-tap-highlight-color: transparent;
       user-select: none;
-      background-color: #C7D3DF;
-      color: #2D3640;
+      background-color: #EAE6DF;
+      color: #2B3A42;
       overflow-x: hidden;
       width: 100%;
       margin: 0;
@@ -45,31 +158,32 @@
       user-select: auto;
       min-width: 0;
     }
-    /* 參照左上圖：晨霧藍 (#C5D2DF) 過渡到暖灰 (#D6D8DA) 嘅極簡水平色塊頂部，配幾何海鷗剪影 */
+
+    /* 🎨 圖一：全屏柔霧水彩波浪背景 (Soft Watercolor Waves Full-App Background) */
+    .butter-bg {
+      background-color: #F2EFE9;
+      background-image:
+        url("bg.jpg"),
+        url("image_54f771.jpg"),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 1400' preserveAspectRatio='none'%3E%3Cdefs%3E%3Cfilter id='wc' x='-10%25' y='-10%25' width='120%25' height='120%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012' numOctaves='3' result='noise'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='noise' scale='18' xChannelSelector='R' yChannelSelector='G'/%3E%3C/filter%3E%3ClinearGradient id='cream' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23F7F4EC'/%3E%3Cstop offset='50%25' stop-color='%23EFECE4'/%3E%3Cstop offset='100%25' stop-color='%23E6ECEC'/%3E%3C/linearGradient%3E%3ClinearGradient id='waveBlue1' x1='0%25' y1='0%25' x2='100%25' y2='80%25'%3E%3Cstop offset='0%25' stop-color='%23C8D7DF' stop-opacity='0.65'/%3E%3Cstop offset='55%25' stop-color='%238DB3CE' stop-opacity='0.78'/%3E%3Cstop offset='100%25' stop-color='%236B9BBF' stop-opacity='0.85'/%3E%3C/linearGradient%3E%3ClinearGradient id='waveBlue2' x1='0%25' y1='20%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23DCE6EA' stop-opacity='0.7'/%3E%3Cstop offset='60%25' stop-color='%23B5CDE0' stop-opacity='0.65'/%3E%3Cstop offset='100%25' stop-color='%2394B8D3' stop-opacity='0.75'/%3E%3C/linearGradient%3E%3ClinearGradient id='waveSage' x1='0%25' y1='0%25' x2='90%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23CEDCD8' stop-opacity='0.72'/%3E%3Cstop offset='50%25' stop-color='%23B7CEC9' stop-opacity='0.68'/%3E%3Cstop offset='100%25' stop-color='%23CFDFDC' stop-opacity='0.6'/%3E%3C/linearGradient%3E%3ClinearGradient id='waveDeep' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%235D8EB5' stop-opacity='0.82'/%3E%3Cstop offset='55%25' stop-color='%2379A4C6' stop-opacity='0.75'/%3E%3Cstop offset='100%25' stop-color='%23A8C6DC' stop-opacity='0.65'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='800' height='1400' fill='url(%23cream)'/%3E%3Cg filter='url(%23wc)'%3E%3Cpath d='M800,0 L420,0 C340,70 430,190 560,210 C680,230 740,160 800,200 Z' fill='%23E3E9EC' opacity='0.7'/%3E%3Cpath d='M-40,70 C110,90 170,250 350,275 C530,300 620,240 730,360 C780,415 810,480 840,520 L840,760 C720,710 640,560 510,490 C370,415 190,430 60,340 C-10,290 -40,210 -40,70 Z' fill='url(%23waveBlue1)'/%3E%3Cpath d='M-40,210 C90,310 260,310 420,380 C570,445 640,610 840,690 L840,860 C660,790 560,620 430,520 C300,420 120,420 -40,310 Z' fill='url(%23waveBlue2)'/%3E%3Cpath d='M-40,420 C140,510 310,500 410,630 C500,750 480,930 620,1040 C700,1105 780,1130 840,1170 L840,1360 C650,1290 500,1170 390,990 C280,810 150,750 -40,660 Z' fill='url(%23waveSage)'/%3E%3Cpath d='M-40,620 C130,690 250,740 340,910 C430,1080 540,1210 760,1330 L840,1370 L840,1440 L-40,1440 Z' fill='%23BFDAD6' opacity='0.55'/%3E%3Cpath d='M-40,830 C90,820 210,890 275,1040 C340,1190 460,1295 660,1400 L-40,1400 Z' fill='url(%23waveDeep)'/%3E%3Cpath d='M-40,980 C80,990 170,1060 230,1200 C280,1310 360,1380 460,1420 L-40,1420 Z' fill='%23C9D9E6' opacity='0.8'/%3E%3Cpath d='M-40,1180 C60,1210 140,1290 190,1420 L-40,1420 Z' fill='%23F5F2EB' opacity='0.92'/%3E%3C/g%3E%3C/svg%3E") !important;
+      background-size: cover !important;
+      background-position: center center !important;
+      background-attachment: fixed !important;
+    }
+
+    /* 頂部與下半部全部設為透明，令圖一嘅水彩波浪完整貫穿全個 App */
     .safe-top-header {
-      padding-top: max(1.5rem, calc(env(safe-area-inset-top) + 0.85rem));
-      background: linear-gradient(180deg, #C5D2DF 0%, #C5D2DF 58%, #D6D8DA 58%, #D6D8DA 100%) !important;
-      position: relative;
-      overflow: hidden;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+      padding-top: max(1.35rem, calc(env(safe-area-inset-top) + 0.8rem));
+      background: transparent !important;
+      border-bottom: none !important;
     }
-    /* 右下角極簡幾何海鷗與夕陽海岸線剪影 */
     .safe-top-header::after {
-      content: "";
-      position: absolute;
-      right: 16px;
-      bottom: 8px;
-      width: 68px;
-      height: 48px;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 80 56' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 50 H80' stroke='%23E8B48A' stroke-width='3' stroke-opacity='0.55'/%3E%3Cpath d='M48 49 L44 26 L38 24 L44 21 L49 23 L52 34 L66 44 L54 49 Z' fill='%23FFFFFF' fill-opacity='0.88'/%3E%3Cpath d='M51 33 L64 43 L52 44 Z' fill='%235B6573' fill-opacity='0.75'/%3E%3Cpath d='M38 24 L42 22.5 L42 25 Z' fill='%23E59A5C'/%3E%3C/svg%3E");
-      background-size: contain;
-      background-repeat: no-repeat;
-      pointer-events: none;
-      z-index: 0;
+      display: none !important;
     }
-    .safe-top-header > * {
-      position: relative;
-      z-index: 1;
+    .bg-\[\#FAF8F3\] {
+      background: transparent !important;
+      box-shadow: none !important;
+      border-top: none !important;
     }
     .safe-bottom-dock {
       padding-bottom: max(0.85rem, env(safe-area-inset-bottom));
@@ -79,92 +193,79 @@
       -moz-appearance: none;
       appearance: none;
       height: 46px;
-      border-radius: 0.9rem;
+      border-radius: 1rem;
     }
-    /* 參照左上與右上圖：全頁水平柔和色帶 (晨霧藍 -> 海霧灰 -> 暖沙駝色 -> 日落杏桃) */
-    .butter-bg {
-      background: linear-gradient(
-        180deg,
-        #C5D2DF 0%,
-        #D6D8DA 26%,
-        #DFD5CA 54%,
-        #E8CEB6 78%,
-        #F0BFA0 94%,
-        #2B303A 94%,
-        #2B303A 100%
-      ) !important;
-      background-attachment: fixed !important;
-    }
-    .bg-\[\#FAF8F3\] {
-      background: transparent !important;
-      box-shadow: none !important;
-      border-top: none !important;
-    }
-    /* 極簡霧面半透明色塊卡片 (Flat Minimalist Matte Card) */
+
+    /* 半透明磨砂白卡片，透出底下柔和嘅水彩波浪 */
     .glass-dark {
-      background: rgba(255, 255, 255, 0.78) !important;
+      background: rgba(255, 255, 255, 0.82) !important;
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.65) !important;
-      box-shadow: 0 8px 24px rgba(45, 54, 64, 0.05) !important;
-      color: #2D3640 !important;
+      border: 1px solid rgba(255, 255, 255, 0.85) !important;
+      box-shadow: 0 10px 28px rgba(65, 95, 115, 0.08) !important;
+      color: #2B3A42 !important;
     }
+
+    /* 按鈕配色：呼應圖一水彩霧海藍與圖二深灰藍金光 */
     .teal-pill {
-      background: #36414F !important;
-      color: #F4ECE4 !important;
-      box-shadow: 0 4px 14px rgba(45, 54, 64, 0.16) !important;
+      background: linear-gradient(135deg, #4B7B99 0%, #37627D 100%) !important;
+      color: #FFFFFF !important;
+      box-shadow: 0 6px 16px rgba(55, 98, 125, 0.28) !important;
     }
     .gold-pill {
-      background: #E59F71 !important;
-      color: #232A32 !important;
-      box-shadow: 0 4px 14px rgba(229, 159, 113, 0.3) !important;
+      background: linear-gradient(135deg, #2D3842 0%, #3F4E5A 100%) !important;
+      color: #F4D58D !important;
+      box-shadow: 0 6px 16px rgba(45, 56, 66, 0.22) !important;
     }
-    /* 參照右上圖與左上圖底部：深炭灰藍 (#2B303A) 極簡 Dock 欄 */
+
+    /* 底部導航欄：柔霧白磨砂底配水彩藍選中狀態 */
     .fixed.bottom-0 {
-      background: #2B303A !important;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-      padding-top: 0.6rem !important;
+      background: linear-gradient(to top, rgba(242, 239, 233, 0.95) 0%, rgba(242, 239, 233, 0.75) 75%, transparent 100%) !important;
     }
     .nav-square {
-      background: transparent !important;
-      border: 1px solid transparent !important;
-      box-shadow: none !important;
-      color: #8E97A4 !important;
+      background: rgba(255, 255, 255, 0.78) !important;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.9) !important;
+      box-shadow: 0 4px 12px rgba(65, 95, 115, 0.06) !important;
+      color: #6E828F !important;
     }
     .nav-square-active {
-      background: rgba(255, 255, 255, 0.1) !important;
-      border: 1px solid rgba(240, 191, 160, 0.35) !important;
-      box-shadow: none !important;
-      color: #F0BFA0 !important;
+      background: linear-gradient(145deg, #5B8CAE, #3E6E8E) !important;
+      border: 1px solid rgba(255, 255, 255, 0.6) !important;
+      box-shadow: 0 8px 18px rgba(62, 110, 142, 0.32) !important;
+      color: #FFFFFF !important;
     }
+
+    /* 統一卡片內文字與輸入框顏色 */
     .glass-dark .text-white,
     .glass-dark .text-\[\#2C261E\] {
-      color: #2D3640 !important;
+      color: #26353D !important;
     }
     .glass-dark .text-slate-200,
     .glass-dark .text-slate-300,
     .text-slate-300,
     .text-\[\#7D7465\],
     .text-\[\#8C8273\] {
-      color: #636E7B !important;
+      color: #5C707B !important;
     }
     .glass-dark .text-slate-400,
     .text-\[\#A69D8E\] {
-      color: #8E97A4 !important;
+      color: #8799A3 !important;
     }
     .glass-dark .text-amber-300,
     .glass-dark .text-amber-200,
     .text-\[\#B5851D\],
     .text-\[\#9C7316\],
     .text-\[\#8C6715\] {
-      color: #C46D3B !important;
+      color: #376885 !important;
     }
     .glass-dark .text-\[\#78C3D2\],
     .glass-dark .text-\[\#9BE0EE\] {
-      color: #4A6984 !important;
+      color: #3E728F !important;
     }
     .glass-dark .text-emerald-300 {
-      color: #2E7D65 !important;
+      color: #287D67 !important;
     }
     .glass-dark .text-rose-300,
     .glass-dark .text-rose-200 {
@@ -177,35 +278,35 @@
     .glass-dark .bg-black\/35,
     .glass-dark .bg-black\/40,
     .bg-\[\#F7F4EC\] {
-      background-color: #EEF1F4 !important;
-      color: #2D3640 !important;
+      background-color: rgba(236, 242, 245, 0.85) !important;
+      color: #26353D !important;
     }
     .bg-\[\#F5E6B8\],
     .bg-\[\#FDF8EA\] {
-      background-color: #F3E1D0 !important;
-      border-color: #DFA87E !important;
-      color: #2D3640 !important;
+      background-color: #DFECF2 !important;
+      border-color: #7FA8C4 !important;
+      color: #26353D !important;
     }
     .glass-dark .border-white\/10,
     .glass-dark .border-white\/15,
     .glass-dark .border-white\/20,
     .border-\[\#EAE3D5\],
     .border-\[\#F0EAE0\] {
-      border-color: #DCE2E8 !important;
+      border-color: #D5E2E8 !important;
     }
     .glass-dark input,
     .glass-dark select {
-      color: #2D3640 !important;
+      color: #26353D !important;
     }
     .glass-dark input::placeholder {
-      color: #9BA3AE !important;
+      color: #93A5B0 !important;
     }
     .scrollbar-none::-webkit-scrollbar {
       display: none;
     }
   </style>
 </head>
-<body class="antialiased min-h-screen font-sans text-[#2D3640]">
+<body class="antialiased min-h-screen font-sans text-[#26353D]">
   <div id="root"></div>
 
   <script type="text/babel">
@@ -250,8 +351,7 @@
       VND: 0.00031
     };
 
-    // 北歐莫蘭迪配色圓餅圖
-    const CHART_COLORS = ["#5A7D9A", "#E59F71", "#6C8C74", "#8D7B68", "#A48094", "#709793", "#D48C70"];
+    const CHART_COLORS = ["#4B7B99", "#7BA69E", "#D9A05B", "#8FAEC4", "#6B8E78", "#C77D63", "#8C7B99"];
 
     const DEFAULT_MEMBERS = ["我", "Alex", "Chloe", "Sam"];
     const DEFAULT_CATEGORIES_DAILY = ["🍱 食飯", "🚕 車費", "📦 團購"];
@@ -297,44 +397,65 @@
       return rooms[0].id;
     };
 
-    // 主品牌 Copay Logo 元件
-    function BrandLogo({ isTravel = false, size = "w-9 h-9 sm:w-10 sm:h-10" }) {
-      const [copayErr, setCopayErr] = useState(false);
+    // 圖二 Copay Logo 元件 (自動嘗試 Copay.png -> Copay_2.png -> copay.png -> 內置 1:1 圖二 SVG)
+    function BrandLogo({ isTravel = false, size = "w-10 h-10 sm:w-11 sm:h-11" }) {
+      const candidateLogos = ["Copay.png", "Copay_2.png", "copay.png"];
+      const [logoIdx, setLogoIdx] = useState(0);
 
-      if (!copayErr) {
+      if (logoIdx < candidateLogos.length) {
         return (
           <div className="relative shrink-0">
             <img
-              src="Copay.png"
+              src={candidateLogos[logoIdx]}
               alt="Copay Logo"
-              onError={() => setCopayErr(true)}
-              className={`${size} rounded-2xl object-cover shadow-sm border border-white/60`}
+              onError={() => setLogoIdx(prev => prev + 1)}
+              className={`${size} rounded-2xl object-cover shadow-md border border-white/80`}
             />
             {isTravel && (
-              <span className="absolute -bottom-1 -right-1 bg-[#2D3640] text-[#F0BFA0] text-[9px] font-black px-1 py-0.2 rounded-md border border-white/40 shadow">
+              <span className="absolute -bottom-1 -right-1 bg-[#2D3842] text-[#F4D58D] text-[9px] font-black px-1 py-0.2 rounded-md border border-white/60 shadow">
                 ✈️
               </span>
             )}
           </div>
         );
       }
+
+      // 圖二 1:1 高精細內置 SVG Logo (深灰藍底 + 3D 青藍 $ + 右上暖金發光弧 + copay 字樣)
       return (
-        <div className={`${size} rounded-2xl bg-[#2D3640] flex items-center justify-center shadow-sm border border-white/60 relative overflow-hidden shrink-0`}>
-          <svg viewBox="0 0 64 64" className="w-4/5 h-4/5">
-            <defs>
-              <linearGradient id="copayTeal" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#6D94B0" />
-                <stop offset="100%" stopColor="#466882" />
-              </linearGradient>
-              <linearGradient id="copayGold" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#F2C19E" />
-                <stop offset="100%" stopColor="#D99466" />
-              </linearGradient>
-            </defs>
-            <rect x="28" y="8" width="8" height="48" rx="4" fill="url(#copayTeal)" />
-            <path d="M44 21C44 15.5 38.5 12 32 12C25.5 12 20 15.5 20 21C20 26.5 25.5 29 32 31C38.5 33 44 35.5 44 41C44 46.5 38.5 50 32 50C25.5 50 20 46.5 20 41" stroke="url(#copayTeal)" strokeWidth="8" strokeLinecap="round" fill="none" />
-            <path d="M33 14C39 14 44 17 45 21" stroke="url(#copayGold)" strokeWidth="7" strokeLinecap="round" fill="none" />
-          </svg>
+        <div className="relative shrink-0">
+          <div className={`${size} rounded-2xl bg-gradient-to-br from-[#3D4650] to-[#262C33] flex items-center justify-center shadow-md border border-white/80 relative overflow-hidden`}>
+            <svg viewBox="0 0 100 100" className="w-full h-full">
+              <defs>
+                <linearGradient id="cpBar" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#3B7282" />
+                  <stop offset="100%" stopColor="#234C59" />
+                </linearGradient>
+                <linearGradient id="cpRibbon" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#356A7A" />
+                  <stop offset="100%" stopColor="#1D424F" />
+                </linearGradient>
+                <linearGradient id="cpGold" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#FCE092" />
+                  <stop offset="55%" stopColor="#EAA956" />
+                  <stop offset="100%" stopColor="#C58337" />
+                </linearGradient>
+                <radialGradient id="cpGlow" cx="60%" cy="30%" r="30%">
+                  <stop offset="0%" stopColor="#F6C16B" stopOpacity="0.55" />
+                  <stop offset="100%" stopColor="#F6C16B" stopOpacity="0" />
+                </radialGradient>
+              </defs>
+              <circle cx="60" cy="30" r="24" fill="url(#cpGlow)" />
+              <rect x="46" y="16" width="8" height="48" rx="3.5" fill="url(#cpBar)" />
+              <path d="M60 31 C53 22, 37 24, 38 34 C39 44, 62 41, 62 52 C62 61, 44 61, 39 53" stroke="url(#cpRibbon)" strokeWidth="8.5" strokeLinecap="round" fill="none" />
+              <path d="M50 25 Q58 24 61 31" stroke="url(#cpGold)" strokeWidth="7.5" strokeLinecap="round" fill="none" />
+              <text x="50" y="84" textAnchor="middle" fill="#B2C8CE" fontSize="16" fontWeight="bold" fontFamily="-apple-system, BlinkMacSystemFont, sans-serif">copay</text>
+            </svg>
+          </div>
+          {isTravel && (
+            <span className="absolute -bottom-1 -right-1 bg-[#2D3842] text-[#F4D58D] text-[9px] font-black px-1 py-0.2 rounded-md border border-white/60 shadow">
+              ✈️
+            </span>
+          )}
         </div>
       );
     }
@@ -1536,7 +1657,7 @@
                     }`}
                   >
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="shrink-0 w-7 h-7 rounded-xl bg-[#EFE6CE] text-[#9C7316] flex items-center justify-center text-xs">💸</span>
+                      <span className="shrink-0 w-7 h-7 rounded-xl bg-[#DFECF2] text-[#376885] flex items-center justify-center text-xs">💸</span>
                       <div className="flex items-center gap-1 flex-wrap min-w-0">
                         <span className={`font-bold text-xs sm:text-sm ${isPaid ? "line-through text-[#A69D8E]" : "text-[#2C261E]"}`}>
                           {t.from}
@@ -1558,7 +1679,7 @@
                         className={`shrink-0 w-8 h-8 rounded-full text-sm font-black flex items-center justify-center transition shadow-sm ${
                           isPaid
                             ? "bg-emerald-500 text-white"
-                            : "bg-white border border-[#DFC478] text-[#9C7316] hover:bg-[#E8CD7D] hover:text-[#2C261E]"
+                            : "bg-white border border-[#7FA8C4] text-[#376885] hover:bg-[#4B7B99] hover:text-white"
                         }`}
                       >
                         ✓
@@ -1592,22 +1713,22 @@
       return (
         <div className="max-w-md w-full mx-auto min-h-screen butter-bg flex flex-col pb-28 shadow-2xl relative overflow-x-hidden">
           
-          {/* 北歐晨霧藍 × 海霧灰極簡色塊頂部 Header */}
-          <div className="px-4 sm:px-6 pb-7 safe-top-header relative z-10">
+          {/* 頂部 Header (透明底，直接展示圖一柔霧水彩波浪背景) */}
+          <div className="px-4 sm:px-6 pb-4 safe-top-header relative z-10">
             <div className="flex justify-between items-center gap-2 mb-4">
               <div className="flex items-center gap-2.5 min-w-0">
-                <BrandLogo isTravel={isTravelMode} size="w-9 h-9 sm:w-10 sm:h-10" />
+                <BrandLogo isTravel={isTravelMode} size="w-10 h-10 sm:w-11 sm:h-11" />
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="font-black tracking-tight text-xl text-[#2D3640] leading-none">
-                      Copay.
+                    <span className="font-black tracking-tight text-xl text-[#26353D] leading-none">
+                      Copay
                     </span>
                     {isTravelMode ? (
-                      <span className="text-[10px] bg-[#2D3640] text-[#F0BFA0] px-2.5 py-0.5 rounded-full font-black tracking-wide shadow-sm whitespace-nowrap">
+                      <span className="text-[10px] bg-[#2D3842] text-[#F4D58D] px-2.5 py-0.5 rounded-full font-black tracking-wide shadow-sm whitespace-nowrap">
                         Travel ✈️
                       </span>
                     ) : (
-                      <span className="text-[10px] bg-white/75 text-[#4A5562] px-2.5 py-0.5 rounded-full font-extrabold tracking-wide shadow-sm whitespace-nowrap">
+                      <span className="text-[10px] bg-white/85 text-[#376885] px-2.5 py-0.5 rounded-full font-extrabold tracking-wide shadow-sm whitespace-nowrap border border-white">
                         Lite 日常
                       </span>
                     )}
@@ -1617,7 +1738,7 @@
 
               <div className="flex items-center shrink-0">
                 {isPro ? (
-                  <span className="text-[11px] bg-[#2D3640] text-[#F0BFA0] px-3 py-1.5 rounded-full font-black tracking-wide shadow-sm whitespace-nowrap">
+                  <span className="text-[11px] bg-[#2D3842] text-[#F4D58D] px-3 py-1.5 rounded-full font-black tracking-wide shadow-sm whitespace-nowrap">
                     👑 Travel Pro 已解鎖
                   </span>
                 ) : (
@@ -1628,16 +1749,16 @@
                         "趁限時早鳥優惠以 HK$ 38（原價 $88）一次買斷，即可永久解鎖「海外旅遊 (Copay Travel)」：支援 15 國實時匯率轉換、公數錢包管理、進階拆帳，並免費包攬未來 AI 掃描單據更新！"
                       )
                     }
-                    className="text-[11px] sm:text-xs bg-[#2D3640] hover:opacity-90 text-[#F4ECE4] px-3 py-2 rounded-full font-black transition shadow-sm flex items-center gap-1.5 whitespace-nowrap"
+                    className="text-[11px] sm:text-xs bg-[#2D3842] hover:opacity-90 text-white px-3 py-2 rounded-full font-black transition shadow-sm flex items-center gap-1.5 whitespace-nowrap"
                   >
-                    <span className="text-[#F0BFA0]">🔥 早鳥 $38</span>
-                    <span className="text-[10px] text-[#8E97A4] line-through font-normal">$88</span>
+                    <span className="text-[#F4D58D]">🔥 早鳥 $38</span>
+                    <span className="text-[10px] text-slate-300 line-through font-normal">$88</span>
                   </button>
                 )}
               </div>
             </div>
 
-            {/* 參照左上圖 "Mon. / 9:30 • Mar, 15 • 74%" 極簡大字體排版 */}
+            {/* 房間標題區 */}
             <div className="space-y-1 mb-4">
               {isEditingGroupName ? (
                 <form onSubmit={saveGroupName} className="flex items-center gap-2 pt-1 w-full">
@@ -1647,12 +1768,12 @@
                     onChange={e => setTempGroupName(e.target.value)}
                     placeholder="輸入房間名稱..."
                     autoFocus
-                    className="flex-1 min-w-0 bg-white text-[#2D3640] font-extrabold text-base sm:text-lg px-3 py-1.5 rounded-2xl focus:outline-none shadow-sm"
+                    className="flex-1 min-w-0 bg-white text-[#26353D] font-extrabold text-base sm:text-lg px-3 py-1.5 rounded-2xl focus:outline-none shadow-sm"
                   />
-                  <button type="submit" className="shrink-0 bg-[#2D3640] text-white text-xs font-bold px-3 py-2 rounded-xl">
+                  <button type="submit" className="shrink-0 teal-pill text-xs font-bold px-3 py-2 rounded-xl">
                     儲存
                   </button>
-                  <button type="button" onClick={() => setIsEditingGroupName(false)} className="shrink-0 bg-white/60 text-[#2D3640] text-xs font-bold px-2.5 py-2 rounded-xl">
+                  <button type="button" onClick={() => setIsEditingGroupName(false)} className="shrink-0 bg-white/80 text-[#26353D] text-xs font-bold px-2.5 py-2 rounded-xl">
                     取消
                   </button>
                 </form>
@@ -1663,7 +1784,7 @@
                       setTempGroupName(groupName);
                       setIsEditingGroupName(true);
                     }}
-                    className="text-3xl sm:text-4xl font-black tracking-tight text-[#2D3640] cursor-pointer hover:opacity-85 leading-tight break-words min-w-0"
+                    className="text-2xl sm:text-3xl font-black tracking-tight text-[#26353D] cursor-pointer hover:opacity-85 leading-tight break-words min-w-0 drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]"
                   >
                     {groupName}
                   </h1>
@@ -1674,18 +1795,17 @@
                       setIsEditingGroupName(true);
                     }}
                     title="修改名稱"
-                    className="shrink-0 w-8 h-8 rounded-full bg-white/65 hover:bg-white text-[#2D3640] flex items-center justify-center text-xs shadow-sm transition"
+                    className="shrink-0 w-8 h-8 rounded-full bg-white/80 hover:bg-white text-[#26353D] flex items-center justify-center text-xs shadow-sm transition"
                   >
                     ✏️
                   </button>
                 </div>
               )}
 
-              {/* 仿照圖中 "9:30 • MON 15 MAR • 74%" 極簡圓點分隔資訊列 */}
-              <div className="flex items-center gap-1.5 flex-wrap text-[11px] font-bold text-[#4F5B67] pt-0.5">
-                <span className="inline-flex items-center gap-1">
-                  <span className={`w-2 h-2 rounded-full ${syncStatus === 'synced' ? 'bg-emerald-600' : syncStatus === 'connecting' ? 'bg-amber-500 animate-ping' : 'bg-rose-500'}`}></span>
-                  <span>#{roomId}</span>
+              <div className="flex items-center gap-1.5 flex-wrap text-[11px] font-bold text-[#4A6473] pt-0.5">
+                <span className="inline-flex items-center gap-1 bg-white/75 px-2 py-0.5 rounded-full shadow-sm">
+                  <span className={`w-2 h-2 rounded-full ${syncStatus === 'synced' ? 'bg-emerald-500' : syncStatus === 'connecting' ? 'bg-amber-500 animate-ping' : 'bg-rose-500'}`}></span>
+                  <span className="font-mono">#{roomId}</span>
                 </span>
                 <span>•</span>
                 <span>{isTravelMode ? "COPAY TRAVEL" : "COPAY LITE"}</span>
@@ -1697,7 +1817,7 @@
                     <button
                       type="button"
                       onClick={fetchLiveExchangeRates}
-                      className="underline hover:text-[#2D3640] transition"
+                      className="underline hover:text-[#26353D] transition"
                     >
                       匯率 {rateUpdatedText} ↻
                     </button>
@@ -1715,16 +1835,16 @@
                   setModalRoomNameInput("");
                   setShowCreateRoomModal(true);
                 }}
-                className="flex-1 bg-[#2D3640] text-[#F4ECE4] font-black text-xs sm:text-sm py-3 px-4 rounded-2xl flex items-center justify-center gap-2 shadow-md hover:opacity-95 active:scale-98 transition whitespace-nowrap"
+                className="flex-1 teal-pill font-black text-xs sm:text-sm py-3 px-4 rounded-2xl flex items-center justify-center gap-2 shadow-md hover:opacity-95 active:scale-98 transition whitespace-nowrap"
               >
-                <span className="text-base leading-none text-[#F0BFA0]">＋</span>
+                <span className="text-base leading-none">＋</span>
                 <span>新增房間 (日常 / 海外旅遊)</span>
               </button>
 
               <button
                 type="button"
                 onClick={shareRoomLink}
-                className="shrink-0 bg-white/80 hover:bg-white text-[#2D3640] font-bold text-xs py-3 px-3.5 rounded-2xl flex items-center justify-center gap-1 shadow-sm active:scale-95 transition whitespace-nowrap"
+                className="shrink-0 bg-white/85 hover:bg-white text-[#26353D] font-bold text-xs py-3 px-3.5 rounded-2xl flex items-center justify-center gap-1 shadow-sm border border-white active:scale-95 transition whitespace-nowrap"
               >
                 <span>🔗 邀請 (#{roomId})</span>
               </button>
@@ -1734,44 +1854,44 @@
             <div className="mt-3.5 glass-dark p-4 rounded-3xl space-y-3">
               <div className="flex justify-between items-end gap-2">
                 <div className="min-w-0">
-                  <p className="text-[11px] text-[#636E7B] font-bold mb-0.5">
+                  <p className="text-[11px] text-[#5C707B] font-bold mb-0.5">
                     {isTravelMode ? "旅程總消費折合 (HKD)" : "總開支 (港幣 HK$)"}
                   </p>
-                  <p className="text-2xl sm:text-3xl font-black tracking-tight text-[#2D3640] truncate">HK$ {Math.round(totalHKD).toLocaleString()}</p>
-                  <p className="text-[10px] text-[#8E97A4] font-semibold mt-0.5">
+                  <p className="text-2xl sm:text-3xl font-black tracking-tight text-[#26353D] truncate">HK$ {Math.round(totalHKD).toLocaleString()}</p>
+                  <p className="text-[10px] text-[#8799A3] font-semibold mt-0.5">
                     共 {expenses.length} 筆消費
                   </p>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="text-[11px] text-[#636E7B] font-bold mb-0.5">參與成員</p>
-                  <p className="text-base font-black text-[#4A6984]">{members.length} 人</p>
+                  <p className="text-[11px] text-[#5C707B] font-bold mb-0.5">參與成員</p>
+                  <p className="text-base font-black text-[#376885]">{members.length} 人</p>
                 </div>
               </div>
 
               {/* Copay Travel 專屬：公數錢包即時餘額進度條 */}
               {isTravelMode && (
-                <div className="pt-3 border-t border-[#DCE2E8]">
+                <div className="pt-3 border-t border-[#D5E2E8]">
                   <div className="flex justify-between items-center gap-2 mb-1.5">
                     <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-                      <span className="text-xs font-bold text-[#2D3640] whitespace-nowrap">🏦 公數錢包可用餘額</span>
-                      <span className="text-[10px] bg-[#EEF1F4] px-2 py-0.5 rounded-full text-[#636E7B] font-medium">
+                      <span className="text-xs font-bold text-[#26353D] whitespace-nowrap">🏦 公數錢包可用餘額</span>
+                      <span className="text-[10px] bg-[#ECF2F5] px-2 py-0.5 rounded-full text-[#5C707B] font-medium">
                         📅 {formatDateUK(poolDate)} ｜ 已用 HK$ {Math.round(poolStats.totalSpentFromPoolHKD).toLocaleString()} / 總額 HK$ {Math.round(poolStats.totalContributedHKD).toLocaleString()}
                       </span>
                     </div>
                     <button
                       type="button"
                       onClick={() => setShowPoolModal(true)}
-                      className="shrink-0 text-[10px] gold-pill font-black px-2.5 py-1 rounded-full hover:opacity-90 whitespace-nowrap"
+                      className="shrink-0 text-[10px] teal-pill font-black px-2.5 py-1 rounded-full hover:opacity-90 whitespace-nowrap"
                     >
                       ＋ 每人注資公數
                     </button>
                   </div>
 
                   <div className="flex items-center justify-between gap-3">
-                    <div className="flex-1 h-2 bg-[#DCE2E8] rounded-full overflow-hidden">
+                    <div className="flex-1 h-2 bg-[#D5E2E8] rounded-full overflow-hidden">
                       <div
                         className={`h-full transition-all duration-300 ${
-                          poolStats.remainingPoolHKD <= 0 ? "bg-rose-500" : "bg-gradient-to-r from-[#5A7D9A] to-[#E59F71]"
+                          poolStats.remainingPoolHKD <= 0 ? "bg-rose-500" : "bg-gradient-to-r from-[#4B7B99] to-[#7BA69E]"
                         }`}
                         style={{
                           width: `${
@@ -1782,7 +1902,7 @@
                         }}
                       />
                     </div>
-                    <span className={`shrink-0 font-mono font-black text-sm ${poolStats.remainingPoolHKD <= 0 ? "text-rose-500" : "text-[#2E7D65]"}`}>
+                    <span className={`shrink-0 font-mono font-black text-sm ${poolStats.remainingPoolHKD <= 0 ? "text-rose-500" : "text-[#287D67]"}`}>
                       HK$ {poolStats.remainingPoolHKD.toLocaleString()}
                     </span>
                   </div>
@@ -1791,8 +1911,8 @@
             </div>
           </div>
 
-          {/* 主體內容區 (透明底色，直接呈現背後嘅海霧灰 -> 暖沙色 -> 日落杏桃色水平色帶) */}
-          <div className="px-3.5 sm:px-5 pt-3 bg-[#FAF8F3] flex-1 space-y-4 relative z-20">
+          {/* 主體內容區 */}
+          <div className="px-3.5 sm:px-5 pt-1 bg-[#FAF8F3] flex-1 space-y-4 relative z-20">
             
             {/* ================================================================= */}
             {/* TAB 1: 第一頁 */}
@@ -1801,13 +1921,13 @@
               <>
                 {isTravelMode && (
                   <div className="flex justify-between items-center gap-2 px-1 pt-1">
-                    <h3 className="font-black text-[#2D3640] text-xs sm:text-sm flex items-center gap-1 min-w-0">
-                      <span className="truncate">✍️ 記低一筆新開支 · 預設貨幣：<span className="text-[#C46D3B]">{currency}</span></span>
+                    <h3 className="font-black text-[#26353D] text-xs sm:text-sm flex items-center gap-1 min-w-0">
+                      <span className="truncate">✍️ 記低一筆新開支 · 預設貨幣：<span className="text-[#376885]">{currency}</span></span>
                     </h3>
                     <button
                       type="button"
                       onClick={() => setIsTravelFormCollapsed(prev => !prev)}
-                      className="shrink-0 text-[10px] sm:text-[11px] font-bold bg-white/75 hover:bg-white text-[#2D3640] px-2.5 py-1.5 rounded-full transition whitespace-nowrap shadow-sm"
+                      className="shrink-0 text-[10px] sm:text-[11px] font-bold bg-white/80 hover:bg-white text-[#26353D] px-2.5 py-1.5 rounded-full transition whitespace-nowrap shadow-sm border border-white"
                     >
                       {isTravelFormCollapsed ? "＋ 展開表單" : "✕ 收起表單"}
                     </button>
@@ -1834,7 +1954,7 @@
                           <select
                             value={category}
                             onChange={e => setCategory(e.target.value)}
-                            className="ios-uniform-field w-full text-xs sm:text-sm bg-[#F7F4EC] border border-[#EAE3D5] px-3 pr-7 text-[#2C261E] font-bold focus:outline-none focus:ring-2 focus:ring-[#5A7D9A]"
+                            className="ios-uniform-field w-full text-xs sm:text-sm bg-[#F7F4EC] border border-[#EAE3D5] px-3 pr-7 text-[#2C261E] font-bold focus:outline-none focus:ring-2 focus:ring-[#4B7B99]"
                           >
                             {activeCategories.map(opt => <option key={opt} value={opt} className="text-slate-900">{opt}</option>)}
                           </select>
@@ -1869,7 +1989,7 @@
                         placeholder={isTravelMode ? "開支項目 (例如: 居酒屋消夜 / 門票)" : "例如: 譚仔午餐、的士車費、網購團購"}
                         value={title}
                         onChange={e => setTitle(e.target.value)}
-                        className="w-full min-w-0 text-sm bg-white/10 border border-white/15 rounded-2xl px-3.5 py-3 text-white font-medium focus:outline-none focus:ring-2 focus:ring-[#5A7D9A] placeholder-slate-400"
+                        className="w-full min-w-0 text-sm bg-white/10 border border-white/15 rounded-2xl px-3.5 py-3 text-white font-medium focus:outline-none focus:ring-2 focus:ring-[#4B7B99] placeholder-slate-400"
                         required
                       />
                     </div>
@@ -1909,7 +2029,7 @@
                           value={amount}
                           onChange={e => setAmount(e.target.value)}
                           className={`flex-1 min-w-0 text-base bg-white/10 border rounded-2xl px-3.5 py-2.5 font-bold text-white focus:outline-none focus:ring-2 placeholder-slate-400 ${
-                            isExceedingPoolBalance ? "border-rose-400 focus:ring-rose-500" : "border-white/15 focus:ring-[#5A7D9A]"
+                            isExceedingPoolBalance ? "border-rose-400 focus:ring-rose-500" : "border-white/15 focus:ring-[#4B7B99]"
                           }`}
                           required
                         />
@@ -1917,7 +2037,7 @@
                           <select
                             value={currency}
                             onChange={e => handleSelectDefaultCurrency(e.target.value)}
-                            className="shrink-0 gold-pill rounded-2xl px-3 py-2.5 text-xs font-black focus:outline-none"
+                            className="shrink-0 teal-pill rounded-2xl px-3 py-2.5 text-xs font-black focus:outline-none"
                           >
                             {sortedCurrencyKeys.map(c => (
                               <option key={c} value={c} className="text-slate-900">
@@ -1935,7 +2055,7 @@
                               type="checkbox"
                               checked={addCardFee}
                               onChange={e => setAddCardFee(e.target.checked)}
-                              className="rounded accent-[#36414F]"
+                              className="rounded accent-[#4B7B99]"
                             />
                             <span>💳 信用卡海外簽帳 (+{cardFeePercent}% 手續費)</span>
                           </label>
@@ -1969,7 +2089,7 @@
                             onClick={() => setPayer(POOL_PAYER_KEY)}
                             className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
                               payer === POOL_PAYER_KEY
-                                ? "gold-pill border-[#D99466]"
+                                ? "gold-pill border-[#2D3842]"
                                 : "bg-[#F7F4EC] text-[#9C7316] border-[#EAE3D5]"
                             }`}
                           >
@@ -2008,7 +2128,7 @@
                           onClick={handleToggleAdvancedSplit}
                           className={`text-[10px] font-bold px-2.5 py-1 rounded-full border transition flex items-center gap-1 ${
                             useAdvancedSplit && isPro
-                              ? "bg-[#F5E6B8] border-[#D4B259] text-[#2C261E]"
+                              ? "bg-[#F5E6B8] border-[#7FA8C4] text-[#2C261E]"
                               : "bg-[#F7F4EC] border-[#EAE3D5] text-[#8C6715]"
                           }`}
                         >
@@ -2027,7 +2147,7 @@
                               } else {
                                 setSplitWith([...splitWith, m]);
                               }
-                            }} className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all border ${isSelected ? 'bg-[#F5E6B8] border-[#D4B259] text-[#2C261E] font-bold' : 'bg-transparent border-white/15 text-slate-400 opacity-60'}`}>
+                            }} className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all border ${isSelected ? 'bg-[#F5E6B8] border-[#7FA8C4] text-[#2C261E] font-bold' : 'bg-transparent border-white/15 text-slate-400 opacity-60'}`}>
                               {isSelected ? '✓ ' : ''}{m}
                             </button>
                           );
@@ -2081,7 +2201,7 @@
                 {isTravelMode ? (
                   <div className="space-y-3">
                     {travelDailyGroups.length === 0 ? (
-                      <div className="glass-dark p-8 rounded-3xl text-center text-xs text-[#636E7B] font-medium">
+                      <div className="glass-dark p-8 rounded-3xl text-center text-xs text-[#5C707B] font-medium">
                         暫時未有旅遊開支記錄，喺上面記低第一筆消費啦！✈️
                       </div>
                     ) : (
@@ -2139,11 +2259,11 @@
                 ) : (
                   <div className="space-y-2.5">
                     <div className="flex justify-between items-center px-2">
-                      <span className="font-bold text-[#2D3640] text-xs">最近單據明細</span>
+                      <span className="font-bold text-[#26353D] text-xs">最近單據明細</span>
                       <button
                         type="button"
                         onClick={() => setShowAllExpenses(prev => !prev)}
-                        className="font-bold bg-white/75 hover:bg-white text-[#2D3640] px-3 py-1 rounded-full text-[11px] transition flex items-center gap-1 shadow-sm whitespace-nowrap"
+                        className="font-bold bg-white/80 hover:bg-white text-[#376885] px-3 py-1 rounded-full text-[11px] transition flex items-center gap-1 shadow-sm border border-white whitespace-nowrap"
                       >
                         <span>
                           {showAllExpenses
@@ -2154,7 +2274,7 @@
                     </div>
 
                     {expenses.length === 0 ? (
-                      <div className="glass-dark p-8 rounded-3xl text-center text-xs text-[#636E7B] font-medium">
+                      <div className="glass-dark p-8 rounded-3xl text-center text-xs text-[#5C707B] font-medium">
                         暫時未有開支記錄，去記帳頁入第一筆數啦！🤝
                       </div>
                     ) : (
@@ -2165,7 +2285,7 @@
                           <button
                             type="button"
                             onClick={() => setShowAllExpenses(true)}
-                            className="w-full py-2.5 rounded-2xl bg-white/75 hover:bg-white text-xs font-bold text-[#2D3640] shadow-sm transition"
+                            className="w-full py-2.5 rounded-2xl bg-white/80 hover:bg-white text-xs font-bold text-[#376885] shadow-sm border border-white transition"
                           >
                             👀 顯示全部 {expenses.length} 筆帳目（尚有 {expenses.length - 3} 筆）
                           </button>
@@ -2217,7 +2337,7 @@
                   <div className="flex items-center gap-3 sm:gap-4 bg-white/5 p-3.5 sm:p-4 rounded-2xl border border-white/10">
                     <div className="relative w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center shrink-0">
                       <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                        <circle cx="50" cy="50" r={radius} stroke="#DCE2E8" strokeWidth="12" fill="transparent" />
+                        <circle cx="50" cy="50" r={radius} stroke="#D5E2E8" strokeWidth="12" fill="transparent" />
                         {chartAndReportData.categoryBreakdown.map((item, idx) => {
                           const pct = chartAndReportData.totalFilteredHKD > 0 ? item.amountHKD / chartAndReportData.totalFilteredHKD : 0;
                           const strokeDasharray = `${pct * circumference} ${circumference}`;
@@ -2294,9 +2414,9 @@
                               </div>
                               <span className="shrink-0 font-black text-white whitespace-nowrap">HK$ {Math.round(p.shareHKD).toLocaleString()}</span>
                             </div>
-                            <div className="w-full h-1.5 bg-[#DCE2E8] rounded-full overflow-hidden">
+                            <div className="w-full h-1.5 bg-[#D5E2E8] rounded-full overflow-hidden">
                               <div
-                                className="h-full bg-gradient-to-r from-[#5A7D9A] to-[#E59F71] rounded-full transition-all duration-300"
+                                className="h-full bg-gradient-to-r from-[#4B7B99] to-[#7BA69E] rounded-full transition-all duration-300"
                                 style={{ width: `${barWidth}%` }}
                               />
                             </div>
@@ -2377,7 +2497,7 @@
                       placeholder="輸入 6 位房間代碼 (如 X7K9P2)"
                       value={joinRoomCodeInput}
                       onChange={e => setJoinRoomCodeInput(e.target.value.toUpperCase())}
-                      className="flex-1 min-w-0 text-xs bg-white/10 border border-white/15 rounded-2xl px-3 py-3 font-mono font-bold uppercase text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#5A7D9A]"
+                      className="flex-1 min-w-0 text-xs bg-white/10 border border-white/15 rounded-2xl px-3 py-3 font-mono font-bold uppercase text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4B7B99]"
                     />
                     <button type="submit" className="shrink-0 teal-pill text-xs font-bold px-3.5 py-3 rounded-2xl whitespace-nowrap transition">
                       加入房間
@@ -2408,7 +2528,7 @@
                           }}
                           className={`w-full p-3.5 rounded-2xl border text-left flex justify-between items-center gap-2 transition ${
                             isCurrent
-                              ? "bg-[#F5E6B8] border-[#D4B259] text-[#2C261E] shadow-sm"
+                              ? "bg-[#F5E6B8] border-[#7FA8C4] text-[#2C261E] shadow-sm"
                               : "bg-white/5 border-white/10 text-slate-200 hover:bg-white/10"
                           }`}
                         >
@@ -2473,13 +2593,13 @@
                             }}
                             className={`w-full p-3.5 rounded-2xl border text-left flex justify-between items-center gap-2 transition ${
                               isCurrent
-                                ? "bg-[#F5E6B8] border-[#D4B259] text-[#2C261E] shadow-sm"
+                                ? "bg-[#F5E6B8] border-[#7FA8C4] text-[#2C261E] shadow-sm"
                                 : "bg-white/5 border-white/10 text-slate-200 hover:bg-white/10"
                             }`}
                           >
                             <div className="min-w-0">
                               <div className="font-bold text-sm flex items-center gap-2">
-                                {isCurrent && <span className="shrink-0 w-2 h-2 rounded-full bg-[#B5851D]"></span>}
+                                {isCurrent && <span className="shrink-0 w-2 h-2 rounded-full bg-[#376885]"></span>}
                                 <span className="truncate">✈️ {r.name}</span>
                               </div>
                               <div className="text-[11px] text-slate-300 font-mono mt-0.5">
@@ -2508,7 +2628,7 @@
                     <h3 className="font-bold text-white text-sm flex items-center gap-1.5 flex-wrap">
                       <span className="whitespace-nowrap">👑 Copay 產品線與權限狀態</span>
                       {isPro ? (
-                        <span className="text-[10px] bg-[#E8CD7D] text-[#2C261E] px-2 py-0.5 rounded-full font-black whitespace-nowrap">Copay Travel 已永久解鎖 ✨</span>
+                        <span className="text-[10px] bg-[#2D3842] text-[#F4D58D] px-2 py-0.5 rounded-full font-black whitespace-nowrap">Copay Travel 已永久解鎖 ✨</span>
                       ) : (
                         <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-bold whitespace-nowrap">Copay Lite (免費日常版)</span>
                       )}
@@ -2545,7 +2665,7 @@
                       className="w-full py-3 rounded-2xl teal-pill font-black text-xs shadow-md flex items-center justify-center gap-2"
                     >
                       <span>🔥 Copay Travel 早鳥永久解鎖：$38</span>
-                      <span className="line-through opacity-65 font-normal text-[11px]">(原價 $88)</span>
+                      <span className="line-through opacity-75 font-normal text-[11px]">(原價 $88)</span>
                     </button>
                   )}
                 </div>
@@ -2571,547 +2691,4 @@
                           value={tempMemberNewName}
                           onChange={e => setTempMemberNewName(e.target.value)}
                           autoFocus
-                          className="flex-1 min-w-0 text-xs bg-white text-slate-900 font-bold px-3 py-2 rounded-xl border border-[#EAE3D5] focus:outline-none"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleRenameMember(editingMemberName)}
-                          className="shrink-0 teal-pill text-xs font-bold px-3 py-2 rounded-xl"
-                        >
-                          儲存
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setEditingMemberName(null)}
-                          className="shrink-0 bg-white border border-[#EAE3D5] text-xs font-bold px-2.5 py-2 rounded-xl"
-                        >
-                          取消
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    {members.map(m => (
-                      <span key={m} className="bg-white/10 border border-white/15 text-white text-xs px-3 py-1.5 rounded-xl font-medium flex items-center gap-2">
-                        <span>{m}</span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setEditingMemberName(m);
-                            setTempMemberNewName(m);
-                          }}
-                          title="修改名字"
-                          className="text-[11px] bg-white hover:bg-[#F5E6B8] px-1.5 py-0.5 rounded text-[#9BE0EE] leading-none border border-[#EAE3D5]"
-                        >
-                          ✏️
-                        </button>
-                        {members.length > 2 && (
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveMember(m)}
-                            title="刪除成員"
-                            className="text-slate-300 hover:text-rose-500 font-bold text-sm leading-none ml-0.5"
-                          >
-                            ×
-                          </button>
-                        )}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 活動類別設定 */}
-                <div className="glass-dark p-4 sm:p-5 rounded-3xl space-y-3.5">
-                  <div className="flex justify-between items-center border-b border-white/10 pb-2.5">
-                    <h3 className="font-bold text-white text-sm">🏷️ 活動類別設定</h3>
-                    <span className="text-[10px] text-slate-300">共 {activeCategories.length} 個類別</span>
-                  </div>
-                  <form onSubmit={handleAddCategory} className="flex items-center gap-2 w-full">
-                    <input
-                      type="text"
-                      placeholder="輸入新活動類別 (如：🎾 網球 / 🏨 酒店)"
-                      value={newCategoryInput}
-                      onChange={e => setNewCategoryInput(e.target.value)}
-                      className="flex-1 min-w-0 text-xs bg-white/10 border border-white/15 rounded-2xl px-3.5 py-2.5 text-white placeholder-slate-400 focus:outline-none"
-                    />
-                    <button type="submit" className="shrink-0 teal-pill text-xs font-bold px-3.5 py-2.5 rounded-2xl whitespace-nowrap">
-                      ＋ 新增
-                    </button>
-                  </form>
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    {activeCategories.map(cat => (
-                      <span key={cat} className="bg-white/10 border border-white/15 text-white text-xs px-3 py-1.5 rounded-xl font-medium flex items-center gap-2">
-                        <span>{cat}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteCategory(cat)}
-                          className="text-slate-300 hover:text-rose-500 font-bold text-sm leading-none"
-                        >
-                          ×
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Copay Travel 專屬：自訂信用卡手續費百分比 + 唱錢匯率鎖定 */}
-                {isTravelMode && (
-                  <>
-                    <div className="glass-dark p-4 sm:p-5 rounded-3xl space-y-2.5">
-                      <div className="flex justify-between items-center gap-2">
-                        <div className="min-w-0">
-                          <h3 className="font-bold text-amber-300 text-sm">💳 信用卡海外簽帳手續費 (%)</h3>
-                          <p className="text-[10px] text-slate-300 mt-0.5">記帳時勾選信用卡海外簽帳，將自動加上此百分比</p>
-                        </div>
-                        <div className="shrink-0 flex items-center gap-1 bg-[#F7F4EC] px-3 py-1.5 rounded-2xl border border-[#DFC478]">
-                          <input
-                            type="number"
-                            inputMode="decimal"
-                            pattern="[0-9]*"
-                            step="0.05"
-                            value={cardFeePercent}
-                            onChange={e => handleCardFeePercentChange(e.target.value)}
-                            className="w-14 text-right bg-transparent font-mono font-black text-sm text-amber-300 focus:outline-none"
-                          />
-                          <span className="text-xs font-bold text-amber-300">%</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="glass-dark p-4 sm:p-5 rounded-3xl space-y-3.5">
-                      <div className="flex justify-between items-center border-b border-white/10 pb-2.5 gap-2">
-                        <div className="min-w-0">
-                          <h3 className="font-bold text-amber-300 text-sm">💱 Copay Travel 唱錢匯率鎖定 (兌 HKD)</h3>
-                          <p className="text-[10px] text-slate-300 mt-0.5">
-                            點選貨幣名稱即可設為<strong>記帳預設貨幣</strong>（目前預設：<span className="text-amber-300 font-bold">{currency}</span>）
-                          </p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={fetchLiveExchangeRates}
-                          className="shrink-0 text-[10px] teal-pill px-2.5 py-1.5 rounded-lg font-bold whitespace-nowrap transition"
-                        >
-                          🔄 刷新即時匯率
-                        </button>
-                      </div>
-                      <form onSubmit={handleAddCustomCurrency} className="flex items-center gap-2 bg-white/5 p-2 rounded-2xl w-full">
-                        <input type="text" maxLength="3" placeholder="代號(NZD)" value={newCurCode} onChange={e => setNewCurCode(e.target.value.toUpperCase())} className="w-20 shrink-0 text-xs bg-white rounded-xl px-2 py-2 font-mono uppercase text-center text-white placeholder-slate-400 border border-[#EAE3D5] focus:outline-none" />
-                        <input type="number" inputMode="decimal" pattern="[0-9]*" step="any" placeholder="兌港幣匯率" value={newCurRate} onChange={e => setNewCurRate(e.target.value)} className="flex-1 min-w-0 text-xs bg-white rounded-xl px-2.5 py-2 text-white placeholder-slate-400 border border-[#EAE3D5] focus:outline-none" />
-                        <button type="submit" className="shrink-0 teal-pill text-xs font-black px-3 py-2 rounded-xl whitespace-nowrap">＋加入</button>
-                      </form>
-                      <div className="grid grid-cols-2 gap-2 pt-1">
-                        {sortedCurrencyKeys.filter(c => c !== "HKD").map(cur => {
-                          const isDefaultCur = currency === cur;
-                          return (
-                            <div
-                              key={cur}
-                              onClick={() => handleSelectDefaultCurrency(cur)}
-                              className={`flex justify-between items-center gap-1 p-2 sm:p-2.5 rounded-2xl border cursor-pointer transition min-w-0 ${
-                                isDefaultCur
-                                  ? "bg-[#F5E6B8] border-[#D4B259] shadow-sm"
-                                  : "bg-white/5 border-white/10 hover:bg-white/10"
-                              }`}
-                            >
-                              <div className="flex items-center gap-1 pl-0.5 min-w-0">
-                                <span className={`font-black text-xs ${isDefaultCur ? "text-[#2C261E]" : "text-slate-200"}`}>
-                                  {cur}
-                                </span>
-                                {isDefaultCur && (
-                                  <span className="shrink-0 text-[9px] bg-[#2C261E] text-[#F7DF94] font-black px-1 py-0.5 rounded">
-                                    預設
-                                  </span>
-                                )}
-                              </div>
-                              <input
-                                type="number"
-                                inputMode="decimal"
-                                pattern="[0-9]*"
-                                step="0.0001"
-                                value={rates[cur]}
-                                onClick={e => e.stopPropagation()}
-                                onChange={e => handleRateChange(cur, e.target.value)}
-                                className="w-16 sm:w-20 shrink-0 text-right bg-white rounded-lg px-1.5 py-1 font-mono font-bold text-[11px] sm:text-xs text-[#2C261E] border border-[#EAE3D5] focus:outline-none focus:ring-1 focus:ring-[#5A7D9A]"
-                              />
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* 參照右上圖與左上圖底部：深炭灰藍 (#2B303A) 極簡 Dock 欄 */}
-          <div className="fixed bottom-0 left-0 right-0 max-w-md w-full mx-auto px-3 sm:px-5 pt-2 safe-bottom-dock z-40">
-            <div className="grid grid-cols-4 gap-2">
-              <button
-                onClick={() => setActiveTab("expenses")}
-                className={`py-2 px-1 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all min-w-0 ${
-                  activeTab === "expenses" ? "nav-square-active" : "nav-square"
-                }`}
-              >
-                <span className="text-base leading-none">{isTravelMode ? "📝" : "⚡"}</span>
-                <span className="text-[10px] font-bold tracking-tight whitespace-nowrap truncate max-w-full">
-                  {isTravelMode
-                    ? "記帳"
-                    : `記帳及結算${settlement.transactions.length > 0 ? `(${paidCount}/${settlement.transactions.length})` : ""}`}
-                </span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab("settle")}
-                className={`py-2 px-1 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all min-w-0 ${
-                  activeTab === "settle" ? "nav-square-active" : "nav-square"
-                }`}
-              >
-                <span className="text-base leading-none">📊</span>
-                <span className="text-[10px] font-bold tracking-tight whitespace-nowrap truncate max-w-full">
-                  {isTravelMode
-                    ? `結算&圖表${settlement.transactions.length > 0 ? `(${paidCount}/${settlement.transactions.length})` : ""}`
-                    : `明細及圖表(${expenses.length})`}
-                </span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab("rooms")}
-                className={`py-2 px-1 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all min-w-0 ${
-                  activeTab === "rooms" ? "nav-square-active" : "nav-square"
-                }`}
-              >
-                <span className="text-base leading-none">🔑</span>
-                <span className="text-[10px] font-bold tracking-tight whitespace-nowrap truncate max-w-full">房間列表</span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab("settings")}
-                className={`py-2 px-1 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all min-w-0 ${
-                  activeTab === "settings" ? "nav-square-active" : "nav-square"
-                }`}
-              >
-                <span className="text-base leading-none">⚙️</span>
-                <span className="text-[10px] font-bold tracking-tight whitespace-nowrap truncate max-w-full">設定</span>
-              </button>
-            </div>
-          </div>
-
-          {/* ================================================================= */}
-          {/* 🏠 點擊首頁「＋ 新增房間」跳出兩個卡片選項 */}
-          {/* ================================================================= */}
-          {showCreateRoomModal && (
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-              <div className="glass-dark max-w-sm w-full rounded-[2rem] p-5 sm:p-6 shadow-2xl space-y-4">
-                <div className="flex justify-between items-start gap-2">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <BrandLogo isTravel={modalSelectedMode === "travel"} size="w-10 h-10" />
-                    <div className="min-w-0">
-                      <h3 className="font-black text-base text-[#2D3640] truncate">＋ 新增 Copay 房間</h3>
-                      <p className="text-[11px] text-[#636E7B]">請選擇房間場景（日常與旅遊帳目獨立分開）</p>
-                    </div>
-                  </div>
-                  <button onClick={() => setShowCreateRoomModal(false)} className="shrink-0 text-[#8E97A4] hover:text-[#2D3640] text-xl font-bold leading-none">×</button>
-                </div>
-
-                <div className="space-y-2.5">
-                  <div
-                    onClick={() => setModalSelectedMode("daily")}
-                    className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
-                      modalSelectedMode === "daily"
-                        ? "bg-[#F3E1D0] border-[#DFA87E] shadow-sm"
-                        : "bg-[#EEF1F4] border-transparent opacity-80 hover:opacity-100"
-                    }`}
-                  >
-                    <div className="flex justify-between items-center mb-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-base">☕</span>
-                        <span className="font-black text-sm text-[#2D3640]">日常夾錢 (Copay Lite)</span>
-                      </div>
-                      <span className="text-[10px] bg-emerald-100 text-emerald-700 font-black px-2.5 py-0.5 rounded-full">
-                        免費 Free
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-[#636E7B] pl-6">
-                      純港幣 HK$ 記帳 · 適合朋友食飯、買餸、夾租、唱K打波極速平分
-                    </p>
-                  </div>
-
-                  <div
-                    onClick={() => setModalSelectedMode("travel")}
-                    className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
-                      modalSelectedMode === "travel"
-                        ? "bg-[#F3E1D0] border-[#2D3640] shadow-sm"
-                        : "bg-[#EEF1F4] border-transparent opacity-85 hover:opacity-100"
-                    }`}
-                  >
-                    <div className="flex justify-between items-center gap-1 mb-1.5 flex-wrap">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-base">✈️</span>
-                        <span className="font-black text-sm text-[#2D3640]">海外旅遊 (Copay Travel)</span>
-                      </div>
-                      {isPro ? (
-                        <span className="text-[10px] bg-[#2D3640] text-[#F0BFA0] font-black px-2.5 py-0.5 rounded-full">
-                          PRO 已永久解鎖 ✨
-                        </span>
-                      ) : (
-                        <div className="flex items-center gap-1">
-                          <span className="text-[10px] text-[#8E97A4] line-through font-semibold">原價 $88</span>
-                          <span className="text-[10px] bg-[#2D3640] text-[#F0BFA0] font-black px-2 py-0.5 rounded-full">
-                            🔥 早鳥 $38
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="pl-6 space-y-1 text-[11px] text-[#4F5B67]">
-                      <div>• 💱 <strong>15 國旅遊外幣實時匯率轉換</strong> + 鎖定唱錢匯率</div>
-                      <div>• 🏦 <strong>公數錢包 (Common Pool)</strong> 防超支與結餘退算</div>
-                      <div>• ⚖️ <strong>進階不等額拆帳</strong> + 一鍵匯出 CSV 試算表</div>
-                      <div>• 🤖 <strong>免費包攬未來 AI 掃描單據自動入帳升級</strong></div>
-                    </div>
-                  </div>
-                </div>
-
-                <form onSubmit={handleModalCreateRoomSubmit} className="space-y-3 pt-1">
-                  <div>
-                    <label className="block text-[10px] text-[#636E7B] font-bold mb-1 ml-1">
-                      {modalSelectedMode === "travel" ? "✈️ 輸入海外旅程名稱：" : "☕ 輸入日常聚會/房間名稱："}
-                    </label>
-                    <input
-                      type="text"
-                      placeholder={modalSelectedMode === "travel" ? "例如：東京之旅 / 沖繩自駕遊" : "例如：11月飯局 / 星期五打邊爐"}
-                      value={modalRoomNameInput}
-                      onChange={e => setModalRoomNameInput(e.target.value)}
-                      autoFocus
-                      className="w-full min-w-0 text-sm bg-[#EEF1F4] text-[#2D3640] font-extrabold px-4 py-3 rounded-2xl border border-[#DCE2E8] focus:outline-none focus:ring-2 focus:ring-[#5A7D9A]"
-                      required
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setShowCreateRoomModal(false)}
-                      className="flex-1 py-3 rounded-2xl bg-[#EEF1F4] text-[#636E7B] text-xs font-bold"
-                    >
-                      取消
-                    </button>
-                    <button
-                      type="submit"
-                      className={`flex-1 py-3 rounded-2xl text-xs font-black shadow-md ${
-                        modalSelectedMode === "travel" ? "gold-pill" : "teal-pill"
-                      }`}
-                    >
-                      {modalSelectedMode === "travel"
-                        ? (isPro ? "✈️ 立即建立旅遊房" : "🔥 早鳥 $38 解鎖 (原價$88)")
-                        : "☕ 免費建立日常房"}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
-
-          {/* 🏦 公數錢包管理彈窗 */}
-          {showPoolModal && (
-            <div className="fixed inset-0 bg-black/45 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-              <div className="glass-dark max-w-sm w-full rounded-[2rem] p-5 sm:p-6 shadow-2xl space-y-4">
-                <div className="flex justify-between items-start gap-2">
-                  <div>
-                    <h3 className="font-black text-base text-amber-300">🏦 公數錢包管理 (Common Pool)</h3>
-                    <p className="text-[11px] text-slate-300 mt-0.5">
-                      系統已啟用防超支保護：公數消費絕不能多於可用餘額
-                    </p>
-                  </div>
-                  <button onClick={() => setShowPoolModal(false)} className="shrink-0 text-slate-300 hover:text-white text-xl font-bold leading-none">×</button>
-                </div>
-
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-3.5 grid grid-cols-3 gap-2 text-center">
-                  <div>
-                    <div className="text-[10px] text-slate-300">總注資 (HK$)</div>
-                    <div className="font-black text-sm text-white">{Math.round(poolStats.totalContributedHKD).toLocaleString()}</div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] text-slate-300">已消費 (HK$)</div>
-                    <div className="font-black text-sm text-amber-300">{Math.round(poolStats.totalSpentFromPoolHKD).toLocaleString()}</div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] text-slate-300">可用餘額 (HK$)</div>
-                    <div className="font-black text-sm text-emerald-300">{poolStats.remainingPoolHKD.toLocaleString()}</div>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] text-slate-300 font-bold mb-1">📅 公數注資 / 建立日期 (DD/MM/YYYY)</label>
-                  <div className="relative ios-uniform-field w-full bg-[#F7F4EC] border border-[#EAE3D5] px-3.5 flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#2C261E]">
-                      {formatDateUK(poolDate)}
-                    </span>
-                    <span className="text-xs opacity-65">📅</span>
-                    <input
-                      type="date"
-                      value={poolDate}
-                      onChange={e => handlePoolDateChange(e.target.value)}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    />
-                  </div>
-                </div>
-
-                <form onSubmit={handleBatchTopUpPool} className="space-y-1.5">
-                  <label className="block text-[10px] text-slate-300 font-bold">⚡ 全體成員每人一鍵加碼夾公數 (HKD)</label>
-                  <div className="flex items-center gap-2 w-full">
-                    <input
-                      type="number"
-                      inputMode="decimal"
-                      pattern="[0-9]*"
-                      step="any"
-                      placeholder="例如每人夾 1000"
-                      value={poolTopUpAmount}
-                      onChange={e => setPoolTopUpAmount(e.target.value)}
-                      className="flex-1 min-w-0 text-xs bg-white/10 border border-white/15 rounded-xl px-3 py-2.5 text-white font-bold focus:outline-none"
-                    />
-                    <button type="submit" className="shrink-0 teal-pill text-xs font-black px-3.5 py-2.5 rounded-xl whitespace-nowrap">
-                      ＋ 每人加碼
-                    </button>
-                  </div>
-                </form>
-
-                <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
-                  <div className="text-[10px] text-slate-300 font-bold">各成員累計已夾公數金額 (HKD)：</div>
-                  {members.map(m => (
-                    <div key={m} className="flex justify-between items-center bg-white/5 px-3 py-2 rounded-xl border border-white/10 gap-2">
-                      <span className="text-xs font-bold text-white truncate">{m}</span>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <span className="text-[10px] text-slate-400">HK$</span>
-                        <input
-                          type="number"
-                          inputMode="decimal"
-                          pattern="[0-9]*"
-                          step="any"
-                          value={poolContributions[m] || 0}
-                          onChange={e => handleMemberPoolChange(m, e.target.value)}
-                          className="w-24 text-right bg-white rounded-lg px-2 py-1 font-mono font-bold text-xs text-amber-300 border border-[#EAE3D5] focus:outline-none"
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setShowPoolModal(false)}
-                  className="w-full py-2.5 rounded-2xl teal-pill text-xs font-bold"
-                >
-                  完成並返回記帳
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* 刪除單據雙重確認彈窗 */}
-          {deleteConfirmExp && (
-            <div className="fixed inset-0 bg-black/45 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-              <div className="glass-dark max-w-xs w-full rounded-3xl p-6 text-center space-y-4">
-                <div className="w-12 h-12 rounded-full bg-rose-50 border border-rose-200 flex items-center justify-center mx-auto text-2xl">
-                  🗑️
-                </div>
-                <div className="space-y-1">
-                  <h3 className="font-black text-base text-white">確定要刪除呢筆單據？</h3>
-                  <p className="text-xs text-slate-300">
-                    「<span className="font-bold text-amber-300">{deleteConfirmExp.title}</span>」
-                    ({(!deleteConfirmExp.currency || deleteConfirmExp.currency === "HKD") ? "HK$" : deleteConfirmExp.currency} {Number(deleteConfirmExp.amount).toLocaleString()})
-                  </p>
-                  <p className="text-[11px] text-slate-400">刪除後所有成員嘅夾錢結算會即時重新計算。</p>
-                </div>
-                <div className="flex gap-2.5 pt-1">
-                  <button
-                    type="button"
-                    onClick={() => setDeleteConfirmExp(null)}
-                    className="flex-1 py-2.5 rounded-2xl bg-[#F7F4EC] text-[#7D7465] text-xs font-bold transition"
-                  >
-                    取消
-                  </button>
-                  <button
-                    type="button"
-                    onClick={confirmDeleteExpense}
-                    className="flex-1 py-2.5 rounded-2xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold shadow-lg transition"
-                  >
-                    確定刪除
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ================================================================= */}
-          {/* 👑 【早鳥優惠 (Early Bird) 包裝收費牆】「Copay Travel 早鳥永久解鎖：$38 (原價 $88)」 */}
-          {/* ================================================================= */}
-          {showPaywall && (
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-              <div className="glass-dark max-w-sm w-full rounded-[2rem] p-5 sm:p-6 shadow-2xl space-y-4">
-                <div className="flex justify-between items-start gap-2">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <BrandLogo isTravel={true} size="w-10 h-10" />
-                    <div className="min-w-0">
-                      <span className="inline-block text-[10px] font-black uppercase tracking-wider bg-rose-100 text-rose-600 px-2 py-0.5 rounded-full mb-1">
-                        🔥 限時 43 折早鳥優惠 (Early Bird)
-                      </span>
-                      <h2 className="font-black text-sm sm:text-base text-white leading-snug">
-                        {paywallTriggerTitle}
-                      </h2>
-                    </div>
-                  </div>
-                  <button onClick={() => setShowPaywall(false)} className="shrink-0 text-slate-300 hover:text-white text-xl font-bold leading-none">×</button>
-                </div>
-
-                <div className="bg-[#FDF8EA] border border-[#E8CD7D] p-3.5 rounded-2xl text-xs text-[#8C6715] leading-relaxed font-medium">
-                  {paywallMsg}
-                </div>
-
-                <div className="space-y-2 text-xs text-slate-200 bg-white/5 p-3.5 rounded-2xl border border-white/10">
-                  <div className="flex items-center gap-2"><span>✈️</span> <strong>無限建立海外旅遊房間 (Copay Travel)</strong></div>
-                  <div className="flex items-center gap-2"><span>💱</span> <strong>15 國旅遊外幣實時匯率轉換</strong> + 鎖定唱錢匯率</div>
-                  <div className="flex items-center gap-2"><span>🏦</span> <strong>公數錢包管理 (防超支保護)</strong> + 信用卡手續費</div>
-                  <div className="flex items-center gap-2"><span>⚖️</span> <strong>進階不等額拆帳邏輯</strong> + 一鍵匯出 CSV 試算表</div>
-                  <div className="flex items-center gap-2 text-[#B5851D]"><span>🤖</span> <strong>免費包攬未來「AI 掃描單據自動入帳」升級</strong></div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleSimulatePurchase}
-                  className="w-full p-4 rounded-2xl teal-pill text-center transition shadow-lg active:scale-98 space-y-1"
-                >
-                  <div className="text-[11px] font-black uppercase tracking-wider text-[#F0BFA0]">
-                    ⚡ 趁加價前鎖定終身權限 · 一次買斷免月費
-                  </div>
-                  <div className="text-base sm:text-lg font-black flex items-center justify-center gap-2">
-                    <span>Copay Travel 早鳥永久解鎖：$38</span>
-                    <span className="text-xs font-normal line-through opacity-70">(原價 $88)</span>
-                  </div>
-                </button>
-
-                <form onSubmit={handleUnlockWithCode} className="pt-2 border-t border-white/10">
-                  <label className="block text-[10px] text-slate-300 font-bold mb-1">已有早鳥 VIP 解鎖碼？（測試碼：COPAY2026 或 COPAYPRO）</label>
-                  <div className="flex items-center gap-2 w-full">
-                    <input
-                      type="text"
-                      placeholder="輸入解鎖碼"
-                      value={vipInput}
-                      onChange={e => setVipInput(e.target.value)}
-                      className="flex-1 min-w-0 text-xs bg-white/10 border border-white/15 rounded-xl px-3 py-2 font-mono uppercase text-white focus:outline-none"
-                    />
-                    <button type="submit" className="shrink-0 gold-pill text-xs font-black px-4 py-2 rounded-xl whitespace-nowrap">
-                      兌換
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
-  </script>
-</body>
-</html>
+                          className="flex-1 min-w-0 text-xs bg-white text-slate-900 font-bold px-3
