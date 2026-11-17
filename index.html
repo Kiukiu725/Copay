@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Copay" />
   <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="theme-color" content="#DFC478" />
+  <meta name="theme-color" content="#D8BC72" />
 
   <!-- App Logo 設定 -->
   <link rel="icon" type="image/png" href="Copay.png" />
@@ -34,7 +34,7 @@
     html, body {
       -webkit-tap-highlight-color: transparent;
       user-select: none;
-      background-color: #F6F1E3;
+      background-color: #EFE9DC;
       color: #2C261E;
       overflow-x: hidden;
       width: 100%;
@@ -47,6 +47,33 @@
     }
     .safe-top-header {
       padding-top: max(1.25rem, calc(env(safe-area-inset-top) + 0.75rem));
+      /* 頂部香檳暖金漸層 + 精緻幾何星芒暗花 (SVG Damask Pattern) */
+      background-color: #D8BC72;
+      background-image: 
+        radial-gradient(circle at 88% 14%, rgba(255, 252, 240, 0.55) 0%, rgba(255, 252, 240, 0) 48%),
+        radial-gradient(circle at 12% 80%, rgba(168, 130, 45, 0.22) 0%, transparent 55%),
+        url("data:image/svg+xml,%3Csvg width='52' height='52' viewBox='0 0 52 52' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%232C261E' stroke-width='0.7' stroke-opacity='0.075'%3E%3Cpath d='M26 0 L52 26 L26 52 L0 26 Z'/%3E%3Ccircle cx='26' cy='26' r='10'/%3E%3Ccircle cx='26' cy='26' r='3' fill='%232C261E' fill-opacity='0.05'/%3E%3Cpath d='M26 10 L26 42 M10 26 L42 26' stroke-dasharray='2 2'/%3E%3Cpath d='M0 6 L6 0 M46 0 L52 6 M0 46 L6 52 M46 52 L52 46'/%3E%3C/g%3E%3C/svg%3E"),
+        linear-gradient(140deg, #E6CE8A 0%, #D5B667 52%, #C4A14E 100%) !important;
+      position: relative;
+      overflow: hidden;
+    }
+    /* 頂部右側若隱若現嘅立體羅盤雙環暗花浮水印 */
+    .safe-top-header::after {
+      content: "";
+      position: absolute;
+      right: -36px;
+      top: 28px;
+      width: 210px;
+      height: 210px;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23FFFFFF' stroke-opacity='0.16' stroke-width='1.5'%3E%3Ccircle cx='50' cy='50' r='44' stroke-dasharray='4 3'/%3E%3Ccircle cx='50' cy='50' r='34'/%3E%3Cpath d='M50 6 L50 94 M6 50 L94 50 M19 19 L81 81 M81 19 L19 81' stroke-opacity='0.1'/%3E%3C/g%3E%3C/svg%3E");
+      background-size: contain;
+      background-repeat: no-repeat;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .safe-top-header > * {
+      position: relative;
+      z-index: 1;
     }
     .safe-bottom-dock {
       padding-bottom: max(0.85rem, env(safe-area-inset-bottom));
@@ -58,46 +85,57 @@
       height: 46px;
       border-radius: 1rem;
     }
+    /* 下半部主體背景：暖杏仁米色 + 細膩斜織十字暗花，令純白卡片立體浮現 */
     .butter-bg {
-      background: linear-gradient(180deg, #DFC478 0%, #E6CE8A 280px, #FAF8F3 280px, #FAF8F3 100%);
+      background-color: #F4EFE6;
+      background-image: url("data:image/svg+xml,%3Csvg width='32' height='32' viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%239C7B38' stroke-width='0.6' stroke-opacity='0.08'%3E%3Cpath d='M16 12 L16 20 M12 16 L20 16'/%3E%3Ccircle cx='0' cy='0' r='1.5' fill='%239C7B38' fill-opacity='0.06'/%3E%3Ccircle cx='32' cy='0' r='1.5' fill='%239C7B38' fill-opacity='0.06'/%3E%3Ccircle cx='0' cy='32' r='1.5' fill='%239C7B38' fill-opacity='0.06'/%3E%3Ccircle cx='32' cy='32' r='1.5' fill='%239C7B38' fill-opacity='0.06'/%3E%3C/g%3E%3C/svg%3E");
+    }
+    .bg-\[\#FAF8F3\] {
+      background-color: #F4EFE6 !important;
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.7) 0%, transparent 65%),
+        url("data:image/svg+xml,%3Csvg width='32' height='32' viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%239C7B38' stroke-width='0.6' stroke-opacity='0.08'%3E%3Cpath d='M16 12 L16 20 M12 16 L20 16'/%3E%3Ccircle cx='16' cy='16' r='5' stroke-opacity='0.04'/%3E%3Ccircle cx='0' cy='0' r='1' fill='%239C7B38' fill-opacity='0.07'/%3E%3Ccircle cx='32' cy='0' r='1' fill='%239C7B38' fill-opacity='0.07'/%3E%3C/g%3E%3C/svg%3E") !important;
+      border-top: 1px solid rgba(255, 255, 255, 0.85);
     }
     .glass-dark {
-      background: #FFFFFF;
-      border: 1px solid #F0EAE0;
-      box-shadow: 0 10px 28px rgba(165, 145, 95, 0.09);
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(12px);
+      border: 1px solid #EAE0CE;
+      box-shadow: 0 12px 28px -6px rgba(120, 95, 45, 0.1), 0 2px 6px rgba(120, 95, 45, 0.04);
       color: #2C261E;
     }
     .teal-pill {
-      background: linear-gradient(135deg, #E5C875 0%, #D4B259 100%);
+      background: linear-gradient(135deg, #E6C975 0%, #CFA94A 100%);
       color: #2C261E !important;
-      box-shadow: 0 6px 18px rgba(212, 178, 89, 0.35);
+      box-shadow: 0 6px 16px rgba(195, 155, 56, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.5);
     }
     .gold-pill {
-      background: linear-gradient(135deg, #2C261E 0%, #453C30 100%);
+      background: linear-gradient(135deg, #2C261E 0%, #463D31 100%);
       color: #F7DF94 !important;
-      box-shadow: 0 6px 18px rgba(44, 38, 30, 0.22);
+      box-shadow: 0 6px 18px rgba(44, 38, 30, 0.25);
     }
     .nav-square {
       background: #FFFFFF;
-      border: 1px solid #EDE6D8;
-      box-shadow: 0 4px 12px rgba(165, 145, 95, 0.06);
-      color: #9E9587 !important;
+      border: 1px solid #E6DEC8;
+      box-shadow: 0 4px 12px rgba(140, 115, 60, 0.07);
+      color: #8C8273 !important;
     }
     .nav-square-active {
-      background: linear-gradient(145deg, #E8CD7D, #DAB962);
-      border: 1px solid #C9A64E;
-      box-shadow: 0 8px 20px rgba(218, 185, 98, 0.38);
+      background: linear-gradient(145deg, #E8CD7D, #D5B152);
+      border: 1px solid #C49E3D;
+      box-shadow: 0 8px 20px rgba(212, 175, 80, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.45);
       color: #2C261E !important;
     }
     .glass-dark .text-white {
       color: #2C261E !important;
     }
     .glass-dark .text-slate-200,
-    .glass-dark .text-slate-300 {
-      color: #7D7465 !important;
+    .glass-dark .text-slate-300,
+    .text-slate-300 {
+      color: #7A7060 !important;
     }
     .glass-dark .text-slate-400 {
-      color: #A69D8E !important;
+      color: #A39887 !important;
     }
     .glass-dark .text-amber-300,
     .glass-dark .text-amber-200 {
@@ -120,20 +158,20 @@
     .glass-dark .bg-black\/30,
     .glass-dark .bg-black\/35,
     .glass-dark .bg-black\/40 {
-      background-color: #F7F4EC !important;
+      background-color: #F7F3EA !important;
       color: #2C261E !important;
     }
     .glass-dark .border-white\/10,
     .glass-dark .border-white\/15,
     .glass-dark .border-white\/20 {
-      border-color: #EAE3D5 !important;
+      border-color: #E8DFCE !important;
     }
     .glass-dark input,
     .glass-dark select {
       color: #2C261E !important;
     }
     .glass-dark input::placeholder {
-      color: #B5AC9E !important;
+      color: #B2A896 !important;
     }
     .scrollbar-none::-webkit-scrollbar {
       display: none;
@@ -282,12 +320,11 @@
       const [pendingAction, setPendingAction] = useState(null);
       const [vipInput, setVipInput] = useState("");
       const [paywallMsg, setPaywallMsg] = useState("");
-      // 【早鳥定價包裝】預設標題清楚標示：$38 (原價 $88)
       const [paywallTriggerTitle, setPaywallTriggerTitle] = useState("Copay Travel 早鳥永久解鎖：$38 (原價 $88)");
 
       // 首頁點擊「＋ 新增房間」彈出嘅雙卡片選擇視窗
       const [showCreateRoomModal, setShowCreateRoomModal] = useState(false);
-      const [modalSelectedMode, setModalSelectedMode] = useState("daily"); // 'daily' (Copay Lite) | 'travel' (Copay Travel)
+      const [modalSelectedMode, setModalSelectedMode] = useState("daily");
       const [modalRoomNameInput, setModalRoomNameInput] = useState("");
 
       // 當前房間 ID 與連線狀態
@@ -783,7 +820,6 @@
         const fallbackName = modalSelectedMode === "travel" ? "東京之旅 ✈️" : "日常飯局夾錢 🍱";
         const customName = modalRoomNameInput.trim() || fallbackName;
 
-        // 如果用戶揀選「海外旅遊 (Copay Travel)」而尚未解鎖 Pro，立刻觸發早鳥 $38 (原價 $88) 收費牆！
         if (modalSelectedMode === "travel" && !isPro) {
           setShowCreateRoomModal(false);
           triggerPaywall(
@@ -1529,8 +1565,8 @@
       return (
         <div className="max-w-md w-full mx-auto min-h-screen butter-bg flex flex-col pb-28 shadow-2xl relative overflow-x-hidden">
           
-          {/* 溫暖奶油黃頂部 Header 區域 */}
-          <div className="px-4 sm:px-6 pb-8 safe-top-header relative z-10 bg-[#DFC478]">
+          {/* 頂部香檳暖金暗花 Header 區域 */}
+          <div className="px-4 sm:px-6 pb-8 safe-top-header relative z-10">
             <div className="flex justify-between items-center gap-2 mb-4">
               <div className="flex items-center gap-2.5 min-w-0">
                 <BrandLogo isTravel={isTravelMode} size="w-9 h-9 sm:w-10 sm:h-10" />
@@ -1552,7 +1588,6 @@
                 </div>
               </div>
 
-              {/* 【早鳥定價包裝】頂部右上角按鈕顯示「🔥 早鳥 $38 (原價$88)」 */}
               <div className="flex items-center shrink-0">
                 {isPro ? (
                   <span className="text-[11px] bg-[#2C261E] text-[#F7DF94] px-3 py-1.5 rounded-full font-black tracking-wide shadow-sm whitespace-nowrap">
@@ -1612,7 +1647,7 @@
                 </form>
               ) : (
                 <div className="pt-0.5">
-                  <div className="text-[10px] sm:text-[11px] font-extrabold tracking-widest uppercase text-[#6B5B35]">
+                  <div className="text-[10px] sm:text-[11px] font-extrabold tracking-widest uppercase text-[#5E4E2B]">
                     {isTravelMode ? "COPAY TRAVEL · 海外旅遊多幣種專案" : "COPAY LITE · 日常港幣夾錢"}
                   </div>
                   <div className="flex items-center justify-between gap-2">
@@ -1632,7 +1667,7 @@
                         setIsEditingGroupName(true);
                       }}
                       title="修改名稱"
-                      className="shrink-0 w-8 h-8 rounded-full bg-white/75 hover:bg-white text-[#2C261E] flex items-center justify-center text-xs shadow-sm transition"
+                      className="shrink-0 w-8 h-8 rounded-full bg-white/80 hover:bg-white text-[#2C261E] flex items-center justify-center text-xs shadow-sm transition"
                     >
                       ✏️
                     </button>
@@ -1659,14 +1694,14 @@
               <button
                 type="button"
                 onClick={shareRoomLink}
-                className="shrink-0 bg-white/85 hover:bg-white text-[#2C261E] font-bold text-xs py-3 px-3.5 rounded-2xl flex items-center justify-center gap-1 shadow-md active:scale-95 transition whitespace-nowrap"
+                className="shrink-0 bg-white/90 hover:bg-white text-[#2C261E] font-bold text-xs py-3 px-3.5 rounded-2xl flex items-center justify-center gap-1 shadow-md active:scale-95 transition whitespace-nowrap"
               >
                 <span>🔗 邀請 (#{roomId})</span>
               </button>
             </div>
 
             {/* 白色圓角膠囊資訊欄 */}
-            <div className="mt-3.5 bg-white text-[#2C261E] p-4 rounded-3xl shadow-md space-y-3 border border-white">
+            <div className="mt-3.5 bg-white/95 backdrop-blur-md text-[#2C261E] p-4 rounded-3xl shadow-lg space-y-3 border border-white">
               <div className="flex justify-between items-end gap-2">
                 <div className="min-w-0">
                   <p className="text-[11px] text-[#8C8273] font-bold mb-0.5">
@@ -1726,8 +1761,8 @@
             </div>
           </div>
 
-          {/* 大圓角暖白主體內容區 */}
-          <div className="px-3.5 sm:px-5 pt-5 -mt-4 bg-[#FAF8F3] rounded-t-[2.25rem] flex-1 space-y-4 relative z-20 shadow-[0_-8px_24px_rgba(0,0,0,0.04)]">
+          {/* 大圓角暖杏仁米色暗花主體內容區 */}
+          <div className="px-3.5 sm:px-5 pt-5 -mt-4 bg-[#FAF8F3] rounded-t-[2.25rem] flex-1 space-y-4 relative z-20 shadow-[0_-10px_28px_rgba(90,70,30,0.08)]">
             
             {/* ================================================================= */}
             {/* TAB 1: 第一頁 */}
@@ -2016,7 +2051,7 @@
                 {isTravelMode ? (
                   <div className="space-y-3">
                     {travelDailyGroups.length === 0 ? (
-                      <div className="glass-dark p-8 rounded-3xl text-center text-xs text-slate-300">
+                      <div className="glass-dark p-8 rounded-3xl text-center text-xs text-[#7A7060] font-medium">
                         暫時未有旅遊開支記錄，喺上面記低第一筆消費啦！✈️
                       </div>
                     ) : (
@@ -2089,7 +2124,7 @@
                     </div>
 
                     {expenses.length === 0 ? (
-                      <div className="glass-dark p-8 rounded-3xl text-center text-xs text-slate-300">
+                      <div className="glass-dark p-8 rounded-3xl text-center text-xs text-[#7A7060] font-medium">
                         暫時未有開支記錄，去記帳頁入第一筆數啦！🤝
                       </div>
                     ) : (
@@ -2680,7 +2715,7 @@
           </div>
 
           {/* 底部 4 格溫暖白/奶油黃圓角方形導航欄 */}
-          <div className="fixed bottom-0 left-0 right-0 max-w-md w-full mx-auto px-3 sm:px-5 pt-2 safe-bottom-dock z-40 bg-gradient-to-t from-[#FAF8F3] via-[#FAF8F3]/95 to-transparent">
+          <div className="fixed bottom-0 left-0 right-0 max-w-md w-full mx-auto px-3 sm:px-5 pt-2 safe-bottom-dock z-40 bg-gradient-to-t from-[#F4EFE6] via-[#F4EFE6]/95 to-transparent">
             <div className="grid grid-cols-4 gap-2">
               <button
                 onClick={() => setActiveTab("expenses")}
@@ -2733,7 +2768,7 @@
           </div>
 
           {/* ================================================================= */}
-          {/* 🏠 點擊首頁「＋ 新增房間」跳出兩個卡片選項（加入早鳥 $38 vs 原價 $88 對比） */}
+          {/* 🏠 點擊首頁「＋ 新增房間」跳出兩個卡片選項 */}
           {/* ================================================================= */}
           {showCreateRoomModal && (
             <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -2749,9 +2784,7 @@
                   <button onClick={() => setShowCreateRoomModal(false)} className="shrink-0 text-[#A69D8E] hover:text-[#2C261E] text-xl font-bold leading-none">×</button>
                 </div>
 
-                {/* 兩個卡片選項：日常夾錢 (免費) vs 海外旅遊 (Copay Travel 早鳥 $38 / 原價 $88) */}
                 <div className="space-y-2.5">
-                  {/* 卡片 1：日常夾錢 (Copay Lite) */}
                   <div
                     onClick={() => setModalSelectedMode("daily")}
                     className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
@@ -2774,7 +2807,6 @@
                     </p>
                   </div>
 
-                  {/* 卡片 2：海外旅遊 (Copay Travel / Pro) */}
                   <div
                     onClick={() => setModalSelectedMode("travel")}
                     className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
