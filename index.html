@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en-GB">
+<html lang="zh-HK">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
@@ -16,115 +16,97 @@
   <link id="dynamic-favicon" rel="icon" type="image/png" href="Copay.png" />
   <link id="dynamic-apple-icon" rel="apple-touch-icon" sizes="180x180" href="Copay.png" />
 
-  <!-- ✨ iOS 主畫面 Logo 終極保障腳本：自動檢測 GitHub 圖片，若因檔名大小寫或緩存未載入，即時用 Canvas 1:1 繪製圖二高清 512x512 PNG 注入 iPhone 主畫面 Icon！ -->
+  <!-- 安全版 iOS 主畫面 Icon 檢測腳本 (加上完整 try-catch，絕不阻擋頁面載入) -->
   <script>
-    (function ensureCopayHomeScreenIcon() {
-      function generateFallbackCopayIconDataURL() {
-        const canvas = document.createElement("canvas");
-        canvas.width = 512;
-        canvas.height = 512;
-        const ctx = canvas.getContext("2d");
+    (function setupAppIcons() {
+      function drawFallbackIcon() {
+        try {
+          var canvas = document.createElement("canvas");
+          canvas.width = 512;
+          canvas.height = 512;
+          var ctx = canvas.getContext("2d");
+          if (!ctx) return null;
 
-        // 1. 圖二深灰藍柔和漸層背景 (#384049 -> #282E35)
-        const bgGrad = ctx.createLinearGradient(0, 0, 512, 512);
-        bgGrad.addColorStop(0, "#3D4650");
-        bgGrad.addColorStop(1, "#262C33");
-        ctx.fillStyle = bgGrad;
-        ctx.fillRect(0, 0, 512, 512);
+          // 深灰藍底色
+          var bgGrad = ctx.createLinearGradient(0, 0, 512, 512);
+          bgGrad.addColorStop(0, "#3D4650");
+          bgGrad.addColorStop(1, "#262C33");
+          ctx.fillStyle = bgGrad;
+          ctx.fillRect(0, 0, 512, 512);
 
-        // 2. 右上角暖金色柔光暈 (Glow)
-        const glowGrad = ctx.createRadialGradient(295, 165, 5, 295, 165, 95);
-        glowGrad.addColorStop(0, "rgba(246, 193, 107, 0.55)");
-        glowGrad.addColorStop(0.5, "rgba(246, 193, 107, 0.18)");
-        glowGrad.addColorStop(1, "rgba(246, 193, 107, 0)");
-        ctx.fillStyle = glowGrad;
-        ctx.beginPath();
-        ctx.arc(295, 165, 95, 0, Math.PI * 2);
-        ctx.fill();
+          // 右上暖金柔光
+          var glowGrad = ctx.createRadialGradient(295, 165, 5, 295, 165, 95);
+          glowGrad.addColorStop(0, "rgba(246, 193, 107, 0.55)");
+          glowGrad.addColorStop(0.5, "rgba(246, 193, 107, 0.18)");
+          glowGrad.addColorStop(1, "rgba(246, 193, 107, 0)");
+          ctx.fillStyle = glowGrad;
+          ctx.beginPath();
+          ctx.arc(295, 165, 95, 0, Math.PI * 2);
+          ctx.fill();
 
-        // 3. 中央垂直青藍柱 ($)
-        const barGrad = ctx.createLinearGradient(236, 95, 276, 330);
-        barGrad.addColorStop(0, "#3B7282");
-        barGrad.addColorStop(1, "#234C59");
-        ctx.fillStyle = barGrad;
-        ctx.beginPath();
-        ctx.roundRect(238, 92, 36, 240, 12);
-        ctx.fill();
+          // 中央垂直柱 ($)
+          ctx.fillStyle = "#2E6070";
+          ctx.fillRect(238, 96, 36, 232);
 
-        // 4. 立體 S 形深青藍絲帶主體
-        const sGrad = ctx.createLinearGradient(180, 120, 330, 310);
-        sGrad.addColorStop(0, "#356A7A");
-        sGrad.addColorStop(0.5, "#2B5B6C");
-        sGrad.addColorStop(1, "#1D424F");
-        ctx.strokeStyle = sGrad;
-        ctx.lineWidth = 40;
-        ctx.lineCap = "round";
-        ctx.beginPath();
-        ctx.moveTo(298, 162);
-        ctx.bezierCurveTo(265, 120, 195, 130, 198, 176);
-        ctx.bezierCurveTo(200, 222, 315, 210, 315, 262);
-        ctx.bezierCurveTo(315, 305, 230, 308, 205, 268);
-        ctx.stroke();
+          // S 形青藍主體
+          ctx.strokeStyle = "#2B5B6C";
+          ctx.lineWidth = 40;
+          ctx.lineCap = "round";
+          ctx.beginPath();
+          ctx.moveTo(298, 162);
+          ctx.bezierCurveTo(265, 120, 195, 130, 198, 176);
+          ctx.bezierCurveTo(200, 222, 315, 210, 315, 262);
+          ctx.bezierCurveTo(315, 305, 230, 308, 205, 268);
+          ctx.stroke();
 
-        // 5. 圖二標誌性右上角暖金色立體水滴弧帶
-        const goldGrad = ctx.createLinearGradient(250, 128, 320, 180);
-        goldGrad.addColorStop(0, "#FCE092");
-        goldGrad.addColorStop(0.5, "#EAA956");
-        goldGrad.addColorStop(1, "#C58337");
-        ctx.strokeStyle = goldGrad;
-        ctx.lineWidth = 34;
-        ctx.lineCap = "round";
-        ctx.beginPath();
-        ctx.moveTo(256, 136);
-        ctx.quadraticCurveTo(292, 132, 306, 162);
-        ctx.stroke();
+          // 右上暖金亮弧
+          ctx.strokeStyle = "#EAA956";
+          ctx.lineWidth = 34;
+          ctx.lineCap = "round";
+          ctx.beginPath();
+          ctx.moveTo(256, 136);
+          ctx.quadraticCurveTo(292, 132, 306, 162);
+          ctx.stroke();
 
-        // 6. 底部 "copay" 淺冰藍圓體字樣
-        ctx.fillStyle = "#B2C8CE";
-        ctx.font = "bold 78px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "alphabetic";
-        ctx.fillText("copay", 256, 422);
+          // 底部 copay 字樣
+          ctx.fillStyle = "#B2C8CE";
+          ctx.font = "bold 76px -apple-system, BlinkMacSystemFont, sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText("copay", 256, 420);
 
-        return canvas.toDataURL("image/png");
+          return canvas.toDataURL("image/png");
+        } catch (err) {
+          return null;
+        }
       }
 
-      // 先即時掛載高清 Canvas Icon 確保 iOS 100% 讀到，再探測 GitHub 上嘅實體 PNG
-      window.addEventListener("DOMContentLoaded", () => {
-        const fallbackDataUrl = generateFallbackCopayIconDataURL();
-        const appleIconLink = document.getElementById("dynamic-apple-icon");
-        const favIconLink = document.getElementById("dynamic-favicon");
+      window.addEventListener("load", function () {
+        var appleIcon = document.getElementById("dynamic-apple-icon");
+        var favIcon = document.getElementById("dynamic-favicon");
+        var files = ["Copay.png", "Copay_2.png", "copay.png"];
+        var loaded = false;
 
-        const candidateFiles = ["Copay.png", "Copay_2.png", "copay.png", "./Copay.png", "./Copay_2.png"];
-        let found = false;
-
-        candidateFiles.forEach((src) => {
-          const img = new Image();
+        files.forEach(function (file) {
+          var img = new Image();
           img.onload = function () {
-            if (!found) {
-              found = true;
-              // 將成功載入嘅 GitHub PNG 畫入正方形 Canvas 轉為標準 DataURL，徹底解決 iOS Safari 緩存與路徑問題
-              try {
-                const c = document.createElement("canvas");
-                c.width = 512;
-                c.height = 512;
-                const ctx = c.getContext("2d");
-                ctx.drawImage(img, 0, 0, 512, 512);
-                const dataUrl = c.toDataURL("image/png");
-                if (appleIconLink) appleIconLink.href = dataUrl;
-                if (favIconLink) favIconLink.href = dataUrl;
-              } catch (e) {
-                if (appleIconLink) appleIconLink.href = src;
-                if (favIconLink) favIconLink.href = src;
-              }
+            if (!loaded) {
+              loaded = true;
+              if (appleIcon) appleIcon.href = file;
+              if (favIcon) favIcon.href = file;
             }
           };
-          img.src = src;
+          img.src = file;
         });
 
-        // 預設先寫入 1:1 還原嘅高清圖二 DataURL，保證任何情況下「加入主畫面」都有靚 Logo
-        if (appleIconLink) appleIconLink.href = fallbackDataUrl;
-        if (favIconLink) favIconLink.href = fallbackDataUrl;
+        setTimeout(function () {
+          if (!loaded) {
+            var dataUrl = drawFallbackIcon();
+            if (dataUrl) {
+              if (appleIcon) appleIcon.href = dataUrl;
+              if (favIcon) favIcon.href = dataUrl;
+            }
+          }
+        }, 1200);
       });
     })();
   </script>
@@ -147,8 +129,8 @@
     html, body {
       -webkit-tap-highlight-color: transparent;
       user-select: none;
-      background-color: #EAE6DF;
-      color: #2B3A42;
+      background-color: #EFECE6;
+      color: #26353D;
       overflow-x: hidden;
       width: 100%;
       margin: 0;
@@ -159,31 +141,21 @@
       min-width: 0;
     }
 
-    /* 🎨 圖一：全屏柔霧水彩波浪背景 (Soft Watercolor Waves Full-App Background) */
-    .butter-bg {
-      background-color: #F2EFE9;
+    /* 圖一：柔霧藍綠水彩波浪全屏背景 (純淨 SVG 波浪 + 支援讀取 bg.jpg / image_54f771.jpg，絕不卡死瀏覽器) */
+    .watercolor-app-bg {
+      background-color: #F4F1EA;
       background-image:
         url("bg.jpg"),
         url("image_54f771.jpg"),
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 1400' preserveAspectRatio='none'%3E%3Cdefs%3E%3Cfilter id='wc' x='-10%25' y='-10%25' width='120%25' height='120%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012' numOctaves='3' result='noise'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='noise' scale='18' xChannelSelector='R' yChannelSelector='G'/%3E%3C/filter%3E%3ClinearGradient id='cream' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23F7F4EC'/%3E%3Cstop offset='50%25' stop-color='%23EFECE4'/%3E%3Cstop offset='100%25' stop-color='%23E6ECEC'/%3E%3C/linearGradient%3E%3ClinearGradient id='waveBlue1' x1='0%25' y1='0%25' x2='100%25' y2='80%25'%3E%3Cstop offset='0%25' stop-color='%23C8D7DF' stop-opacity='0.65'/%3E%3Cstop offset='55%25' stop-color='%238DB3CE' stop-opacity='0.78'/%3E%3Cstop offset='100%25' stop-color='%236B9BBF' stop-opacity='0.85'/%3E%3C/linearGradient%3E%3ClinearGradient id='waveBlue2' x1='0%25' y1='20%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23DCE6EA' stop-opacity='0.7'/%3E%3Cstop offset='60%25' stop-color='%23B5CDE0' stop-opacity='0.65'/%3E%3Cstop offset='100%25' stop-color='%2394B8D3' stop-opacity='0.75'/%3E%3C/linearGradient%3E%3ClinearGradient id='waveSage' x1='0%25' y1='0%25' x2='90%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23CEDCD8' stop-opacity='0.72'/%3E%3Cstop offset='50%25' stop-color='%23B7CEC9' stop-opacity='0.68'/%3E%3Cstop offset='100%25' stop-color='%23CFDFDC' stop-opacity='0.6'/%3E%3C/linearGradient%3E%3ClinearGradient id='waveDeep' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%235D8EB5' stop-opacity='0.82'/%3E%3Cstop offset='55%25' stop-color='%2379A4C6' stop-opacity='0.75'/%3E%3Cstop offset='100%25' stop-color='%23A8C6DC' stop-opacity='0.65'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='800' height='1400' fill='url(%23cream)'/%3E%3Cg filter='url(%23wc)'%3E%3Cpath d='M800,0 L420,0 C340,70 430,190 560,210 C680,230 740,160 800,200 Z' fill='%23E3E9EC' opacity='0.7'/%3E%3Cpath d='M-40,70 C110,90 170,250 350,275 C530,300 620,240 730,360 C780,415 810,480 840,520 L840,760 C720,710 640,560 510,490 C370,415 190,430 60,340 C-10,290 -40,210 -40,70 Z' fill='url(%23waveBlue1)'/%3E%3Cpath d='M-40,210 C90,310 260,310 420,380 C570,445 640,610 840,690 L840,860 C660,790 560,620 430,520 C300,420 120,420 -40,310 Z' fill='url(%23waveBlue2)'/%3E%3Cpath d='M-40,420 C140,510 310,500 410,630 C500,750 480,930 620,1040 C700,1105 780,1130 840,1170 L840,1360 C650,1290 500,1170 390,990 C280,810 150,750 -40,660 Z' fill='url(%23waveSage)'/%3E%3Cpath d='M-40,620 C130,690 250,740 340,910 C430,1080 540,1210 760,1330 L840,1370 L840,1440 L-40,1440 Z' fill='%23BFDAD6' opacity='0.55'/%3E%3Cpath d='M-40,830 C90,820 210,890 275,1040 C340,1190 460,1295 660,1400 L-40,1400 Z' fill='url(%23waveDeep)'/%3E%3Cpath d='M-40,980 C80,990 170,1060 230,1200 C280,1310 360,1380 460,1420 L-40,1420 Z' fill='%23C9D9E6' opacity='0.8'/%3E%3Cpath d='M-40,1180 C60,1210 140,1290 190,1420 L-40,1420 Z' fill='%23F5F2EB' opacity='0.92'/%3E%3C/g%3E%3C/svg%3E") !important;
-      background-size: cover !important;
-      background-position: center center !important;
-      background-attachment: fixed !important;
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 1400' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='g1' x1='0%25' y1='0%25' x2='100%25' y2='80%25'%3E%3Cstop offset='0%25' stop-color='%23CAD9E2' stop-opacity='0.65'/%3E%3Cstop offset='55%25' stop-color='%238FB4CF' stop-opacity='0.78'/%3E%3Cstop offset='100%25' stop-color='%236B9BBF' stop-opacity='0.85'/%3E%3C/linearGradient%3E%3ClinearGradient id='g2' x1='0%25' y1='20%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23DCE6EA' stop-opacity='0.72'/%3E%3Cstop offset='100%25' stop-color='%2398BBD5' stop-opacity='0.75'/%3E%3C/linearGradient%3E%3ClinearGradient id='g3' x1='0%25' y1='0%25' x2='90%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23CEDCD8' stop-opacity='0.75'/%3E%3Cstop offset='50%25' stop-color='%23B8CFCB' stop-opacity='0.7'/%3E%3Cstop offset='100%25' stop-color='%23D2E1DE' stop-opacity='0.65'/%3E%3C/linearGradient%3E%3ClinearGradient id='g4' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%235D8EB5' stop-opacity='0.82'/%3E%3Cstop offset='60%25' stop-color='%237BA5C7' stop-opacity='0.75'/%3E%3Cstop offset='100%25' stop-color='%23AAC7DD' stop-opacity='0.65'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='800' height='1400' fill='%23F5F2EB'/%3E%3Cpath d='M800,0 L420,0 C340,70 430,190 560,210 C680,230 740,160 800,200 Z' fill='%23E5ECEF'/%3E%3Cpath d='M-40,60 C120,90 180,240 360,270 C540,300 620,240 740,360 L840,480 L840,730 C710,680 630,540 500,470 C360,395 180,410 50,320 L-40,220 Z' fill='url(%23g1)'/%3E%3Cpath d='M-40,210 C100,310 260,310 420,380 C570,445 640,610 840,690 L840,860 C660,790 560,620 430,520 C300,420 120,420 -40,310 Z' fill='url(%23g2)'/%3E%3Cpath d='M-40,430 C140,510 310,500 410,630 C500,750 480,930 620,1040 L840,1170 L840,1360 C650,1290 500,1170 390,990 C280,810 150,750 -40,660 Z' fill='url(%23g3)'/%3E%3Cpath d='M-40,640 C130,700 250,750 340,910 C430,1080 540,1210 760,1330 L840,1370 L840,1440 L-40,1440 Z' fill='%23C2DCD8' opacity='0.55'/%3E%3Cpath d='M-40,830 C90,820 210,890 275,1040 C340,1190 460,1295 660,1400 L-40,1400 Z' fill='url(%23g4)'/%3E%3Cpath d='M-40,990 C80,1000 170,1070 230,1200 C280,1310 360,1380 460,1420 L-40,1420 Z' fill='%23CBDCE8' opacity='0.82'/%3E%3Cpath d='M-40,1180 C60,1210 140,1290 190,1420 L-40,1420 Z' fill='%23F5F2EB'/%3E%3C/svg%3E");
+      background-size: cover;
+      background-position: center center;
+      background-attachment: fixed;
     }
 
-    /* 頂部與下半部全部設為透明，令圖一嘅水彩波浪完整貫穿全個 App */
     .safe-top-header {
       padding-top: max(1.35rem, calc(env(safe-area-inset-top) + 0.8rem));
       background: transparent !important;
-      border-bottom: none !important;
-    }
-    .safe-top-header::after {
-      display: none !important;
-    }
-    .bg-\[\#FAF8F3\] {
-      background: transparent !important;
-      box-shadow: none !important;
-      border-top: none !important;
     }
     .safe-bottom-dock {
       padding-bottom: max(0.85rem, env(safe-area-inset-bottom));
@@ -196,17 +168,16 @@
       border-radius: 1rem;
     }
 
-    /* 半透明磨砂白卡片，透出底下柔和嘅水彩波浪 */
+    /* 半透明磨砂白卡片，透出底下柔和嘅圖一水彩波浪 */
     .glass-dark {
-      background: rgba(255, 255, 255, 0.82) !important;
+      background: rgba(255, 255, 255, 0.84) !important;
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.85) !important;
-      box-shadow: 0 10px 28px rgba(65, 95, 115, 0.08) !important;
-      color: #2B3A42 !important;
+      border: 1px solid rgba(255, 255, 255, 0.9) !important;
+      box-shadow: 0 10px 28px rgba(55, 85, 105, 0.08) !important;
+      color: #26353D !important;
     }
 
-    /* 按鈕配色：呼應圖一水彩霧海藍與圖二深灰藍金光 */
     .teal-pill {
       background: linear-gradient(135deg, #4B7B99 0%, #37627D 100%) !important;
       color: #FFFFFF !important;
@@ -218,12 +189,11 @@
       box-shadow: 0 6px 16px rgba(45, 56, 66, 0.22) !important;
     }
 
-    /* 底部導航欄：柔霧白磨砂底配水彩藍選中狀態 */
     .fixed.bottom-0 {
-      background: linear-gradient(to top, rgba(242, 239, 233, 0.95) 0%, rgba(242, 239, 233, 0.75) 75%, transparent 100%) !important;
+      background: linear-gradient(to top, rgba(242, 239, 233, 0.95) 0%, rgba(242, 239, 233, 0.78) 75%, transparent 100%) !important;
     }
     .nav-square {
-      background: rgba(255, 255, 255, 0.78) !important;
+      background: rgba(255, 255, 255, 0.82) !important;
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.9) !important;
@@ -237,7 +207,6 @@
       color: #FFFFFF !important;
     }
 
-    /* 統一卡片內文字與輸入框顏色 */
     .glass-dark .text-white,
     .glass-dark .text-\[\#2C261E\] {
       color: #26353D !important;
@@ -278,7 +247,7 @@
     .glass-dark .bg-black\/35,
     .glass-dark .bg-black\/40,
     .bg-\[\#F7F4EC\] {
-      background-color: rgba(236, 242, 245, 0.85) !important;
+      background-color: rgba(236, 242, 245, 0.88) !important;
       color: #26353D !important;
     }
     .bg-\[\#F5E6B8\],
@@ -397,7 +366,7 @@
       return rooms[0].id;
     };
 
-    // 圖二 Copay Logo 元件 (自動嘗試 Copay.png -> Copay_2.png -> copay.png -> 內置 1:1 圖二 SVG)
+    // 圖二 Copay Logo 元件 (自動嘗試 Copay.png -> Copay_2.png -> copay.png -> 內置圖二 SVG)
     function BrandLogo({ isTravel = false, size = "w-10 h-10 sm:w-11 sm:h-11" }) {
       const candidateLogos = ["Copay.png", "Copay_2.png", "copay.png"];
       const [logoIdx, setLogoIdx] = useState(0);
@@ -420,7 +389,6 @@
         );
       }
 
-      // 圖二 1:1 高精細內置 SVG Logo (深灰藍底 + 3D 青藍 $ + 右上暖金發光弧 + copay 字樣)
       return (
         <div className="relative shrink-0">
           <div className={`${size} rounded-2xl bg-gradient-to-br from-[#3D4650] to-[#262C33] flex items-center justify-center shadow-md border border-white/80 relative overflow-hidden`}>
@@ -485,7 +453,7 @@
       const [isEditingGroupName, setIsEditingGroupName] = useState(false);
       const [tempGroupName, setTempGroupName] = useState("");
 
-      // 當前房間模式：'daily' (Copay Lite 免費日常版) | 'travel' (Copay Travel 海外旅遊版)
+      // 當前房間模式：'daily' | 'travel'
       const [roomMode, setRoomMode] = useState("daily");
 
       const [members, setMembers] = useState(DEFAULT_MEMBERS);
@@ -616,7 +584,6 @@
         fetchLiveExchangeRates();
       }, []);
 
-      // 統一彈出 Copay Travel 早鳥優惠 Paywall 函數
       const triggerPaywall = (titleText, msgText, onUnlockCallback = null) => {
         setPaywallTriggerTitle(titleText || "Copay Travel 早鳥永久解鎖：$38 (原價 $88)");
         setPaywallMsg(msgText);
@@ -962,7 +929,6 @@
         setActiveTab("expenses");
       };
 
-      // 在「新增房間」彈窗提交表單
       const handleModalCreateRoomSubmit = (e) => {
         e.preventDefault();
         const fallbackName = modalSelectedMode === "travel" ? "東京之旅 ✈️" : "日常飯局夾錢 🍱";
@@ -1014,7 +980,6 @@
         });
       };
 
-      // 切換進階拆帳邏輯
       const handleToggleAdvancedSplit = () => {
         if (!useAdvancedSplit && !isPro) {
           triggerPaywall(
@@ -1261,7 +1226,6 @@
         return expenses.reduce((acc, exp) => acc + toHKD(Number(exp.amount), exp.currency), 0);
       }, [expenses, rates]);
 
-      // 計算單筆開支每位成員嘅實際分攤金額 (HKD)
       const calculateMemberSharesHKD = (exp, validSplitMembers) => {
         const totalExpHKD = toHKD(Number(exp.amount), exp.currency);
         const count = validSplitMembers.length;
@@ -1711,7 +1675,7 @@
       const circumference = 2 * Math.PI * radius;
 
       return (
-        <div className="max-w-md w-full mx-auto min-h-screen butter-bg flex flex-col pb-28 shadow-2xl relative overflow-x-hidden">
+        <div className="max-w-md w-full mx-auto min-h-screen watercolor-app-bg flex flex-col pb-28 shadow-2xl relative overflow-x-hidden">
           
           {/* 頂部 Header (透明底，直接展示圖一柔霧水彩波浪背景) */}
           <div className="px-4 sm:px-6 pb-4 safe-top-header relative z-10">
@@ -1912,7 +1876,7 @@
           </div>
 
           {/* 主體內容區 */}
-          <div className="px-3.5 sm:px-5 pt-1 bg-[#FAF8F3] flex-1 space-y-4 relative z-20">
+          <div className="px-3.5 sm:px-5 pt-1 flex-1 space-y-4 relative z-20">
             
             {/* ================================================================= */}
             {/* TAB 1: 第一頁 */}
@@ -2691,4 +2655,448 @@
                           value={tempMemberNewName}
                           onChange={e => setTempMemberNewName(e.target.value)}
                           autoFocus
-                          className="flex-1 min-w-0 text-xs bg-white text-slate-900 font-bold px-3
+                          className="flex-1 min-w-0 text-xs bg-white text-slate-900 font-bold px-3 py-2 rounded-xl border border-[#EAE3D5] focus:outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRenameMember(editingMemberName)}
+                          className="shrink-0 teal-pill text-xs font-bold px-3 py-2 rounded-xl"
+                        >
+                          儲存
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingMemberName(null)}
+                          className="shrink-0 bg-white border border-[#EAE3D5] text-xs font-bold px-2.5 py-2 rounded-xl"
+                        >
+                          取消
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {members.map(m => (
+                      <span key={m} className="bg-white/10 border border-white/15 text-white text-xs px-3 py-1.5 rounded-xl font-medium flex items-center gap-2">
+                        <span>{m}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingMemberName(m);
+                            setTempMemberNewName(m);
+                          }}
+                          title="修改名字"
+                          className="text-[11px] bg-white hover:bg-[#F5E6B8] px-1.5 py-0.5 rounded text-[#9BE0EE] leading-none border border-[#EAE3D5]"
+                        >
+                          ✏️
+                        </button>
+                        {members.length > 2 && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveMember(m)}
+                            title="刪除成員"
+                            className="text-slate-300 hover:text-rose-500 font-bold text-sm leading-none ml-0.5"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 活動類別設定 */}
+                <div className="glass-dark p-4 sm:p-5 rounded-3xl space-y-3.5">
+                  <div className="flex justify-between items-center border-b border-white/10 pb-2.5">
+                    <h3 className="font-bold text-white text-sm">🏷️ 活動類別設定</h3>
+                    <span className="text-[10px] text-slate-300">共 {activeCategories.length} 個類別</span>
+                  </div>
+                  <form onSubmit={handleAddCategory} className="flex items-center gap-2 w-full">
+                    <input
+                      type="text"
+                      placeholder="輸入新活動類別 (如：🎾 網球 / 🏨 酒店)"
+                      value={newCategoryInput}
+                      onChange={e => setNewCategoryInput(e.target.value)}
+                      className="flex-1 min-w-0 text-xs bg-white/10 border border-white/15 rounded-2xl px-3.5 py-2.5 text-white placeholder-slate-400 focus:outline-none"
+                    />
+                    <button type="submit" className="shrink-0 teal-pill text-xs font-bold px-3.5 py-2.5 rounded-2xl whitespace-nowrap">
+                      ＋ 新增
+                    </button>
+                  </form>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {activeCategories.map(cat => (
+                      <span key={cat} className="bg-white/10 border border-white/15 text-white text-xs px-3 py-1.5 rounded-xl font-medium flex items-center gap-2">
+                        <span>{cat}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteCategory(cat)}
+                          className="text-slate-300 hover:text-rose-500 font-bold text-sm leading-none"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Copay Travel 專屬：自訂信用卡手續費百分比 + 唱錢匯率鎖定 */}
+                {isTravelMode && (
+                  <>
+                    <div className="glass-dark p-4 sm:p-5 rounded-3xl space-y-2.5">
+                      <div className="flex justify-between items-center gap-2">
+                        <div className="min-w-0">
+                          <h3 className="font-bold text-amber-300 text-sm">💳 信用卡海外簽帳手續費 (%)</h3>
+                          <p className="text-[10px] text-slate-300 mt-0.5">記帳時勾選信用卡海外簽帳，將自動加上此百分比</p>
+                        </div>
+                        <div className="shrink-0 flex items-center gap-1 bg-[#F7F4EC] px-3 py-1.5 rounded-2xl border border-[#7FA8C4]">
+                          <input
+                            type="number"
+                            inputMode="decimal"
+                            pattern="[0-9]*"
+                            step="0.05"
+                            value={cardFeePercent}
+                            onChange={e => handleCardFeePercentChange(e.target.value)}
+                            className="w-14 text-right bg-transparent font-mono font-black text-sm text-amber-300 focus:outline-none"
+                          />
+                          <span className="text-xs font-bold text-amber-300">%</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="glass-dark p-4 sm:p-5 rounded-3xl space-y-3.5">
+                      <div className="flex justify-between items-center border-b border-white/10 pb-2.5 gap-2">
+                        <div className="min-w-0">
+                          <h3 className="font-bold text-amber-300 text-sm">💱 Copay Travel 唱錢匯率鎖定 (兌 HKD)</h3>
+                          <p className="text-[10px] text-slate-300 mt-0.5">
+                            點選貨幣名稱即可設為<strong>記帳預設貨幣</strong>（目前預設：<span className="text-amber-300 font-bold">{currency}</span>）
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={fetchLiveExchangeRates}
+                          className="shrink-0 text-[10px] teal-pill px-2.5 py-1.5 rounded-lg font-bold whitespace-nowrap transition"
+                        >
+                          🔄 刷新即時匯率
+                        </button>
+                      </div>
+                      <form onSubmit={handleAddCustomCurrency} className="flex items-center gap-2 bg-white/5 p-2 rounded-2xl w-full">
+                        <input type="text" maxLength="3" placeholder="代號(NZD)" value={newCurCode} onChange={e => setNewCurCode(e.target.value.toUpperCase())} className="w-20 shrink-0 text-xs bg-white rounded-xl px-2 py-2 font-mono uppercase text-center text-white placeholder-slate-400 border border-[#EAE3D5] focus:outline-none" />
+                        <input type="number" inputMode="decimal" pattern="[0-9]*" step="any" placeholder="兌港幣匯率" value={newCurRate} onChange={e => setNewCurRate(e.target.value)} className="flex-1 min-w-0 text-xs bg-white rounded-xl px-2.5 py-2 text-white placeholder-slate-400 border border-[#EAE3D5] focus:outline-none" />
+                        <button type="submit" className="shrink-0 teal-pill text-xs font-black px-3 py-2 rounded-xl whitespace-nowrap">＋加入</button>
+                      </form>
+                      <div className="grid grid-cols-2 gap-2 pt-1">
+                        {sortedCurrencyKeys.filter(c => c !== "HKD").map(cur => {
+                          const isDefaultCur = currency === cur;
+                          return (
+                            <div
+                              key={cur}
+                              onClick={() => handleSelectDefaultCurrency(cur)}
+                              className={`flex justify-between items-center gap-1 p-2 sm:p-2.5 rounded-2xl border cursor-pointer transition min-w-0 ${
+                                isDefaultCur
+                                  ? "bg-[#F5E6B8] border-[#7FA8C4] shadow-sm"
+                                  : "bg-white/5 border-white/10 hover:bg-white/10"
+                              }`}
+                            >
+                              <div className="flex items-center gap-1 pl-0.5 min-w-0">
+                                <span className={`font-black text-xs ${isDefaultCur ? "text-[#2C261E]" : "text-slate-200"}`}>
+                                  {cur}
+                                </span>
+                                {isDefaultCur && (
+                                  <span className="shrink-0 text-[9px] bg-[#2D3842] text-[#F4D58D] font-black px-1 py-0.5 rounded">
+                                    預設
+                                  </span>
+                                )}
+                              </div>
+                              <input
+                                type="number"
+                                inputMode="decimal"
+                                pattern="[0-9]*"
+                                step="0.0001"
+                                value={rates[cur]}
+                                onClick={e => e.stopPropagation()}
+                                onChange={e => handleRateChange(cur, e.target.value)}
+                                className="w-16 sm:w-20 shrink-0 text-right bg-white rounded-lg px-1.5 py-1 font-mono font-bold text-[11px] sm:text-xs text-[#2C261E] border border-[#EAE3D5] focus:outline-none focus:ring-1 focus:ring-[#4B7B99]"
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* 底部 4 格磨砂白圓角方形導航欄 */}
+          <div className="fixed bottom-0 left-0 right-0 max-w-md w-full mx-auto px-3 sm:px-5 pt-2 safe-bottom-dock z-40">
+            <div className="grid grid-cols-4 gap-2">
+              <button
+                onClick={() => setActiveTab("expenses")}
+                className={`py-2.5 px-1 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all min-w-0 ${
+                  activeTab === "expenses" ? "nav-square-active scale-[1.03]" : "nav-square"
+                }`}
+              >
+                <span className="text-base leading-none">{isTravelMode ? "📝" : "⚡"}</span>
+                <span className="text-[10px] font-bold tracking-tight whitespace-nowrap truncate max-w-full">
+                  {isTravelMode
+                    ? "記帳"
+                    : `記帳及結算${settlement.transactions.length > 0 ? `(${paidCount}/${settlement.transactions.length})` : ""}`}
+                </span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab("settle")}
+                className={`py-2.5 px-1 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all min-w-0 ${
+                  activeTab === "settle" ? "nav-square-active scale-[1.03]" : "nav-square"
+                }`}
+              >
+                <span className="text-base leading-none">📊</span>
+                <span className="text-[10px] font-bold tracking-tight whitespace-nowrap truncate max-w-full">
+                  {isTravelMode
+                    ? `結算&圖表${settlement.transactions.length > 0 ? `(${paidCount}/${settlement.transactions.length})` : ""}`
+                    : `明細及圖表(${expenses.length})`}
+                </span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab("rooms")}
+                className={`py-2.5 px-1 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all min-w-0 ${
+                  activeTab === "rooms" ? "nav-square-active scale-[1.03]" : "nav-square"
+                }`}
+              >
+                <span className="text-base leading-none">🔑</span>
+                <span className="text-[10px] font-bold tracking-tight whitespace-nowrap truncate max-w-full">房間列表</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab("settings")}
+                className={`py-2.5 px-1 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all min-w-0 ${
+                  activeTab === "settings" ? "nav-square-active scale-[1.03]" : "nav-square"
+                }`}
+              >
+                <span className="text-base leading-none">⚙️</span>
+                <span className="text-[10px] font-bold tracking-tight whitespace-nowrap truncate max-w-full">設定</span>
+              </button>
+            </div>
+          </div>
+
+          {/* ================================================================= */}
+          {/* 🏠 點擊首頁「＋ 新增房間」跳出兩個卡片選項 */}
+          {/* ================================================================= */}
+          {showCreateRoomModal && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <div className="glass-dark max-w-sm w-full rounded-[2rem] p-5 sm:p-6 shadow-2xl space-y-4">
+                <div className="flex justify-between items-start gap-2">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <BrandLogo isTravel={modalSelectedMode === "travel"} size="w-10 h-10" />
+                    <div className="min-w-0">
+                      <h3 className="font-black text-base text-[#26353D] truncate">＋ 新增 Copay 房間</h3>
+                      <p className="text-[11px] text-[#5C707B]">請選擇房間場景（日常與旅遊帳目獨立分開）</p>
+                    </div>
+                  </div>
+                  <button onClick={() => setShowCreateRoomModal(false)} className="shrink-0 text-[#8799A3] hover:text-[#26353D] text-xl font-bold leading-none">×</button>
+                </div>
+
+                <div className="space-y-2.5">
+                  <div
+                    onClick={() => setModalSelectedMode("daily")}
+                    className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                      modalSelectedMode === "daily"
+                        ? "bg-[#DFECF2] border-[#4B7B99] shadow-sm"
+                        : "bg-[#ECF2F5] border-transparent opacity-80 hover:opacity-100"
+                    }`}
+                  >
+                    <div className="flex justify-between items-center mb-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">☕</span>
+                        <span className="font-black text-sm text-[#26353D]">日常夾錢 (Copay Lite)</span>
+                      </div>
+                      <span className="text-[10px] bg-emerald-100 text-emerald-700 font-black px-2.5 py-0.5 rounded-full">
+                        免費 Free
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-[#5C707B] pl-6">
+                      純港幣 HK$ 記帳 · 適合朋友食飯、買餸、夾租、唱K打波極速平分
+                    </p>
+                  </div>
+
+                  <div
+                    onClick={() => setModalSelectedMode("travel")}
+                    className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                      modalSelectedMode === "travel"
+                        ? "bg-[#DFECF2] border-[#2D3842] shadow-sm"
+                        : "bg-[#ECF2F5] border-transparent opacity-85 hover:opacity-100"
+                    }`}
+                  >
+                    <div className="flex justify-between items-center gap-1 mb-1.5 flex-wrap">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-base">✈️</span>
+                        <span className="font-black text-sm text-[#26353D]">海外旅遊 (Copay Travel)</span>
+                      </div>
+                      {isPro ? (
+                        <span className="text-[10px] bg-[#2D3842] text-[#F4D58D] font-black px-2.5 py-0.5 rounded-full">
+                          PRO 已永久解鎖 ✨
+                        </span>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <span className="text-[10px] text-[#8799A3] line-through font-semibold">原價 $88</span>
+                          <span className="text-[10px] bg-[#2D3842] text-[#F4D58D] font-black px-2 py-0.5 rounded-full">
+                            🔥 早鳥 $38
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="pl-6 space-y-1 text-[11px] text-[#4A6473]">
+                      <div>• 💱 <strong>15 國旅遊外幣實時匯率轉換</strong> + 鎖定唱錢匯率</div>
+                      <div>• 🏦 <strong>公數錢包 (Common Pool)</strong> 防超支與結餘退算</div>
+                      <div>• ⚖️ <strong>進階不等額拆帳</strong> + 一鍵匯出 CSV 試算表</div>
+                      <div>• 🤖 <strong>免費包攬未來 AI 掃描單據自動入帳升級</strong></div>
+                    </div>
+                  </div>
+                </div>
+
+                <form onSubmit={handleModalCreateRoomSubmit} className="space-y-3 pt-1">
+                  <div>
+                    <label className="block text-[10px] text-[#5C707B] font-bold mb-1 ml-1">
+                      {modalSelectedMode === "travel" ? "✈️ 輸入海外旅程名稱：" : "☕ 輸入日常聚會/房間名稱："}
+                    </label>
+                    <input
+                      type="text"
+                      placeholder={modalSelectedMode === "travel" ? "例如：東京之旅 / 沖繩自駕遊" : "例如：11月飯局 / 星期五打邊爐"}
+                      value={modalRoomNameInput}
+                      onChange={e => setModalRoomNameInput(e.target.value)}
+                      autoFocus
+                      className="w-full min-w-0 text-sm bg-[#ECF2F5] text-[#26353D] font-extrabold px-4 py-3 rounded-2xl border border-[#D5E2E8] focus:outline-none focus:ring-2 focus:ring-[#4B7B99]"
+                      required
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowCreateRoomModal(false)}
+                      className="flex-1 py-3 rounded-2xl bg-[#ECF2F5] text-[#5C707B] text-xs font-bold"
+                    >
+                      取消
+                    </button>
+                    <button
+                      type="submit"
+                      className={`flex-1 py-3 rounded-2xl text-xs font-black shadow-md ${
+                        modalSelectedMode === "travel" ? "gold-pill" : "teal-pill"
+                      }`}
+                    >
+                      {modalSelectedMode === "travel"
+                        ? (isPro ? "✈️ 立即建立旅遊房" : "🔥 早鳥 $38 解鎖 (原價$88)")
+                        : "☕ 免費建立日常房"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* 🏦 公數錢包管理彈窗 */}
+          {showPoolModal && (
+            <div className="fixed inset-0 bg-black/45 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <div className="glass-dark max-w-sm w-full rounded-[2rem] p-5 sm:p-6 shadow-2xl space-y-4">
+                <div className="flex justify-between items-start gap-2">
+                  <div>
+                    <h3 className="font-black text-base text-amber-300">🏦 公數錢包管理 (Common Pool)</h3>
+                    <p className="text-[11px] text-slate-300 mt-0.5">
+                      系統已啟用防超支保護：公數消費絕不能多於可用餘額
+                    </p>
+                  </div>
+                  <button onClick={() => setShowPoolModal(false)} className="shrink-0 text-slate-300 hover:text-white text-xl font-bold leading-none">×</button>
+                </div>
+
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-3.5 grid grid-cols-3 gap-2 text-center">
+                  <div>
+                    <div className="text-[10px] text-slate-300">總注資 (HK$)</div>
+                    <div className="font-black text-sm text-white">{Math.round(poolStats.totalContributedHKD).toLocaleString()}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-slate-300">已消費 (HK$)</div>
+                    <div className="font-black text-sm text-amber-300">{Math.round(poolStats.totalSpentFromPoolHKD).toLocaleString()}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-slate-300">可用餘額 (HK$)</div>
+                    <div className="font-black text-sm text-emerald-300">{poolStats.remainingPoolHKD.toLocaleString()}</div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] text-slate-300 font-bold mb-1">📅 公數注資 / 建立日期 (DD/MM/YYYY)</label>
+                  <div className="relative ios-uniform-field w-full bg-[#F7F4EC] border border-[#EAE3D5] px-3.5 flex items-center justify-between">
+                    <span className="text-xs font-bold text-[#2C261E]">
+                      {formatDateUK(poolDate)}
+                    </span>
+                    <span className="text-xs opacity-65">📅</span>
+                    <input
+                      type="date"
+                      value={poolDate}
+                      onChange={e => handlePoolDateChange(e.target.value)}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                  </div>
+                </div>
+
+                <form onSubmit={handleBatchTopUpPool} className="space-y-1.5">
+                  <label className="block text-[10px] text-slate-300 font-bold">⚡ 全體成員每人一鍵加碼夾公數 (HKD)</label>
+                  <div className="flex items-center gap-2 w-full">
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      pattern="[0-9]*"
+                      step="any"
+                      placeholder="例如每人夾 1000"
+                      value={poolTopUpAmount}
+                      onChange={e => setPoolTopUpAmount(e.target.value)}
+                      className="flex-1 min-w-0 text-xs bg-white/10 border border-white/15 rounded-xl px-3 py-2.5 text-white font-bold focus:outline-none"
+                    />
+                    <button type="submit" className="shrink-0 teal-pill text-xs font-black px-3.5 py-2.5 rounded-xl whitespace-nowrap">
+                      ＋ 每人加碼
+                    </button>
+                  </div>
+                </form>
+
+                <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
+                  <div className="text-[10px] text-slate-300 font-bold">各成員累計已夾公數金額 (HKD)：</div>
+                  {members.map(m => (
+                    <div key={m} className="flex justify-between items-center bg-white/5 px-3 py-2 rounded-xl border border-white/10 gap-2">
+                      <span className="text-xs font-bold text-white truncate">{m}</span>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className="text-[10px] text-slate-400">HK$</span>
+                        <input
+                          type="number"
+                          inputMode="decimal"
+                          pattern="[0-9]*"
+                          step="any"
+                          value={poolContributions[m] || 0}
+                          onChange={e => handleMemberPoolChange(m, e.target.value)}
+                          className="w-24 text-right bg-white rounded-lg px-2 py-1 font-mono font-bold text-xs text-amber-300 border border-[#EAE3D5] focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowPoolModal(false)}
+                  className="w-full py-2.5 rounded-2xl teal-pill text-xs font-bold"
+                >
+                  完成並返回記帳
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* 刪除單據雙重確認彈窗 */}
+          {deleteConfirmExp && (
+            <div className="fixed inset-0 bg-black/45 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <div className="glass-dark max-w-xs w-full rounded-3xl p-6 text-center space-y-4">
+                <div className="w-12 h-12 rounded-full bg-rose-50 border border-rose-200 flex items-center justify-center mx-auto text-2xl">
+                  🗑️
+                </div>
+                <div className="space-y-1">
+                  <h3 className="font-black text-base text-white">確定要刪除呢筆單據
