@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-HK">
+<html lang="en-GB">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
@@ -12,7 +12,6 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="theme-color" content="#EAE6DF" />
 
-  <!-- 預設指向 GitHub 上嘅 PNG (同時支援 Copay.png / Copay_2.png / copay.png) -->
   <link id="dynamic-favicon" rel="icon" type="image/png" href="Copay.png" />
   <link id="dynamic-apple-icon" rel="apple-touch-icon" sizes="180x180" href="Copay.png" />
 
@@ -27,14 +26,12 @@
           var ctx = canvas.getContext("2d");
           if (!ctx) return null;
 
-          // 深灰藍底色
           var bgGrad = ctx.createLinearGradient(0, 0, 512, 512);
           bgGrad.addColorStop(0, "#3D4650");
           bgGrad.addColorStop(1, "#262C33");
           ctx.fillStyle = bgGrad;
           ctx.fillRect(0, 0, 512, 512);
 
-          // 右上暖金柔光
           var glowGrad = ctx.createRadialGradient(295, 165, 5, 295, 165, 95);
           glowGrad.addColorStop(0, "rgba(246, 193, 107, 0.55)");
           glowGrad.addColorStop(0.5, "rgba(246, 193, 107, 0.18)");
@@ -44,11 +41,9 @@
           ctx.arc(295, 165, 95, 0, Math.PI * 2);
           ctx.fill();
 
-          // 中央垂直柱 ($)
           ctx.fillStyle = "#2E6070";
           ctx.fillRect(238, 96, 36, 232);
 
-          // S 形青藍主體
           ctx.strokeStyle = "#2B5B6C";
           ctx.lineWidth = 40;
           ctx.lineCap = "round";
@@ -59,7 +54,6 @@
           ctx.bezierCurveTo(315, 305, 230, 308, 205, 268);
           ctx.stroke();
 
-          // 右上暖金亮弧
           ctx.strokeStyle = "#EAA956";
           ctx.lineWidth = 34;
           ctx.lineCap = "round";
@@ -68,7 +62,6 @@
           ctx.quadraticCurveTo(292, 132, 306, 162);
           ctx.stroke();
 
-          // 底部 copay 字樣
           ctx.fillStyle = "#B2C8CE";
           ctx.font = "bold 76px -apple-system, BlinkMacSystemFont, sans-serif";
           ctx.textAlign = "center";
@@ -141,7 +134,7 @@
       min-width: 0;
     }
 
-    /* 圖一：柔霧藍綠水彩波浪全屏背景 (純淨 SVG 波浪 + 支援讀取 bg.jpg / image_54f771.jpg，絕不卡死瀏覽器) */
+    /* 圖一：柔霧藍綠水彩波浪全屏背景 */
     .watercolor-app-bg {
       background-color: #F4F1EA;
       background-image:
@@ -156,6 +149,15 @@
     .safe-top-header {
       padding-top: max(1.35rem, calc(env(safe-area-inset-top) + 0.8rem));
       background: transparent !important;
+      border-bottom: none !important;
+    }
+    .safe-top-header::after {
+      display: none !important;
+    }
+    .bg-\[\#FAF8F3\] {
+      background: transparent !important;
+      box-shadow: none !important;
+      border-top: none !important;
     }
     .safe-bottom-dock {
       padding-bottom: max(0.85rem, env(safe-area-inset-bottom));
@@ -168,14 +170,14 @@
       border-radius: 1rem;
     }
 
-    /* 半透明磨砂白卡片，透出底下柔和嘅圖一水彩波浪 */
+    /* 半透明磨砂白卡片，透出底下水彩波浪 */
     .glass-dark {
-      background: rgba(255, 255, 255, 0.84) !important;
+      background: rgba(255, 255, 255, 0.82) !important;
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid rgba(255, 255, 255, 0.9) !important;
-      box-shadow: 0 10px 28px rgba(55, 85, 105, 0.08) !important;
-      color: #26353D !important;
+      box-shadow: 0 10px 28px rgba(65, 95, 115, 0.08) !important;
+      color: #2B3A42 !important;
     }
 
     .teal-pill {
@@ -189,11 +191,12 @@
       box-shadow: 0 6px 16px rgba(45, 56, 66, 0.22) !important;
     }
 
+    /* 底部導航欄 */
     .fixed.bottom-0 {
-      background: linear-gradient(to top, rgba(242, 239, 233, 0.95) 0%, rgba(242, 239, 233, 0.78) 75%, transparent 100%) !important;
+      background: linear-gradient(to top, rgba(242, 239, 233, 0.95) 0%, rgba(242, 239, 233, 0.75) 75%, transparent 100%) !important;
     }
     .nav-square {
-      background: rgba(255, 255, 255, 0.82) !important;
+      background: rgba(255, 255, 255, 0.78) !important;
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.9) !important;
@@ -207,6 +210,7 @@
       color: #FFFFFF !important;
     }
 
+    /* 統一卡片內文字與輸入框顏色 */
     .glass-dark .text-white,
     .glass-dark .text-\[\#2C261E\] {
       color: #26353D !important;
@@ -247,7 +251,7 @@
     .glass-dark .bg-black\/35,
     .glass-dark .bg-black\/40,
     .bg-\[\#F7F4EC\] {
-      background-color: rgba(236, 242, 245, 0.88) !important;
+      background-color: rgba(236, 242, 245, 0.85) !important;
       color: #26353D !important;
     }
     .bg-\[\#F5E6B8\],
@@ -290,10 +294,9 @@
     }
     const db = firebase.database();
 
-    // 公數錢包固定代號
     const POOL_PAYER_KEY = "🏦 公數錢包";
 
-    // 將任何 YYYY-MM-DD 日期統一轉為英式 DD/MM/YYYY 格式
+    // 統一英式日期 DD/MM/YYYY
     const formatDateUK = (isoDateStr) => {
       if (!isoDateStr || typeof isoDateStr !== "string") return "";
       const parts = isoDateStr.split("-");
@@ -301,23 +304,8 @@
       return `${parts[2]}/${parts[1]}/${parts[0]}`;
     };
 
-    // Copay Travel 專屬多國貨幣清單
     const TRAVEL_RATES = {
-      HKD: 1.0,
-      JPY: 0.052,
-      TWD: 0.245,
-      SGD: 5.82,
-      KRW: 0.0058,
-      THB: 0.22,
-      EUR: 8.45,
-      GBP: 9.95,
-      USD: 7.78,
-      AUD: 5.15,
-      CNY: 1.08,
-      MOP: 0.97,
-      CAD: 5.75,
-      CHF: 8.85,
-      VND: 0.00031
+      HKD: 1.0, JPY: 0.052, TWD: 0.245, SGD: 5.82, KRW: 0.0058, THB: 0.22, EUR: 8.45, GBP: 9.95, USD: 7.78, AUD: 5.15, CNY: 1.08, MOP: 0.97, CAD: 5.75, CHF: 8.85, VND: 0.00031
     };
 
     const CHART_COLORS = ["#4B7B99", "#7BA69E", "#D9A05B", "#8FAEC4", "#6B8E78", "#C77D63", "#8C7B99"];
@@ -326,7 +314,10 @@
     const DEFAULT_CATEGORIES_DAILY = ["🍱 食飯", "🚕 車費", "📦 團購"];
     const DEFAULT_CATEGORIES_TRAVEL = ["🍱 食飯", "🚕 車費", "📦 團購"];
 
+    const FREE_ROOM_QUOTA = 1; // 免費首個房間體驗
     const VALID_VIP_CODES = ["COPAY2026", "COPAYPRO", "VIP888", "TRAVELPRO"];
+    // 閒置房間清理時限 (60日)
+    const SIXTY_DAYS_MS = 60 * 24 * 60 * 60 * 1000;
 
     const generateRandomRoomId = () => {
       const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -343,18 +334,18 @@
 
     const getStoredRooms = () => {
       try {
-        const saved = JSON.parse(localStorage.getItem("copay_brand_rooms_v1"));
+        const saved = JSON.parse(localStorage.getItem("copay_brand_rooms_v2"));
         if (Array.isArray(saved) && saved.length > 0) {
           return saved.map(item =>
             typeof item === "string"
-              ? { id: item, name: item, mode: "daily" }
-              : { id: item.id, name: item.name, mode: item.mode === "travel" || item.mode === "triptab" ? "travel" : "daily" }
+              ? { id: item, name: item, mode: "daily", isSettled: false }
+              : { id: item.id, name: item.name, mode: item.mode === "travel" || item.mode === "triptab" ? "travel" : "daily", isSettled: !!item.isSettled }
           );
         }
       } catch (e) {}
       const firstId = generateRandomRoomId();
-      const initial = [{ id: firstId, name: "日常飯局夾錢 🍱", mode: "daily" }];
-      localStorage.setItem("copay_brand_rooms_v1", JSON.stringify(initial));
+      const initial = [{ id: firstId, name: "首個旅程夾錢 ✈️", mode: "travel", isSettled: false }];
+      localStorage.setItem("copay_brand_rooms_v2", JSON.stringify(initial));
       return initial;
     };
 
@@ -366,7 +357,6 @@
       return rooms[0].id;
     };
 
-    // 圖二 Copay Logo 元件 (自動嘗試 Copay.png -> Copay_2.png -> copay.png -> 內置圖二 SVG)
     function BrandLogo({ isTravel = false, size = "w-10 h-10 sm:w-11 sm:h-11" }) {
       const candidateLogos = ["Copay.png", "Copay_2.png", "copay.png"];
       const [logoIdx, setLogoIdx] = useState(0);
@@ -429,32 +419,28 @@
     }
 
     function App() {
-      // 房間與 Pro 權限狀態
       const [myRooms, setMyRooms] = useState(getStoredRooms);
-      const [isPro, setIsPro] = useState(() => localStorage.getItem("copay_pro_travel_unlocked") === "true");
+      const [isPro, setIsPro] = useState(() => localStorage.getItem("copay_v4_pro_unlocked") === "true");
       const [showPaywall, setShowPaywall] = useState(false);
       const [pendingAction, setPendingAction] = useState(null);
       const [vipInput, setVipInput] = useState("");
       const [paywallMsg, setPaywallMsg] = useState("");
       const [paywallTriggerTitle, setPaywallTriggerTitle] = useState("Copay Travel 早鳥永久解鎖：$38 (原價 $88)");
 
-      // 首頁點擊「＋ 新增房間」彈出嘅雙卡片選擇視窗
       const [showCreateRoomModal, setShowCreateRoomModal] = useState(false);
       const [modalSelectedMode, setModalSelectedMode] = useState("daily");
       const [modalRoomNameInput, setModalRoomNameInput] = useState("");
 
-      // 當前房間 ID 與連線狀態
       const [roomId, setRoomId] = useState(getInitialRoomId);
       const [joinRoomCodeInput, setJoinRoomCodeInput] = useState("");
       const [syncStatus, setSyncStatus] = useState("connecting");
 
-      // 群組雲端同步資料
-      const [groupName, setGroupName] = useState("日常飯局夾錢 🍱");
+      const [groupName, setGroupName] = useState("首個旅程夾錢 ✈️");
       const [isEditingGroupName, setIsEditingGroupName] = useState(false);
       const [tempGroupName, setTempGroupName] = useState("");
 
-      // 當前房間模式：'daily' | 'travel'
-      const [roomMode, setRoomMode] = useState("daily");
+      const [roomMode, setRoomMode] = useState("travel");
+      const [isRoomSettled, setIsRoomSettled] = useState(false);
 
       const [members, setMembers] = useState(DEFAULT_MEMBERS);
       const [customCategories, setCustomCategories] = useState(null);
@@ -468,23 +454,19 @@
       const [collapsedDays, setCollapsedDays] = useState({});
       const [cardFeePercent, setCardFeePercent] = useState(1.95);
 
-      // 成員改名狀態
       const [editingMemberName, setEditingMemberName] = useState(null);
       const [tempMemberNewName, setTempMemberNewName] = useState("");
 
-      // 【Copay Travel 公數錢包狀態】
       const [poolContributions, setPoolContributions] = useState({});
       const [poolDate, setPoolDate] = useState(new Date().toISOString().split("T")[0]);
       const [poolTopUpAmount, setPoolTopUpAmount] = useState("");
       const [showPoolModal, setShowPoolModal] = useState(false);
 
-      // 編輯單據與刪除確認狀態
       const [editingExpId, setEditingExpId] = useState(null);
       const [editTitle, setEditTitle] = useState("");
       const [editAmount, setEditAmount] = useState("");
       const [deleteConfirmExp, setDeleteConfirmExp] = useState(null);
 
-      // UI 導航狀態
       const [activeTab, setActiveTab] = useState("expenses");
       const [newMemberName, setNewMemberName] = useState("");
       const [liveRates, setLiveRates] = useState(TRAVEL_RATES);
@@ -492,9 +474,9 @@
       const [newCurCode, setNewCurCode] = useState("");
       const [newCurRate, setNewCurRate] = useState("");
 
-      // 新增開支表單輸入
       const [title, setTitle] = useState("");
       const [amount, setAmount] = useState("");
+      const [baseCurrency, setBaseCurrency] = useState("HKD");
       const [currency, setCurrency] = useState("HKD");
       const [addCardFee, setAddCardFee] = useState(false);
       const [payer, setPayer] = useState("我");
@@ -502,20 +484,19 @@
       const [category, setCategory] = useState("🍱 食飯");
       const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
 
-      // 進階拆帳邏輯
       const [useAdvancedSplit, setUseAdvancedSplit] = useState(false);
       const [splitAdjustments, setSplitAdjustments] = useState({});
 
-      // 日常版消費報告篩選狀態
       const [reportYear, setReportYear] = useState("ALL");
       const [reportMonth, setReportMonth] = useState("ALL");
       const [reportDay, setReportDay] = useState("ALL");
 
       const rates = useMemo(() => ({ ...liveRates, ...customRates }), [liveRates, customRates]);
       const isTravelMode = roomMode === "travel";
+      const isReadOnly = isRoomSettled && !isPro;
 
-      const dailyRoomsList = useMemo(() => myRooms.filter(r => r.mode !== "travel"), [myRooms]);
-      const travelRoomsList = useMemo(() => myRooms.filter(r => r.mode === "travel"), [myRooms]);
+      const dailyRoomsList = useMemo(() => myRooms.filter(r => r.mode === "daily"), [myRooms]);
+      const travelRoomsList = useMemo(() => myRooms.filter(r => r.mode !== "daily"), [myRooms]);
 
       const activeCategories = useMemo(() => {
         if (Array.isArray(customCategories) && customCategories.length > 0) {
@@ -536,11 +517,11 @@
       }, [activeCategories, isTravelMode]);
 
       useEffect(() => {
-        localStorage.setItem("copay_brand_rooms_v1", JSON.stringify(myRooms));
+        localStorage.setItem("copay_brand_rooms_v2", JSON.stringify(myRooms));
       }, [myRooms]);
 
       useEffect(() => {
-        localStorage.setItem("copay_pro_travel_unlocked", isPro ? "true" : "false");
+        localStorage.setItem("copay_v4_pro_unlocked", isPro ? "true" : "false");
       }, [isPro]);
 
       useEffect(() => {
@@ -548,12 +529,12 @@
         setMyRooms(prev => {
           const exists = prev.some(r => r.id === roomId);
           if (exists) {
-            return prev.map(r => r.id === roomId ? { ...r, name: groupName, mode: roomMode } : r);
+            return prev.map(r => r.id === roomId ? { ...r, name: groupName, mode: roomMode, isSettled: isRoomSettled } : r);
           } else {
-            return [...prev, { id: roomId, name: groupName, mode: roomMode }];
+            return [...prev, { id: roomId, name: groupName, mode: roomMode, isSettled: isRoomSettled }];
           }
         });
-      }, [roomId, groupName, roomMode]);
+      }, [roomId, groupName, roomMode, isRoomSettled]);
 
       const fetchLiveExchangeRates = () => {
         setRateUpdatedText("更新中...");
@@ -595,7 +576,12 @@
         setShowPaywall(true);
       };
 
-      // 監聽當前 Firebase 房間數據
+      // 觸發房間活躍時間更新
+      const markRoomUpdated = () => {
+        db.ref(`billmate_rooms/${roomId}/updatedAt`).set(Date.now());
+      };
+
+      // 監聽當前 Firebase 房間數據 (包含 60 日長期閒置自動清理機制)
       useEffect(() => {
         setSyncStatus("connecting");
         setIsEditingGroupName(false);
@@ -619,18 +605,32 @@
         const handleValue = (snapshot) => {
           const data = snapshot.val();
           if (data) {
-            const rawMode = data.roomMode === "travel" || data.roomMode === "triptab" ? "travel" : "daily";
-            setGroupName(data.groupName || (rawMode === "travel" ? "東京之旅 ✈️" : "日常飯局夾錢 🍱"));
-
-            if (rawMode === "travel") {
-              setRoomMode("travel");
-              setCurrency(data.defaultCurrency || "JPY");
-            } else {
-              setRoomMode("daily");
-              setCurrency("HKD");
-              setAddCardFee(false);
-              if (payer === POOL_PAYER_KEY) setPayer("我");
+            // 【60 日過期自動清理檢查】
+            const now = Date.now();
+            const lastUpdated = data.updatedAt || data.createdAt || now;
+            
+            if (now - lastUpdated > SIXTY_DAYS_MS) {
+              db.ref(`billmate_rooms/${roomId}`).remove();
+              alert(`房間 #${roomId} 已超過 60 日未有任何更新，為節省空間，系統已自動清理此雲端紀錄。`);
+              setMyRooms(prev => prev.filter(r => r.id !== roomId));
+              // 切換去其他房間或開新房
+              const fallbackRooms = myRooms.filter(r => r.id !== roomId);
+              if (fallbackRooms.length > 0) {
+                setRoomId(fallbackRooms[0].id);
+              } else {
+                createSeparateRoomWithMode("日常飯局夾錢 🍱", "daily");
+              }
+              return;
             }
+
+            const rawMode = data.roomMode === "daily" ? "daily" : "travel";
+            setRoomMode(rawMode);
+            setGroupName(data.groupName || (rawMode === "travel" ? "首個旅程夾錢 ✈️" : "日常飯局夾錢 🍱"));
+            setIsRoomSettled(!!data.isSettled);
+
+            const roomBaseCur = data.defaultCurrency || "HKD";
+            setBaseCurrency(roomBaseCur);
+            setCurrency(roomBaseCur);
 
             if (data.cardFeePercent !== undefined && !isNaN(Number(data.cardFeePercent))) {
               setCardFeePercent(Number(data.cardFeePercent));
@@ -669,14 +669,16 @@
             setPoolContributions(data.poolContributions || {});
             if (data.poolDate) setPoolDate(data.poolDate);
           } else {
+            // 新建立預設結構 (加上 updatedAt)
             const localRoom = myRooms.find(r => r.id === roomId);
-            const targetMode = localRoom && localRoom.mode === "travel" ? "travel" : "daily";
-            const defaultTitle = localRoom ? localRoom.name : (targetMode === "travel" ? "日本之旅 ✈️" : "日常飯局夾錢 🍱");
+            const targetMode = localRoom && localRoom.mode === "daily" ? "daily" : "travel";
+            const defaultTitle = localRoom ? localRoom.name : (targetMode === "travel" ? "首個旅程夾錢 ✈️" : "日常飯局夾錢 🍱");
             const initialRoomData = {
               roomId: roomId,
               groupName: defaultTitle,
               roomMode: targetMode,
-              defaultCurrency: targetMode === "travel" ? "JPY" : "HKD",
+              defaultCurrency: "HKD",
+              isSettled: false,
               cardFeePercent: 1.95,
               members: DEFAULT_MEMBERS,
               expenses: {},
@@ -684,7 +686,8 @@
               paidMap: {},
               poolContributions: {},
               poolDate: new Date().toISOString().split("T")[0],
-              createdAt: Date.now()
+              createdAt: Date.now(),
+              updatedAt: Date.now()
             };
             roomRef.set(initialRoomData);
           }
@@ -695,7 +698,7 @@
 
         roomRef.on("value", handleValue, handleError);
         return () => roomRef.off("value", handleValue);
-      }, [roomId]);
+      }, [roomId, isPro]);
 
       const toHKD = (amt, curr) => {
         if (!curr || curr === "HKD") return amt;
@@ -703,9 +706,6 @@
         return amt * r;
       };
 
-      // ==========================================
-      // 🏦 公數錢包總額、已用金額及可用餘額
-      // ==========================================
       const poolStats = useMemo(() => {
         const totalContributedHKD = members.reduce((sum, m) => {
           return sum + (Number(poolContributions[m]) || 0);
@@ -749,6 +749,13 @@
 
       const handleBatchTopUpPool = (e) => {
         e.preventDefault();
+        if (isReadOnly) {
+          triggerPaywall(
+            "🔒 此房間已結算封存 (唯讀模式)",
+            "此免費房間已完成最終結算並封存為唯讀模式。升級 HK$ 38 Pro 版即可解封房間繼續記帳，並獲得無限建立新旅程房間權限！"
+          );
+          return;
+        }
         const addAmt = parseFloat(poolTopUpAmount);
         if (isNaN(addAmt) || addAmt <= 0) return;
         const updated = { ...poolContributions };
@@ -759,15 +766,18 @@
           poolContributions: updated,
           poolDate: poolDate
         });
+        markRoomUpdated();
         setPoolTopUpAmount("");
       };
 
       const handlePoolDateChange = (newDate) => {
         setPoolDate(newDate);
         db.ref(`billmate_rooms/${roomId}/poolDate`).set(newDate);
+        markRoomUpdated();
       };
 
       const handleMemberPoolChange = (memberName, newValStr) => {
+        if (isReadOnly) return;
         const newVal = Math.max(0, parseFloat(newValStr) || 0);
         const tempContributions = { ...poolContributions, [memberName]: newVal };
         const newTotalPool = members.reduce((sum, m) => sum + (Number(tempContributions[m]) || 0), 0);
@@ -781,11 +791,9 @@
           return;
         }
         db.ref(`billmate_rooms/${roomId}/poolContributions/${memberName}`).set(newVal);
+        markRoomUpdated();
       };
 
-      // ==========================================
-      // 🏷️ 自訂活動類別新增與刪除
-      // ==========================================
       const handleAddCategory = (e) => {
         e.preventDefault();
         const trimmed = newCategoryInput.trim();
@@ -798,6 +806,7 @@
         setCustomCategories(updated);
         setCategory(trimmed);
         db.ref(`billmate_rooms/${roomId}/customCategories`).set(updated);
+        markRoomUpdated();
         setNewCategoryInput("");
       };
 
@@ -812,16 +821,15 @@
           setCategory(updated[0]);
         }
         db.ref(`billmate_rooms/${roomId}/customCategories`).set(updated);
+        markRoomUpdated();
       };
 
-      // ==========================================
-      // 👥 成員管理
-      // ==========================================
       const handleAddMember = () => {
         const name = newMemberName.trim();
         if (!name || members.includes(name) || name === POOL_PAYER_KEY) return;
         const updated = [...members, name];
         db.ref(`billmate_rooms/${roomId}/members`).set(updated);
+        markRoomUpdated();
         setSplitWith(updated);
         setNewMemberName("");
       };
@@ -862,6 +870,7 @@
           delete newPool[oldName];
           updates[`poolContributions`] = newPool;
         }
+        updates[`updatedAt`] = Date.now();
 
         db.ref(`billmate_rooms/${roomId}`).update(updates);
         if (payer === oldName) setPayer(newName);
@@ -892,6 +901,7 @@
             updates[`expenses/${exp.id}/splitWith`] = remainingSplits;
           }
         });
+        updates[`updatedAt`] = Date.now();
 
         db.ref(`billmate_rooms/${roomId}`).update(updates);
         if (payer === nameToRemove) setPayer(updatedMembers[0]);
@@ -901,16 +911,65 @@
         });
       };
 
-      // ==========================================
-      // 🔑 建立「日常夾錢 (Copay Lite)」與「海外旅遊 (Copay Travel)」房間
-      // ==========================================
+      const handleFinalizeAndArchiveRoom = () => {
+        if (expenses.length === 0) {
+          alert("目前未有任何消費單據，無需封存結算！");
+          return;
+        }
+        if (isRoomSettled) {
+          if (isPro) {
+            db.ref(`billmate_rooms/${roomId}/isSettled`).set(false);
+            markRoomUpdated();
+            setIsRoomSettled(false);
+            alert("🔓 已為你解封此房間，現在可以繼續新增或修改消費單據！");
+          } else {
+            triggerPaywall(
+              "🔓 解封房間 / 開啟無限旅程",
+              "此免費房間已完成最終結算並封存為「唯讀模式」。一鍵買斷 HK$ 38 Pro 版即可隨時解封房間，並無限建立下一次旅行房間！"
+            );
+          }
+          return;
+        }
+
+        const confirmMsg = isPro
+          ? "確定要完成此房間嘅最終結算並標記為「已結算」？（Pro 版用戶隨時可以解封修改）"
+          : "【完成首個旅程 · 一鍵最終結算】\n\n確認結算並得出最終過數清單後，此免費房間將會自動封存為「唯讀模式」（只能查閱紀錄及剔選過數狀態，不能再新增消費）。\n\n確定要完成結算嗎？";
+
+        if (window.confirm(confirmMsg)) {
+          db.ref(`billmate_rooms/${roomId}/isSettled`).set(true);
+          markRoomUpdated();
+          setIsRoomSettled(true);
+          setActiveTab("settle");
+        }
+      };
+
+      // 手動徹底刪除房間 (從 Local 及 Firebase 移除)
+      const handleDeleteRoom = (delRoomId, delRoomName) => {
+        if (window.confirm(`⚠️ 確定要徹底刪除房間「${delRoomName}」？\n\n注意：這將會從雲端徹底刪除所有紀錄，你與所有同行朋友都無法再查看此房間，數據無法復原！`)) {
+          db.ref(`billmate_rooms/${delRoomId}`).remove();
+          
+          setMyRooms(prev => {
+            const updated = prev.filter(r => r.id !== delRoomId);
+            if (roomId === delRoomId) {
+              if (updated.length > 0) {
+                setRoomId(updated[0].id);
+              } else {
+                createSeparateRoomWithMode("日常飯局夾錢 🍱", "daily");
+              }
+            }
+            return updated;
+          });
+        }
+      };
+
       const createSeparateRoomWithMode = (customName, targetMode) => {
         const newId = generateRandomRoomId();
         const initialRoomData = {
           roomId: newId,
           groupName: customName,
           roomMode: targetMode,
-          defaultCurrency: targetMode === "travel" ? "JPY" : "HKD",
+          defaultCurrency: "HKD",
+          isSettled: false,
           cardFeePercent: 1.95,
           members: DEFAULT_MEMBERS,
           expenses: {},
@@ -918,38 +977,85 @@
           paidMap: {},
           poolContributions: {},
           poolDate: new Date().toISOString().split("T")[0],
-          createdAt: Date.now()
+          createdAt: Date.now(),
+          updatedAt: Date.now()
         };
         db.ref(`billmate_rooms/${newId}`).set(initialRoomData);
-        setMyRooms(prev => [...prev, { id: newId, name: customName, mode: targetMode }]);
+        setMyRooms(prev => [...prev, { id: newId, name: customName, mode: targetMode, isSettled: false }]);
         setRoomId(newId);
         setGroupName(customName);
         setRoomMode(targetMode);
-        setCurrency(targetMode === "travel" ? "JPY" : "HKD");
+        setBaseCurrency("HKD");
+        setCurrency("HKD");
+        setIsRoomSettled(false);
         setActiveTab("expenses");
       };
 
-      const handleModalCreateRoomSubmit = (e) => {
+      const handleCreateNewRoom = (e) => {
         e.preventDefault();
-        const fallbackName = modalSelectedMode === "travel" ? "東京之旅 ✈️" : "日常飯局夾錢 🍱";
-        const customName = modalRoomNameInput.trim() || fallbackName;
+        const customName = newRoomNameInput.trim();
+        if (!customName) return;
 
-        if (modalSelectedMode === "travel" && !isPro) {
-          setShowCreateRoomModal(false);
+        if (!isPro && myRooms.length >= FREE_ROOM_QUOTA) {
           triggerPaywall(
-            "Copay Travel 早鳥永久解鎖：$38 (原價 $88)",
-            `準備出發去「${customName}」？趁限時早鳥優惠以 HK$ 38（原價 $88）永久解鎖 Copay Travel，即刻開立專屬海外旅遊房間，並免費包攬未來 AI 掃描單據自動入帳更新！`,
+            "✈️ 開啟第 2 個房間 (HK$ 38 買斷)",
+            `你已完成首個免費房間體驗（免費額度：${myRooms.length}/${FREE_ROOM_QUOTA} 間房）！準備飛外站或開始第二次旅行？一鍵買斷 HK$ 38 Pro 版，即可無限建立新旅程與日常房間！`,
             () => {
-              createSeparateRoomWithMode(customName, "travel");
-              setModalRoomNameInput("");
+              createSeparateRoomWithMode(customName, newRoomTypeSelect);
+              setNewRoomNameInput("");
             }
           );
           return;
         }
 
-        createSeparateRoomWithMode(customName, modalSelectedMode);
-        setModalRoomNameInput("");
-        setShowCreateRoomModal(false);
+        createSeparateRoomWithMode(customName, newRoomTypeSelect);
+        setNewRoomNameInput("");
+      };
+
+      const handleConfirmCreateTravelRoom = (e) => {
+        e.preventDefault();
+        const name = newTravelRoomTitle.trim() || "第二次旅行 ✈️";
+        createSeparateRoomWithMode(name, "travel");
+        setNewTravelRoomTitle("");
+        setShowNewTravelRoomModal(false);
+      };
+
+      const handleSwitchToTripTab = (targetMode) => {
+        if (targetMode === roomMode) return;
+
+        if (targetMode === "travel") {
+          if (travelRoomsList.length > 0) {
+            setRoomId(travelRoomsList[0].id);
+            setActiveTab("expenses");
+          } else if (!isPro && myRooms.length >= FREE_ROOM_QUOTA) {
+            triggerPaywall(
+              "✈️ 建立新旅程房間 (HK$ 38 買斷)",
+              "你已使用咗首個免費房間額度！想開立全新獨立嘅「✈️ Copay Travel 旅遊房間」？只需 HK$ 38 一次性買斷，即可永久解鎖無限房間與多幣別自動匯率！",
+              () => {
+                setNewTravelRoomTitle("日本之旅 ✈️");
+                setShowNewTravelRoomModal(true);
+              }
+            );
+          } else {
+            setNewTravelRoomTitle("日本之旅 ✈️");
+            setShowNewTravelRoomModal(true);
+          }
+        } else {
+          if (dailyRoomsList.length > 0) {
+            setRoomId(dailyRoomsList[0].id);
+            setActiveTab("expenses");
+          } else if (!isPro && myRooms.length >= FREE_ROOM_QUOTA) {
+            triggerPaywall(
+              "☕ 建立第 2 個獨立房間 (HK$ 38 買斷)",
+              "免費版提供 1 個完整房間額度。想額外開立獨立嘅「☕ 日常夾錢房間」將日常與旅遊帳目分開？只需 HK$ 38 一次性買斷即可無限開房！",
+              () => {
+                createSeparateRoomWithMode("日常飯局夾錢 🍱", "daily");
+              }
+            );
+          } else {
+            createSeparateRoomWithMode("日常飯局夾錢 🍱", "daily");
+          }
+        }
       };
 
       const handleJoinRoomByCode = (e) => {
@@ -957,34 +1063,73 @@
         const cleanCode = sanitizeRoomId(joinRoomCodeInput);
         if (!cleanCode) return;
 
-        db.ref(`billmate_rooms/${cleanCode}/roomMode`).once("value", (snapshot) => {
-          const remoteMode = snapshot.val();
-          const isRemoteTravel = remoteMode === "travel" || remoteMode === "triptab";
-
-          if (isRemoteTravel && !isPro) {
-            triggerPaywall(
-              "Copay Travel 早鳥永久解鎖：$38 (原價 $88)",
-              `房間 #${cleanCode} 屬於「Copay Travel 海外旅遊房間」（支援外幣自動匯率與公數錢包）。趁早鳥優惠 HK$ 38（原價 $88）一次買斷，即可永久加入並開啟無限個海外旅遊房間！`,
-              () => {
-                setRoomId(cleanCode);
-                setJoinRoomCodeInput("");
-                setActiveTab("expenses");
-              }
-            );
-            return;
-          }
-
+        if (myRooms.some(r => r.id === cleanCode) || isPro) {
           setRoomId(cleanCode);
           setJoinRoomCodeInput("");
           setActiveTab("expenses");
-        });
+          return;
+        }
+
+        if (myRooms.length >= FREE_ROOM_QUOTA) {
+          triggerPaywall(
+            "🔑 加入第 2 個房間 (HK$ 38 買斷)",
+            `免費版支援 ${FREE_ROOM_QUOTA} 個完整房間額度。升級 HK$ 38 Pro 版即可加入無限個朋友嘅旅行與日常房間！`,
+            () => {
+              setRoomId(cleanCode);
+              setJoinRoomCodeInput("");
+              setActiveTab("expenses");
+            }
+          );
+        } else {
+          setRoomId(cleanCode);
+          setJoinRoomCodeInput("");
+          setActiveTab("expenses");
+        }
+      };
+
+      const handleExpCurrencyChange = (targetCur) => {
+        if (targetCur === baseCurrency) {
+          setCurrency(targetCur);
+          return;
+        }
+        if (!isPro) {
+          triggerPaywall(
+            "💱 啟用「多幣別自動匯率」 (HK$ 38 買斷)",
+            `免費房間預設以單一貨幣（目前為 ${baseCurrency}）記帳。想喺同一趟旅程混合記帳唔同外幣（如 ${targetCur}），並由系統「實時自動轉換匯率」？立即以 HK$ 38 買斷解鎖 Pro 版！`,
+            () => {
+              setCurrency(targetCur);
+            }
+          );
+          return;
+        }
+        setCurrency(targetCur);
+      };
+
+      const handleSelectDefaultCurrency = (cur) => {
+        if (!isPro && expenses.length > 0 && cur !== baseCurrency) {
+          triggerPaywall(
+            "💱 混合多幣別自動匯率 (HK$ 38 買斷)",
+            `你已經用 ${baseCurrency} 記錄咗 ${expenses.length} 筆消費！免費房間只支援單一貨幣記帳，如需中途切換為 ${cur} 並自動轉換匯率，請升級 HK$ 38 Pro 版！`,
+            () => {
+              setBaseCurrency(cur);
+              setCurrency(cur);
+              db.ref(`billmate_rooms/${roomId}/defaultCurrency`).set(cur);
+              markRoomUpdated();
+            }
+          );
+          return;
+        }
+        setBaseCurrency(cur);
+        setCurrency(cur);
+        db.ref(`billmate_rooms/${roomId}/defaultCurrency`).set(cur);
+        markRoomUpdated();
       };
 
       const handleToggleAdvancedSplit = () => {
         if (!useAdvancedSplit && !isPro) {
           triggerPaywall(
-            "Copay Travel 早鳥永久解鎖：$38 (原價 $88)",
-            "想處理「呢餐飯 A 墊支，但 B 同 C 唔飲酒所以少夾 $50」或者「某人買多咗手信要多夾 $100」？立即把握早鳥優惠 HK$ 38（原價 $88）永久解鎖進階拆帳與所有旅遊功能！",
+            "⚖️ 啟用「進階拆帳邏輯」 (HK$ 38 買斷)",
+            "想處理「呢餐飯 A 墊支，但 B 同 C 唔飲酒所以少夾 $50」或者「某人特別買多咗手信要多夾 $100」？立即以 HK$ 38 一次性買斷解鎖「進階拆帳邏輯」及所有 Pro 功能！",
             () => {
               setUseAdvancedSplit(true);
             }
@@ -1001,12 +1146,11 @@
         }));
       };
 
-      // 匯出 CSV 試算表
       const handleExportExcelCSV = () => {
         if (!isPro) {
           triggerPaywall(
-            "Copay Travel 早鳥永久解鎖：$38 (原價 $88)",
-            "想一鍵匯出完整 Excel (.csv) 試算表（包含每日消費明細、外幣匯率折算及各人墊支對帳表）留底備份？趁限時早鳥優惠 HK$ 38（原價 $88）一次買斷永久解鎖！"
+            "📥 匯出 CSV 試算表留底備份 (HK$ 38 買斷)",
+            "想一鍵匯出完整 Excel (.csv) 試算表（包含每日消費明細、匯率折算及各人墊支對帳表）自行留底備份？立即以 HK$ 38 一次性買斷解鎖 Pro 版！"
           );
           return;
         }
@@ -1015,7 +1159,7 @@
         if (!isTravelMode) {
           csv += `篩選範圍：,日子:${reportDay === 'ALL' ? '全部' : reportDay},月份:${reportMonth === 'ALL' ? '全部' : reportMonth},年份:${reportYear === 'ALL' ? '全部' : reportYear}\n\n`;
         } else {
-          csv += `模式：,Copay Travel 海外旅遊專案房間 (全旅程總結)\n\n`;
+          csv += `模式：,獨立旅遊專案房間 (全旅程總結)\n\n`;
         }
         csv += "單據日期(DD/MM/YYYY),類別,項目名稱,原幣金額,貨幣,折合港幣(HKD),墊支人(狀態),參與分攤成員,進階拆帳備註\n";
 
@@ -1049,6 +1193,11 @@
         document.body.removeChild(link);
       };
 
+      const openExternalTripTabApp = () => {
+        const targetUrl = `${TRIPTAB_APP_URL}?room=${encodeURIComponent(roomId)}`;
+        window.open(targetUrl, "_blank");
+      };
+
       const unlockProPermanent = () => {
         setIsPro(true);
         setShowPaywall(false);
@@ -1057,7 +1206,7 @@
           pendingAction();
           setPendingAction(null);
         }
-        alert("🎉 恭喜你成功鎖定【Copay Travel 早鳥永久解鎖 $38 (原價 $88)】！所有海外旅遊房間、多國匯率轉換、公數錢包、進階拆帳及未來 AI 更新已永久開通！");
+        alert("🎉 感謝支持！已為你永久解鎖【Copay Travel / Copay Pro 完整版 (HK$ 38 買斷)】，所有無限房間、多幣別自動匯率、進階拆帳及 CSV 匯出已全面開通！");
       };
 
       const handleUnlockWithCode = (e) => {
@@ -1066,7 +1215,7 @@
         if (VALID_VIP_CODES.includes(code)) {
           unlockProPermanent();
         } else {
-          alert("❌ 解鎖碼無效！測試可用解鎖碼：COPAY2026 或 COPAYPRO");
+          alert("❌ 解鎖碼無效！測試可用解鎖碼：COPAY2026 或 TRAVELPRO");
         }
       };
 
@@ -1080,20 +1229,29 @@
         if (trimmed) {
           setGroupName(trimmed);
           db.ref(`billmate_rooms/${roomId}/groupName`).set(trimmed);
+          markRoomUpdated();
         }
         setIsEditingGroupName(false);
       };
 
-      // 新增開支
+      // 資料庫瘦身：單據名稱最多 80 字，金額保留 2 個小數位
       const handleAddExpense = (e) => {
         e.preventDefault();
+        if (isReadOnly) {
+          triggerPaywall(
+            "🔒 此免費房間已結算封存 (唯讀模式)",
+            "你已完成第一次旅行結算並將房間封存為唯讀模式！如需解封繼續記帳或開啟第 2 個旅程房間，請以 HK$ 38 一次性買斷 Pro 版！"
+          );
+          return;
+        }
         if (!title || !amount || splitWith.length === 0 || !date) return;
 
         const rawAmt = parseFloat(amount);
         if (isNaN(rawAmt) || rawAmt <= 0) return;
 
-        const finalAmt = isTravelMode && addCardFee ? Number((rawAmt * feeMultiplier).toFixed(2)) : rawAmt;
-        const finalCurrency = isTravelMode ? currency : "HKD";
+        const withFeeAmt = isTravelMode && addCardFee ? rawAmt * feeMultiplier : rawAmt;
+        const finalAmt = Number(withFeeAmt.toFixed(2));
+        const finalCurrency = isTravelMode ? (isPro ? currency : baseCurrency) : "HKD";
         const expenseHKD = toHKD(finalAmt, finalCurrency);
 
         if (payer === POOL_PAYER_KEY) {
@@ -1130,9 +1288,10 @@
 
         const id = Date.now();
         const feeLabel = isTravelMode && addCardFee ? ` (連${cardFeePercent}%卡費)` : "";
+        const trimmedTitle = `${title.trim()}${feeLabel}`.substring(0, 80);
         const newExp = {
           id,
-          title: `${title.trim()}${feeLabel}`,
+          title: trimmedTitle,
           amount: finalAmt,
           currency: finalCurrency,
           payer,
@@ -1143,6 +1302,7 @@
           date
         };
         db.ref(`billmate_rooms/${roomId}/expenses/${id}`).set(newExp);
+        markRoomUpdated();
         setTitle("");
         setAmount("");
         setAddCardFee(false);
@@ -1150,8 +1310,9 @@
       };
 
       const saveEditExpense = (exp) => {
-        const trimmedTitle = editTitle.trim();
-        const parsedAmt = parseFloat(editAmount);
+        if (isReadOnly) return;
+        const trimmedTitle = editTitle.trim().substring(0, 80);
+        const parsedAmt = Number(parseFloat(editAmount).toFixed(2));
         if (!trimmedTitle || isNaN(parsedAmt) || parsedAmt <= 0) return;
 
         if (exp.payer === POOL_PAYER_KEY || exp.isPoolExpense) {
@@ -1172,12 +1333,14 @@
           title: trimmedTitle,
           amount: parsedAmt
         });
+        markRoomUpdated();
         setEditingExpId(null);
       };
 
       const confirmDeleteExpense = () => {
-        if (!deleteConfirmExp) return;
+        if (!deleteConfirmExp || isReadOnly) return;
         db.ref(`billmate_rooms/${roomId}/expenses/${deleteConfirmExp.id}`).remove();
+        markRoomUpdated();
         setDeleteConfirmExp(null);
       };
 
@@ -1185,11 +1348,7 @@
         const num = parseFloat(val);
         if (isNaN(num) || num <= 0) return;
         db.ref(`billmate_rooms/${roomId}/customRates/${cur}`).set(num);
-      };
-
-      const handleSelectDefaultCurrency = (cur) => {
-        setCurrency(cur);
-        db.ref(`billmate_rooms/${roomId}/defaultCurrency`).set(cur);
+        markRoomUpdated();
       };
 
       const handleAddCustomCurrency = (e) => {
@@ -1211,15 +1370,18 @@
         }
         setCardFeePercent(val);
         db.ref(`billmate_rooms/${roomId}/cardFeePercent`).set(val);
+        markRoomUpdated();
       };
 
       const toggleSettlementPaid = (txKey) => {
         const current = !!paidMap[txKey];
         db.ref(`billmate_rooms/${roomId}/paidMap/${txKey}`).set(!current);
+        markRoomUpdated();
       };
 
       const resetAllPaidStatus = () => {
         db.ref(`billmate_rooms/${roomId}/paidMap`).remove();
+        markRoomUpdated();
       };
 
       const totalHKD = useMemo(() => {
@@ -1459,7 +1621,7 @@
 
       const shareRoomLink = () => {
         const shareUrl = `${window.location.origin}${window.location.pathname}?room=${encodeURIComponent(roomId)}`;
-        const msg = `💰 一齊用 ${isTravelMode ? "Copay Travel 海外旅遊版" : "Copay"} 夾錢記帳：「${groupName}」\n🔑 房間代碼：${roomId}\n👉 直接撳連結進入房間：\n${shareUrl}`;
+        const msg = `💰 一齊用 ${isTravelMode ? "Copay Travel 海外旅遊版" : "Copay Lite"} 夾錢記帳：「${groupName}」\n🔑 房間代碼：${roomId}\n👉 直接撳連結進入房間：\n${shareUrl}`;
         navigator.clipboard.writeText(msg);
         alert(`已複製邀請連結！\n房間名稱：${groupName}\n專屬代碼：${roomId}\n直接貼去 WhatsApp 群組，朋友一撳即入房 📲`);
       };
@@ -1502,13 +1664,13 @@
         return (
           <div key={exp.id} className="glass-dark p-3.5 sm:p-4 rounded-3xl flex flex-col gap-2">
             {editingExpId === exp.id ? (
-              <div className="space-y-2.5 bg-[#F7F4EC] p-3 rounded-2xl border border-[#EAE3D5]">
-                <div className="text-[10px] font-bold text-[#9C7316]">✏️ 修改單據名稱與金額</div>
+              <div className="space-y-2.5 bg-[#EEF1F4] p-3 rounded-2xl border border-[#DCE2E8]">
+                <div className="text-[10px] font-bold text-[#4A6984]">✏️ 修改單據名稱與金額</div>
                 <input
                   type="text"
                   value={editTitle}
                   onChange={e => setEditTitle(e.target.value)}
-                  className="w-full min-w-0 text-sm bg-white rounded-xl px-3 py-2 font-bold text-[#2C261E] border border-[#EAE3D5] focus:outline-none"
+                  className="w-full min-w-0 text-sm bg-white rounded-xl px-3 py-2 font-bold text-[#2D3640] border border-[#DCE2E8] focus:outline-none"
                 />
                 <div className="flex items-center gap-2 w-full">
                   <input
@@ -1518,7 +1680,7 @@
                     step="any"
                     value={editAmount}
                     onChange={e => setEditAmount(e.target.value)}
-                    className="flex-1 min-w-0 text-sm bg-white rounded-xl px-3 py-2 font-bold text-[#2C261E] border border-[#EAE3D5] focus:outline-none"
+                    className="flex-1 min-w-0 text-sm bg-white rounded-xl px-3 py-2 font-bold text-[#2D3640] border border-[#DCE2E8] focus:outline-none"
                   />
                   <button
                     type="button"
@@ -1530,7 +1692,7 @@
                   <button
                     type="button"
                     onClick={() => setEditingExpId(null)}
-                    className="shrink-0 bg-white border border-[#EAE3D5] text-[#7D7465] text-xs font-bold px-3 py-2 rounded-xl"
+                    className="shrink-0 bg-white border border-[#DCE2E8] text-[#636E7B] text-xs font-bold px-3 py-2 rounded-xl"
                   >
                     取消
                   </button>
@@ -1540,31 +1702,31 @@
               <>
                 <div className="flex justify-between items-start gap-2">
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="shrink-0 text-[10px] bg-[#F7F4EC] border border-[#EAE3D5] text-[#6E6558] px-2 py-1 rounded-xl font-bold">{exp.category}</span>
-                    <span className="font-bold text-[#2C261E] text-sm truncate">{exp.title}</span>
+                    <span className="shrink-0 text-[10px] bg-[#EEF1F4] border border-[#DCE2E8] text-[#636E7B] px-2 py-1 rounded-xl font-bold">{exp.category}</span>
+                    <span className="font-bold text-[#2D3640] text-sm truncate">{exp.title}</span>
                   </div>
                   <div className="text-right shrink-0">
-                    <p className="font-black text-[#B5851D] text-sm">
+                    <p className="font-black text-[#C46D3B] text-sm">
                       {(!exp.currency || exp.currency === "HKD") ? `HK$ ${Number(exp.amount).toLocaleString()}` : `${exp.currency} ${Number(exp.amount).toLocaleString()}`}
                     </p>
                     {exp.currency && exp.currency !== "HKD" && (
-                      <p className="text-[10px] text-[#7D7465]">≈ HK$ {Math.round(toHKD(exp.amount, exp.currency)).toLocaleString()}</p>
+                      <p className="text-[10px] text-[#636E7B]">≈ HK$ {Math.round(toHKD(exp.amount, exp.currency)).toLocaleString()}</p>
                     )}
                   </div>
                 </div>
-                <div className="text-[11px] text-[#7D7465] mt-0.5 space-y-0.5">
+                <div className="text-[11px] text-[#636E7B] mt-0.5 space-y-0.5">
                   <p className="leading-snug">
-                    <span className={`font-bold ${exp.payer === POOL_PAYER_KEY ? "text-[#B5851D]" : isPayerDeleted ? "text-rose-500" : "text-[#2C261E]"}`}>
+                    <span className={`font-bold ${exp.payer === POOL_PAYER_KEY ? "text-[#C46D3B]" : isPayerDeleted ? "text-[#C95252]" : "text-[#2D3640]"}`}>
                       {exp.payer}{isPayerDeleted ? " (已刪成員·負數記帳)" : ""}
                     </span> 支付 • {(exp.splitWith || []).filter(m => members.includes(m)).length}人夾 ({(exp.splitWith || []).filter(m => members.includes(m)).join(", ")})
                   </p>
                   {hasAdjustments && (
-                    <p className="text-[10px] text-[#9C7316] font-bold">
+                    <p className="text-[10px] text-[#C46D3B] font-bold">
                       ⚖️ 進階拆帳：{Object.entries(exp.splitAdjustments).map(([k, v]) => `${k} ${Number(v) > 0 ? `+${v}` : v}`).join("、")}
                     </p>
                   )}
                 </div>
-                <div className="flex justify-between items-center pt-2 mt-1 border-t border-[#F0EAE0]">
+                <div className="flex justify-between items-center pt-2 mt-1 border-t border-[#EAE3D5]">
                   <button
                     type="button"
                     onClick={() => {
@@ -1572,18 +1734,20 @@
                       setEditTitle(exp.title);
                       setEditAmount(String(exp.amount));
                     }}
-                    className="text-[10px] text-[#8C6715] font-bold bg-[#F7F4EC] hover:bg-[#EFE9DA] px-3 py-1 rounded-full transition whitespace-nowrap"
+                    className="text-[10px] text-[#4A6984] font-bold bg-[#EEF1F4] hover:bg-[#DCE2E8] px-3 py-1 rounded-full transition whitespace-nowrap"
                   >
                     ✏️ 修改單據
                   </button>
-                  <span className="text-[10px] text-[#A69D8E] whitespace-nowrap">📅 {formatDateUK(exp.date)}</span>
-                  <button
-                    type="button"
-                    onClick={() => setDeleteConfirmExp(exp)}
-                    className="text-[10px] text-rose-500 font-bold bg-rose-50 hover:bg-rose-100 px-3 py-1 rounded-full transition whitespace-nowrap"
-                  >
-                    🗑️ 刪除
-                  </button>
+                  <span className="text-[10px] text-[#8E97A4] whitespace-nowrap">📅 {formatDateUK(exp.date)}</span>
+                  {!isReadOnly && (
+                    <button
+                      type="button"
+                      onClick={() => setDeleteConfirmExp(exp)}
+                      className="text-[10px] text-[#C95252] font-bold bg-[#FDE8E8] hover:bg-[#F9D6D6] px-3 py-1 rounded-full transition whitespace-nowrap"
+                    >
+                      🗑️ 刪除
+                    </button>
+                  )}
                 </div>
               </>
             )}
@@ -1591,11 +1755,11 @@
         );
       };
 
-      // 渲染結算卡片共用函數
+      // 渲染結算卡片共用函數 (【關卡 1】「一鍵結算」封存唯讀按鈕)
       const renderSettlementCard = () => (
         <div className="glass-dark p-4 sm:p-5 rounded-3xl space-y-3">
-          <div className="flex justify-between items-center gap-2 border-b border-[#F0EAE0] pb-3">
-            <h3 className="font-bold text-[#2C261E] text-xs sm:text-sm leading-tight">
+          <div className="flex justify-between items-center gap-2 border-b border-[#EAE3D5] pb-3">
+            <h3 className="font-bold text-[#2D3640] text-xs sm:text-sm leading-tight">
               ⚡ {isTravelMode ? "自動結算（連公數多除小補）" : "自動對沖結算清單 (HK$)"}
             </h3>
             <button onClick={copyToWhatsApp} className="shrink-0 teal-pill text-[10px] sm:text-[11px] px-3 py-1.5 rounded-full font-bold whitespace-nowrap">
@@ -1604,11 +1768,11 @@
           </div>
 
           {settlement.transactions.length === 0 ? (
-            <div className="text-center py-8 text-[#8C8273] text-xs bg-[#F7F4EC] rounded-2xl">
+            <div className="text-center py-8 text-[#8E97A4] text-xs bg-[#EEF1F4] rounded-2xl mt-3">
               🌿 目前收支平衡，互不相欠！
             </div>
           ) : (
-            <div className="space-y-2.5">
+            <div className="space-y-2.5 mt-3">
               {settlement.transactions.map((t) => {
                 const isPaid = !!paidMap[t.key];
                 return (
@@ -1616,25 +1780,25 @@
                     key={t.key}
                     className={`flex items-center justify-between gap-2 p-3 sm:p-3.5 rounded-2xl border transition-all ${
                       isPaid
-                        ? "bg-emerald-50 border-emerald-200 opacity-75"
-                        : "bg-[#F7F4EC] border-[#EAE3D5]"
+                        ? "bg-[#E6F3EE] border-[#B7DBCD] opacity-75"
+                        : "bg-[#EEF1F4] border-[#DCE2E8]"
                     }`}
                   >
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="shrink-0 w-7 h-7 rounded-xl bg-[#DFECF2] text-[#376885] flex items-center justify-center text-xs">💸</span>
+                      <span className="shrink-0 w-7 h-7 rounded-xl bg-[#F3E1D0] text-[#C46D3B] flex items-center justify-center text-xs">💸</span>
                       <div className="flex items-center gap-1 flex-wrap min-w-0">
-                        <span className={`font-bold text-xs sm:text-sm ${isPaid ? "line-through text-[#A69D8E]" : "text-[#2C261E]"}`}>
+                        <span className={`font-bold text-xs sm:text-sm ${isPaid ? "line-through text-[#8E97A4]" : "text-[#2D3640]"}`}>
                           {t.from}
                         </span>
-                        <span className="text-[11px] text-[#8C8273] whitespace-nowrap">➡️ 過數畀</span>
-                        <span className={`font-bold text-xs sm:text-sm ${isPaid ? "line-through text-[#A69D8E]" : "text-[#9C7316]"}`}>
+                        <span className="text-[11px] text-[#636E7B] whitespace-nowrap">➡️ 過數畀</span>
+                        <span className={`font-bold text-xs sm:text-sm ${isPaid ? "line-through text-[#8E97A4]" : "text-[#4A6984]"}`}>
                           {t.to}
                         </span>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className={`font-black text-xs sm:text-sm whitespace-nowrap ${isPaid ? "line-through text-emerald-600" : "text-[#B5851D]"}`}>
+                      <span className={`font-black text-xs sm:text-sm whitespace-nowrap ${isPaid ? "line-through text-[#2E7D65]" : "text-[#C46D3B]"}`}>
                         HK$ {t.amount.toLocaleString()}
                       </span>
                       <button
@@ -1642,8 +1806,8 @@
                         onClick={() => toggleSettlementPaid(t.key)}
                         className={`shrink-0 w-8 h-8 rounded-full text-sm font-black flex items-center justify-center transition shadow-sm ${
                           isPaid
-                            ? "bg-emerald-500 text-white"
-                            : "bg-white border border-[#7FA8C4] text-[#376885] hover:bg-[#4B7B99] hover:text-white"
+                            ? "bg-[#2E7D65] text-white"
+                            : "bg-white border border-[#DCE2E8] text-[#4A6984] hover:bg-[#C5D2DF] hover:text-[#2D3640]"
                         }`}
                       >
                         ✓
@@ -1654,17 +1818,39 @@
               })}
 
               {paidCount > 0 && (
-                <div className="flex justify-between items-center pt-1 px-1 text-[11px] text-[#7D7465]">
+                <div className="flex justify-between items-center pt-1 px-1 text-[11px] text-[#636E7B]">
                   <span>已完成 {paidCount} / {settlement.transactions.length} 筆過數</span>
                   <button
                     type="button"
                     onClick={resetAllPaidStatus}
-                    className="text-[#B5851D] font-bold hover:underline"
+                    className="text-[#C46D3B] font-bold hover:underline"
                   >
                     重設狀態
                   </button>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* 【關卡 1】旅程結束「一鍵結算 (Settle)」封存為唯讀模式按鈕 */}
+          {expenses.length > 0 && (
+            <div className="pt-2 border-t border-[#EAE3D5] flex items-center justify-between gap-2">
+              <div className="text-[11px] text-[#636E7B] leading-snug">
+                {isRoomSettled
+                  ? "🔒 此房間已完成最終結算並封存為「唯讀模式」"
+                  : "🏁 旅程結束？撳右邊一鍵結算並封存帳目"}
+              </div>
+              <button
+                type="button"
+                onClick={handleFinalizeAndArchiveRoom}
+                className={`shrink-0 text-[11px] font-black px-3.5 py-2 rounded-full transition whitespace-nowrap ${
+                  isRoomSettled
+                    ? "bg-[#EEF1F4] border border-[#DCE2E8] text-[#8E97A4]"
+                    : "gold-pill"
+                }`}
+              >
+                {isRoomSettled ? (isPro ? "🔓 解封房間" : "🔒 已封存 (唯讀)") : "🏁 一鍵結算 (Settle)"}
+              </button>
             </div>
           )}
         </div>
@@ -1677,7 +1863,7 @@
       return (
         <div className="max-w-md w-full mx-auto min-h-screen watercolor-app-bg flex flex-col pb-28 shadow-2xl relative overflow-x-hidden">
           
-          {/* 頂部 Header (透明底，直接展示圖一柔霧水彩波浪背景) */}
+          {/* 透明頂部 Header */}
           <div className="px-4 sm:px-6 pb-4 safe-top-header relative z-10">
             <div className="flex justify-between items-center gap-2 mb-4">
               <div className="flex items-center gap-2.5 min-w-0">
@@ -1713,10 +1899,10 @@
                         "趁限時早鳥優惠以 HK$ 38（原價 $88）一次買斷，即可永久解鎖「海外旅遊 (Copay Travel)」：支援 15 國實時匯率轉換、公數錢包管理、進階拆帳，並免費包攬未來 AI 掃描單據更新！"
                       )
                     }
-                    className="text-[11px] sm:text-xs bg-[#2D3842] hover:opacity-90 text-white px-3 py-2 rounded-full font-black transition shadow-sm flex items-center gap-1.5 whitespace-nowrap"
+                    className="text-[11px] sm:text-xs bg-[#2D3842] hover:opacity-90 text-[#F4ECE4] px-3 py-2 rounded-full font-black transition shadow-sm flex items-center gap-1.5 whitespace-nowrap"
                   >
-                    <span className="text-[#F4D58D]">🔥 早鳥 $38</span>
-                    <span className="text-[10px] text-slate-300 line-through font-normal">$88</span>
+                    <span className="text-[#F0BFA0]">🔥 早鳥 $38</span>
+                    <span className="text-[10px] text-[#8E97A4] line-through font-normal">$88</span>
                   </button>
                 )}
               </div>
@@ -1724,6 +1910,27 @@
 
             {/* 房間標題區 */}
             <div className="space-y-1 mb-4">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[10px] sm:text-[11px] bg-white/85 text-[#26353D] px-2.5 py-0.5 rounded-full font-mono font-bold flex items-center gap-1.5 shadow-sm whitespace-nowrap">
+                  <span className={`w-2 h-2 rounded-full ${syncStatus === 'synced' ? 'bg-emerald-500' : syncStatus === 'connecting' ? 'bg-amber-500 animate-ping' : 'bg-rose-500'}`}></span>
+                  {isTravelMode ? "✈️ 海外旅遊房" : "☕ 日常夾錢房"} #{roomId}
+                </span>
+                {isRoomSettled && (
+                  <span className="text-[10px] bg-rose-600 text-white px-2.5 py-0.5 rounded-full font-black shadow-sm whitespace-nowrap">
+                    🔒 已結算 (唯讀模式)
+                  </span>
+                )}
+                {isTravelMode && !isRoomSettled && (
+                  <button
+                    type="button"
+                    onClick={fetchLiveExchangeRates}
+                    className="text-[10px] bg-[#2D3842]/15 text-[#26353D] px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1 hover:bg-[#2D3842]/25 transition whitespace-nowrap"
+                  >
+                    <span>🔄 匯率 {rateUpdatedText}</span>
+                  </button>
+                )}
+              </div>
+
               {isEditingGroupName ? (
                 <form onSubmit={saveGroupName} className="flex items-center gap-2 pt-1 w-full">
                   <input
@@ -1742,52 +1949,34 @@
                   </button>
                 </form>
               ) : (
-                <div className="flex items-center justify-between gap-2">
-                  <h1
-                    onClick={() => {
-                      setTempGroupName(groupName);
-                      setIsEditingGroupName(true);
-                    }}
-                    className="text-2xl sm:text-3xl font-black tracking-tight text-[#26353D] cursor-pointer hover:opacity-85 leading-tight break-words min-w-0 drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]"
-                  >
-                    {groupName}
-                  </h1>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setTempGroupName(groupName);
-                      setIsEditingGroupName(true);
-                    }}
-                    title="修改名稱"
-                    className="shrink-0 w-8 h-8 rounded-full bg-white/80 hover:bg-white text-[#26353D] flex items-center justify-center text-xs shadow-sm transition"
-                  >
-                    ✏️
-                  </button>
-                </div>
-              )}
-
-              <div className="flex items-center gap-1.5 flex-wrap text-[11px] font-bold text-[#4A6473] pt-0.5">
-                <span className="inline-flex items-center gap-1 bg-white/75 px-2 py-0.5 rounded-full shadow-sm">
-                  <span className={`w-2 h-2 rounded-full ${syncStatus === 'synced' ? 'bg-emerald-500' : syncStatus === 'connecting' ? 'bg-amber-500 animate-ping' : 'bg-rose-500'}`}></span>
-                  <span className="font-mono">#{roomId}</span>
-                </span>
-                <span>•</span>
-                <span>{isTravelMode ? "COPAY TRAVEL" : "COPAY LITE"}</span>
-                <span>•</span>
-                <span>{members.length} 人</span>
-                {isTravelMode && (
-                  <>
-                    <span>•</span>
+                <div className="pt-0.5">
+                  <div className="text-[10px] sm:text-[11px] font-extrabold tracking-widest uppercase text-[#4A6473]">
+                    {isPro ? "PRO UNLIMITED EDITION ✨" : "FIRST TRIP FREE EXPERIENCE (首個旅程無限記帳)"}
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <h1
+                      onClick={() => {
+                        setTempGroupName(groupName);
+                        setIsEditingGroupName(true);
+                      }}
+                      className="text-2xl sm:text-3xl font-black tracking-tight text-[#26353D] cursor-pointer hover:opacity-85 leading-tight break-words min-w-0 drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]"
+                    >
+                      {groupName}
+                    </h1>
                     <button
                       type="button"
-                      onClick={fetchLiveExchangeRates}
-                      className="underline hover:text-[#26353D] transition"
+                      onClick={() => {
+                        setTempGroupName(groupName);
+                        setIsEditingGroupName(true);
+                      }}
+                      title="修改名稱"
+                      className="shrink-0 w-8 h-8 rounded-full bg-white/80 hover:bg-white text-[#26353D] flex items-center justify-center text-xs shadow-sm transition"
                     >
-                      匯率 {rateUpdatedText} ↻
+                      ✏️
                     </button>
-                  </>
-                )}
-              </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* 首頁醒目「＋ 新增房間」按鈕 */}
@@ -1801,24 +1990,24 @@
                 }}
                 className="flex-1 teal-pill font-black text-xs sm:text-sm py-3 px-4 rounded-2xl flex items-center justify-center gap-2 shadow-md hover:opacity-95 active:scale-98 transition whitespace-nowrap"
               >
-                <span className="text-base leading-none">＋</span>
+                <span className="text-base leading-none text-[#F0BFA0]">＋</span>
                 <span>新增房間 (日常 / 海外旅遊)</span>
               </button>
 
               <button
                 type="button"
                 onClick={shareRoomLink}
-                className="shrink-0 bg-white/85 hover:bg-white text-[#26353D] font-bold text-xs py-3 px-3.5 rounded-2xl flex items-center justify-center gap-1 shadow-sm border border-white active:scale-95 transition whitespace-nowrap"
+                className="shrink-0 bg-white/90 hover:bg-white text-[#26353D] font-bold text-xs py-3 px-3.5 rounded-2xl flex items-center justify-center gap-1 shadow-sm border border-white active:scale-95 transition whitespace-nowrap"
               >
                 <span>🔗 邀請 (#{roomId})</span>
               </button>
             </div>
 
-            {/* 霧面資訊總覽卡 */}
-            <div className="mt-3.5 glass-dark p-4 rounded-3xl space-y-3">
+            {/* 磨砂玻璃資訊總覽卡 */}
+            <div className="mt-3.5 glass-dark p-4 rounded-3xl shadow-lg space-y-3">
               <div className="flex justify-between items-end gap-2">
                 <div className="min-w-0">
-                  <p className="text-[11px] text-[#5C707B] font-bold mb-0.5">
+                  <p className="text-[11px] text-[#636E7B] font-bold mb-0.5">
                     {isTravelMode ? "旅程總消費折合 (HKD)" : "總開支 (港幣 HK$)"}
                   </p>
                   <p className="text-2xl sm:text-3xl font-black tracking-tight text-[#26353D] truncate">HK$ {Math.round(totalHKD).toLocaleString()}</p>
@@ -1827,8 +2016,8 @@
                   </p>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="text-[11px] text-[#5C707B] font-bold mb-0.5">參與成員</p>
-                  <p className="text-base font-black text-[#376885]">{members.length} 人</p>
+                  <p className="text-[11px] text-[#636E7B] font-bold mb-0.5">參與成員</p>
+                  <p className="text-base font-black text-[#4A6984]">{members.length} 人</p>
                 </div>
               </div>
 
@@ -1837,25 +2026,27 @@
                 <div className="pt-3 border-t border-[#D5E2E8]">
                   <div className="flex justify-between items-center gap-2 mb-1.5">
                     <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-                      <span className="text-xs font-bold text-[#26353D] whitespace-nowrap">🏦 公數錢包可用餘額</span>
-                      <span className="text-[10px] bg-[#ECF2F5] px-2 py-0.5 rounded-full text-[#5C707B] font-medium">
+                      <span className="text-xs font-bold text-[#4A6984] whitespace-nowrap">🏦 公數錢包可用餘額</span>
+                      <span className="text-[10px] bg-[#EEF1F4] px-2 py-0.5 rounded-full text-[#636E7B] font-medium">
                         📅 {formatDateUK(poolDate)} ｜ 已用 HK$ {Math.round(poolStats.totalSpentFromPoolHKD).toLocaleString()} / 總額 HK$ {Math.round(poolStats.totalContributedHKD).toLocaleString()}
                       </span>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setShowPoolModal(true)}
-                      className="shrink-0 text-[10px] teal-pill font-black px-2.5 py-1 rounded-full hover:opacity-90 whitespace-nowrap"
-                    >
-                      ＋ 每人注資公數
-                    </button>
+                    {!isReadOnly && (
+                      <button
+                        type="button"
+                        onClick={() => setShowPoolModal(true)}
+                        className="shrink-0 text-[10px] gold-pill font-black px-2.5 py-1 rounded-full hover:opacity-90 whitespace-nowrap"
+                      >
+                        ＋ 每人注資公數
+                      </button>
+                    )}
                   </div>
 
                   <div className="flex items-center justify-between gap-3">
-                    <div className="flex-1 h-2 bg-[#D5E2E8] rounded-full overflow-hidden">
+                    <div className="flex-1 h-2 bg-[#DCE2E8] rounded-full overflow-hidden">
                       <div
                         className={`h-full transition-all duration-300 ${
-                          poolStats.remainingPoolHKD <= 0 ? "bg-rose-500" : "bg-gradient-to-r from-[#4B7B99] to-[#7BA69E]"
+                          poolStats.remainingPoolHKD <= 0 ? "bg-rose-500" : "bg-gradient-to-r from-[#4B7B99] to-[#E59F71]"
                         }`}
                         style={{
                           width: `${
@@ -1876,29 +2067,51 @@
           </div>
 
           {/* 主體內容區 */}
-          <div className="px-3.5 sm:px-5 pt-1 flex-1 space-y-4 relative z-20">
+          <div className="px-3.5 sm:px-5 pt-1 bg-transparent flex-1 space-y-4 relative z-20">
             
             {/* ================================================================= */}
             {/* TAB 1: 第一頁 */}
             {/* ================================================================= */}
             {activeTab === "expenses" && (
               <>
-                {isTravelMode && (
+                {/* 唯讀橫幅 */}
+                {isReadOnly && (
+                  <div className="bg-rose-50 border border-rose-200 p-4 rounded-3xl flex items-center justify-between gap-3 shadow-md">
+                    <div className="text-xs text-rose-700 leading-relaxed">
+                      🔒 <strong>此房間已結算並封存為「唯讀模式」</strong><br/>
+                      你已完成首個免費旅程結算！準備第二次旅行或想解封繼續記帳？
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        triggerPaywall(
+                          "🔓 解鎖無限旅程房間 (HK$ 38 買斷)",
+                          "一鍵買斷 HK$ 38 Pro 版，即可解封此房間或無限建立下一次旅行房間！"
+                        )
+                      }
+                      className="shrink-0 gold-pill text-xs font-black px-3.5 py-2.5 rounded-2xl whitespace-nowrap"
+                    >
+                      HK$38 解鎖
+                    </button>
+                  </div>
+                )}
+
+                {isTravelMode && !isReadOnly && (
                   <div className="flex justify-between items-center gap-2 px-1 pt-1">
                     <h3 className="font-black text-[#26353D] text-xs sm:text-sm flex items-center gap-1 min-w-0">
-                      <span className="truncate">✍️ 記低一筆新開支 · 預設貨幣：<span className="text-[#376885]">{currency}</span></span>
+                      <span className="truncate">✍️ 記低一筆新開支 · 預設貨幣：<span className="text-[#C46D3B]">{isPro ? currency : baseCurrency}</span></span>
                     </h3>
                     <button
                       type="button"
                       onClick={() => setIsTravelFormCollapsed(prev => !prev)}
-                      className="shrink-0 text-[10px] sm:text-[11px] font-bold bg-white/80 hover:bg-white text-[#26353D] px-2.5 py-1.5 rounded-full transition whitespace-nowrap shadow-sm border border-white"
+                      className="shrink-0 text-[10px] sm:text-[11px] font-bold bg-white/85 hover:bg-white text-[#26353D] px-2.5 py-1.5 rounded-full transition whitespace-nowrap shadow-sm border border-white"
                     >
                       {isTravelFormCollapsed ? "＋ 展開表單" : "✕ 收起表單"}
                     </button>
                   </div>
                 )}
 
-                {(!isTravelMode || !isTravelFormCollapsed) && (
+                {!isReadOnly && (!isTravelMode || !isTravelFormCollapsed) && (
                   <form onSubmit={handleAddExpense} className="glass-dark p-4 sm:p-5 rounded-3xl space-y-3.5">
                     {!isTravelMode && (
                       <div className="flex justify-between items-center border-b border-white/10 pb-2.5">
@@ -1918,11 +2131,11 @@
                           <select
                             value={category}
                             onChange={e => setCategory(e.target.value)}
-                            className="ios-uniform-field w-full text-xs sm:text-sm bg-[#F7F4EC] border border-[#EAE3D5] px-3 pr-7 text-[#2C261E] font-bold focus:outline-none focus:ring-2 focus:ring-[#4B7B99]"
+                            className="ios-uniform-field w-full text-xs sm:text-sm bg-[#EEF1F4] border border-[#DCE2E8] px-3 pr-7 text-[#26353D] font-bold focus:outline-none focus:ring-2 focus:ring-[#4B7B99]"
                           >
                             {activeCategories.map(opt => <option key={opt} value={opt} className="text-slate-900">{opt}</option>)}
                           </select>
-                          <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-[#7D7465]">
+                          <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-[#8E97A4]">
                             ▼
                           </span>
                         </div>
@@ -1930,8 +2143,8 @@
 
                       <div className="min-w-0">
                         <label className="block text-[10px] text-slate-300 font-bold mb-1 ml-1">單據日期</label>
-                        <div className="relative ios-uniform-field w-full bg-[#F7F4EC] border border-[#EAE3D5] px-3 flex items-center justify-between">
-                          <span className="text-xs sm:text-sm font-bold text-[#2C261E] tracking-tight whitespace-nowrap">
+                        <div className="relative ios-uniform-field w-full bg-[#EEF1F4] border border-[#DCE2E8] px-3 flex items-center justify-between">
+                          <span className="text-xs sm:text-sm font-bold text-[#26353D] tracking-tight whitespace-nowrap">
                             {formatDateUK(date)}
                           </span>
                           <span className="text-xs opacity-65 shrink-0 ml-1">📅</span>
@@ -1961,8 +2174,13 @@
                     <div>
                       <div className="flex justify-between items-center mb-1 ml-1">
                         <label className="text-[10px] text-slate-300 font-bold">
-                          {isTravelMode ? `消費金額 (${currency})` : "消費金額 (港幣 HK$)"}
+                          {isTravelMode ? `消費金額 (${isPro ? currency : baseCurrency})` : "消費金額 (港幣 HK$)"}
                         </label>
+                        {!isPro && isTravelMode && (
+                          <span className="text-[10px] text-[#C46D3B] font-bold">
+                            單一貨幣：{baseCurrency} (自動匯率 🔒)
+                          </span>
+                        )}
                         {!isTravelMode && (
                           <button
                             type="button"
@@ -1971,7 +2189,7 @@
                               setModalRoomNameInput("");
                               setShowCreateRoomModal(true);
                             }}
-                            className="text-[10px] text-[#9C7316] font-bold hover:underline"
+                            className="text-[10px] text-[#4A6984] font-bold hover:underline"
                           >
                             ✈️ 去旅行用外幣？開 Copay Travel 房
                           </button>
@@ -1980,7 +2198,7 @@
 
                       <div className="flex items-center gap-2 w-full">
                         {!isTravelMode && (
-                          <div className="shrink-0 bg-white/10 border border-white/15 rounded-2xl px-3 py-2.5 flex items-center justify-center font-black text-sm text-[#78C3D2]">
+                          <div className="shrink-0 bg-white/10 border border-white/15 rounded-2xl px-3 py-2.5 flex items-center justify-center font-black text-sm text-[#4A6984]">
                             HK$
                           </div>
                         )}
@@ -1999,13 +2217,13 @@
                         />
                         {isTravelMode && (
                           <select
-                            value={currency}
-                            onChange={e => handleSelectDefaultCurrency(e.target.value)}
-                            className="shrink-0 teal-pill rounded-2xl px-3 py-2.5 text-xs font-black focus:outline-none"
+                            value={isPro ? currency : baseCurrency}
+                            onChange={e => handleExpCurrencyChange(e.target.value)}
+                            className="shrink-0 gold-pill rounded-2xl px-3 py-2.5 text-xs font-black focus:outline-none"
                           >
                             {sortedCurrencyKeys.map(c => (
                               <option key={c} value={c} className="text-slate-900">
-                                {c}
+                                {c}{!isPro && c !== baseCurrency ? " 🔒" : ""}
                               </option>
                             ))}
                           </select>
@@ -2019,12 +2237,12 @@
                               type="checkbox"
                               checked={addCardFee}
                               onChange={e => setAddCardFee(e.target.checked)}
-                              className="rounded accent-[#4B7B99]"
+                              className="rounded accent-[#36414F]"
                             />
                             <span>💳 信用卡海外簽帳 (+{cardFeePercent}% 手續費)</span>
                           </label>
-                          {amount && currency !== "HKD" && (
-                            <span className="text-[11px] font-bold text-amber-300 whitespace-nowrap">
+                          {amount && (isPro ? currency : baseCurrency) !== "HKD" && (
+                            <span className="text-[11px] font-bold text-[#C46D3B] whitespace-nowrap">
                               ≈ HK$ {currentInputHKD.toFixed(1)}
                             </span>
                           )}
@@ -2040,7 +2258,7 @@
                           <button
                             type="button"
                             onClick={() => setShowPoolModal(true)}
-                            className="text-[10px] text-amber-300 font-bold hover:underline"
+                            className="text-[10px] text-[#4A6984] font-bold hover:underline"
                           >
                             🏦 公數餘額: HK$ {poolStats.remainingPoolHKD.toLocaleString()} (管理)
                           </button>
@@ -2053,8 +2271,8 @@
                             onClick={() => setPayer(POOL_PAYER_KEY)}
                             className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
                               payer === POOL_PAYER_KEY
-                                ? "gold-pill border-[#2D3842]"
-                                : "bg-[#F7F4EC] text-[#9C7316] border-[#EAE3D5]"
+                                ? "gold-pill border-[#C9A64E]"
+                                : "bg-[#EEF1F4] text-[#4A6984] border-[#DCE2E8]"
                             }`}
                           >
                             {POOL_PAYER_KEY} (剩 HK${Math.round(poolStats.remainingPoolHKD)})
@@ -2092,8 +2310,8 @@
                           onClick={handleToggleAdvancedSplit}
                           className={`text-[10px] font-bold px-2.5 py-1 rounded-full border transition flex items-center gap-1 ${
                             useAdvancedSplit && isPro
-                              ? "bg-[#F5E6B8] border-[#7FA8C4] text-[#2C261E]"
-                              : "bg-[#F7F4EC] border-[#EAE3D5] text-[#8C6715]"
+                              ? "bg-[#DFECF2] border-[#7FA8C4] text-[#26353D]"
+                              : "bg-[#EEF1F4] border-[#DCE2E8] text-[#5C707B]"
                           }`}
                         >
                           <span>⚖️ 進階拆帳 (如少夾$50)</span>
@@ -2111,7 +2329,7 @@
                               } else {
                                 setSplitWith([...splitWith, m]);
                               }
-                            }} className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all border ${isSelected ? 'bg-[#F5E6B8] border-[#7FA8C4] text-[#2C261E] font-bold' : 'bg-transparent border-white/15 text-slate-400 opacity-60'}`}>
+                            }} className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all border ${isSelected ? 'bg-[#DFECF2] border-[#7FA8C4] text-[#26353D] font-bold' : 'bg-transparent border-white/15 text-slate-400 opacity-60'}`}>
                               {isSelected ? '✓ ' : ''}{m}
                             </button>
                           );
@@ -2119,14 +2337,14 @@
                       </div>
 
                       {isPro && useAdvancedSplit && (
-                        <div className="bg-[#F7F4EC] p-3 rounded-2xl border border-[#EAE3D5] space-y-2">
-                          <div className="text-[10px] font-bold text-[#8C6715]">
+                        <div className="bg-[#EEF1F4] p-3 rounded-2xl border border-[#DCE2E8] space-y-2">
+                          <div className="text-[10px] font-bold text-[#4A6984]">
                             ⚖️ 進階拆帳微調（輸入 <span className="font-mono">-50</span> 代表少夾 50；輸入 <span className="font-mono">+100</span> 代表多夾 100，餘額自動平分）：
                           </div>
                           <div className="grid grid-cols-2 gap-2">
                             {splitWith.map(m => (
-                              <div key={m} className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-xl border border-[#EAE3D5] gap-1">
-                                <span className="text-[11px] font-bold text-[#2C261E] truncate">{m}</span>
+                              <div key={m} className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-xl border border-[#DCE2E8] gap-1">
+                                <span className="text-[11px] font-bold text-[#26353D] truncate">{m}</span>
                                 <input
                                   type="number"
                                   inputMode="decimal"
@@ -2134,7 +2352,7 @@
                                   placeholder="0 (平分)"
                                   value={splitAdjustments[m] || ""}
                                   onChange={e => handleAdjustmentChange(m, e.target.value)}
-                                  className="w-16 text-right text-xs font-mono font-bold text-[#B5851D] focus:outline-none"
+                                  className="w-16 text-right text-xs font-mono font-bold text-[#C46D3B] focus:outline-none"
                                 />
                               </div>
                             ))}
@@ -2176,21 +2394,21 @@
                             <button
                               type="button"
                               onClick={() => toggleDayCollapse(group.date)}
-                              className="w-full glass-dark px-3.5 sm:px-4 py-3 rounded-2xl flex items-center justify-between border border-[#EAE3D5] hover:bg-[#F7F4EC] transition"
+                              className="w-full glass-dark px-3.5 sm:px-4 py-3 rounded-2xl flex items-center justify-between border border-[#DCE2E8] hover:bg-[#EEF1F4] transition"
                             >
                               <div className="flex items-center gap-2">
                                 <span className="teal-pill text-[11px] font-black px-2.5 py-0.5 rounded-full whitespace-nowrap">
                                   Day {group.dayNum}
                                 </span>
-                                <span className="text-xs font-bold text-[#2C261E] whitespace-nowrap">
+                                <span className="text-xs font-bold text-[#26353D] whitespace-nowrap">
                                   {group.ukDate} ({group.items.length} 筆)
                                 </span>
                               </div>
                               <div className="flex items-center gap-2 shrink-0">
-                                <span className="text-xs font-black text-[#B5851D] whitespace-nowrap">
+                                <span className="text-xs font-black text-[#C46D3B] whitespace-nowrap">
                                   HK$ {Math.round(group.dayTotalHKD).toLocaleString()}
                                 </span>
-                                <span className="text-[10px] text-[#8C8273]">
+                                <span className="text-[10px] text-[#8E97A4]">
                                   {isCollapsed ? "▼" : "▲"}
                                 </span>
                               </div>
@@ -2207,7 +2425,6 @@
                     )}
                   </div>
                 ) : (
-                  /* Copay Lite 日常版第一頁下方：顯示「自動對沖結算清單」 */
                   renderSettlementCard()
                 )}
               </>
@@ -2223,7 +2440,7 @@
                 ) : (
                   <div className="space-y-2.5">
                     <div className="flex justify-between items-center px-2">
-                      <span className="font-bold text-[#26353D] text-xs">最近單據明細</span>
+                      <span className="font-bold text-[#5C707B] text-xs">最近單據明細</span>
                       <button
                         type="button"
                         onClick={() => setShowAllExpenses(prev => !prev)}
@@ -2263,10 +2480,10 @@
                 <div className="glass-dark p-4 sm:p-5 rounded-3xl space-y-4 sm:space-y-5">
                   <div className="flex justify-between items-start gap-2">
                     <div className="min-w-0">
-                      <span className="inline-block text-[10px] font-black tracking-wider uppercase bg-[#F5E6B8] text-[#8C6715] px-2.5 py-0.5 rounded-full mb-1">
+                      <span className="inline-block text-[10px] font-black tracking-wider uppercase bg-[#DFECF2] text-[#376885] px-2.5 py-0.5 rounded-full mb-1">
                         📸 IG STORY SUMMARY
                       </span>
-                      <h3 className="font-black text-base sm:text-lg text-white leading-tight break-words">
+                      <h3 className="font-black text-base sm:text-lg text-[#26353D] leading-tight break-words">
                         {groupName} {isTravelMode ? "✈️" : ""} · 消費報告
                       </h3>
                     </div>
@@ -2279,18 +2496,17 @@
                     </button>
                   </div>
 
-                  {/* 日常版篩選器按英式順序排列：日 (DD) / 月 (MM) / 年 (YYYY) */}
                   {!isTravelMode && (
                     <div className="grid grid-cols-3 gap-2 pt-1">
-                      <select value={reportDay} onChange={e => setReportDay(e.target.value)} className="min-w-0 text-[11px] bg-white/10 border border-white/15 rounded-xl px-2 py-1.5 text-white font-bold focus:outline-none">
+                      <select value={reportDay} onChange={e => setReportDay(e.target.value)} className="min-w-0 text-[11px] bg-[#EEF1F4] border border-[#DCE2E8] rounded-xl px-2 py-1.5 text-[#26353D] font-bold focus:outline-none">
                         <option value="ALL" className="text-slate-900">全部日子</option>
                         {reportAvailableDates.days.map(d => <option key={d} value={d} className="text-slate-900">{d}日</option>)}
                       </select>
-                      <select value={reportMonth} onChange={e => setReportMonth(e.target.value)} className="min-w-0 text-[11px] bg-white/10 border border-white/15 rounded-xl px-2 py-1.5 text-white font-bold focus:outline-none">
+                      <select value={reportMonth} onChange={e => setReportMonth(e.target.value)} className="min-w-0 text-[11px] bg-[#EEF1F4] border border-[#DCE2E8] rounded-xl px-2 py-1.5 text-[#26353D] font-bold focus:outline-none">
                         <option value="ALL" className="text-slate-900">全部月份</option>
                         {reportAvailableDates.months.map(m => <option key={m} value={m} className="text-slate-900">{m}月</option>)}
                       </select>
-                      <select value={reportYear} onChange={e => setReportYear(e.target.value)} className="min-w-0 text-[11px] bg-white/10 border border-white/15 rounded-xl px-2 py-1.5 text-white font-bold focus:outline-none">
+                      <select value={reportYear} onChange={e => setReportYear(e.target.value)} className="min-w-0 text-[11px] bg-[#EEF1F4] border border-[#DCE2E8] rounded-xl px-2 py-1.5 text-[#26353D] font-bold focus:outline-none">
                         <option value="ALL" className="text-slate-900">全部年份</option>
                         {reportAvailableDates.years.map(y => <option key={y} value={y} className="text-slate-900">{y}年</option>)}
                       </select>
@@ -2298,10 +2514,10 @@
                   )}
 
                   {/* SVG 圓餅圖 + 類別百分比明細 */}
-                  <div className="flex items-center gap-3 sm:gap-4 bg-white/5 p-3.5 sm:p-4 rounded-2xl border border-white/10">
+                  <div className="flex items-center gap-3 sm:gap-4 bg-[#EEF1F4] p-3.5 sm:p-4 rounded-2xl border border-[#DCE2E8]">
                     <div className="relative w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center shrink-0">
                       <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                        <circle cx="50" cy="50" r={radius} stroke="#D5E2E8" strokeWidth="12" fill="transparent" />
+                        <circle cx="50" cy="50" r={radius} stroke="#DCE2E8" strokeWidth="12" fill="transparent" />
                         {chartAndReportData.categoryBreakdown.map((item, idx) => {
                           const pct = chartAndReportData.totalFilteredHKD > 0 ? item.amountHKD / chartAndReportData.totalFilteredHKD : 0;
                           const strokeDasharray = `${pct * circumference} ${circumference}`;
@@ -2324,8 +2540,8 @@
                         })}
                       </svg>
                       <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-1">
-                        <span className="text-[9px] text-slate-300">總消費</span>
-                        <span className="text-[11px] sm:text-xs font-black text-white leading-tight">
+                        <span className="text-[9px] text-[#5C707B]">總消費</span>
+                        <span className="text-[11px] sm:text-xs font-black text-[#26353D] leading-tight">
                           HK${Math.round(chartAndReportData.totalFilteredHKD).toLocaleString()}
                         </span>
                       </div>
@@ -2342,10 +2558,10 @@
                                 className="w-2.5 h-2.5 rounded-full shrink-0"
                                 style={{ backgroundColor: CHART_COLORS[idx % CHART_COLORS.length] }}
                               ></span>
-                              <span className="text-[11px] font-bold text-slate-200 truncate">{item.category}</span>
+                              <span className="text-[11px] font-bold text-[#5C707B] truncate">{item.category}</span>
                             </div>
-                            <div className="text-[11px] font-bold text-white whitespace-nowrap shrink-0">
-                              {item.percent}% <span className="text-[10px] text-slate-400 font-normal">(${Math.round(item.amountHKD).toLocaleString()})</span>
+                            <div className="text-[11px] font-bold text-[#26353D] whitespace-nowrap shrink-0">
+                              {item.percent}% <span className="text-[10px] text-[#8E97A4] font-normal">(${Math.round(item.amountHKD).toLocaleString()})</span>
                             </div>
                           </div>
                         ))
@@ -2355,7 +2571,7 @@
 
                   {/* 👑 全團個人消費排行榜 */}
                   <div className="space-y-2.5 pt-1">
-                    <h4 className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                    <h4 className="text-xs font-bold text-[#5C707B] flex items-center gap-1.5">
                       <span>👑 全團個人消費排行榜 (按實際享用金額)</span>
                     </h4>
                     <div className="space-y-2.5">
@@ -2363,24 +2579,24 @@
                         const barWidth = chartAndReportData.maxShareHKD > 0 ? Math.max(8, Math.round((p.shareHKD / chartAndReportData.maxShareHKD) * 100)) : 0;
                         const rankBadge = index === 0 ? "🥇 大豪客" : index === 1 ? "🥈 二當家" : index === 2 ? "🥉 三當家" : `#${index + 1}`;
                         return (
-                          <div key={p.name} className="bg-white/5 p-3 rounded-2xl border border-white/10 space-y-1.5">
+                          <div key={p.name} className="bg-[#EEF1F4] p-3 rounded-2xl border border-[#DCE2E8] space-y-1.5">
                             <div className="flex justify-between items-center text-xs gap-2">
                               <div className="flex items-center gap-1.5 min-w-0">
                                 <span className={`shrink-0 text-[10px] font-black px-2 py-0.5 rounded-full ${
-                                  index === 0 ? "bg-[#F5E6B8] text-[#8C6715]" : "bg-white text-slate-300"
+                                  index === 0 ? "bg-[#DFECF2] text-[#376885]" : "bg-white text-[#5C707B]"
                                 }`}>
                                   {rankBadge}
                                 </span>
-                                <span className="font-bold text-white truncate">{p.name}</span>
+                                <span className="font-bold text-[#26353D] truncate">{p.name}</span>
                                 {p.isDeleted && (
                                   <span className="shrink-0 text-[9px] bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded">已刪成員</span>
                                 )}
                               </div>
-                              <span className="shrink-0 font-black text-white whitespace-nowrap">HK$ {Math.round(p.shareHKD).toLocaleString()}</span>
+                              <span className="shrink-0 font-black text-[#26353D] whitespace-nowrap">HK$ {Math.round(p.shareHKD).toLocaleString()}</span>
                             </div>
-                            <div className="w-full h-1.5 bg-[#D5E2E8] rounded-full overflow-hidden">
+                            <div className="w-full h-1.5 bg-[#DCE2E8] rounded-full overflow-hidden">
                               <div
-                                className="h-full bg-gradient-to-r from-[#4B7B99] to-[#7BA69E] rounded-full transition-all duration-300"
+                                className="h-full bg-gradient-to-r from-[#8FB4CF] to-[#4B7B99] rounded-full transition-all duration-300"
                                 style={{ width: `${barWidth}%` }}
                               />
                             </div>
@@ -2393,15 +2609,15 @@
 
                 {/* 3. 📊 個人墊支與應付結餘 */}
                 <div className="glass-dark p-4 sm:p-5 rounded-3xl">
-                  <h3 className="font-bold text-white text-sm mb-3 border-b border-white/10 pb-2.5">📊 個人墊支與應付結餘</h3>
+                  <h3 className="font-bold text-[#26353D] text-sm mb-3 border-b border-[#DCE2E8] pb-2.5">📊 個人墊支與應付結餘</h3>
                   <div className="space-y-2.5">
                     {members.map(m => {
                       const net = Math.round(settlement.balances[m] || 0);
                       const isPositive = net > 0;
                       return (
-                        <div key={m} className="flex justify-between items-center text-sm py-2 border-b border-white/10 last:border-none gap-2">
-                          <span className="font-bold text-white truncate">{m}</span>
-                          <span className={`shrink-0 font-bold px-3 py-1 rounded-full text-xs whitespace-nowrap ${net === 0 ? 'bg-white/10 text-slate-300' : isPositive ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-rose-50 text-rose-500 border border-rose-200'}`}>
+                        <div key={m} className="flex justify-between items-center text-sm py-2 border-b border-[#DCE2E8] last:border-none gap-2">
+                          <span className="font-bold text-[#26353D] truncate">{m}</span>
+                          <span className={`shrink-0 font-bold px-3 py-1 rounded-full text-xs whitespace-nowrap ${net === 0 ? 'bg-[#EEF1F4] text-[#5C707B]' : isPositive ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-rose-50 text-rose-500 border border-rose-200'}`}>
                             {net === 0 ? '收支平衡' : isPositive ? `應收回 HK$ ${net.toLocaleString()}` : `-HK$ ${Math.abs(net).toLocaleString()} (應補交)`}
                           </span>
                         </div>
@@ -2409,8 +2625,8 @@
                     })}
 
                     {Object.entries(settlement.deletedPayersNegative).map(([delName, negVal]) => (
-                      <div key={delName} className="flex justify-between items-center text-sm py-2 border-b border-white/10 last:border-none opacity-85 gap-2">
-                        <span className="font-bold text-rose-300 truncate">{delName} <span className="text-[10px] bg-rose-50 px-1.5 py-0.5 rounded">已刪成員</span></span>
+                      <div key={delName} className="flex justify-between items-center text-sm py-2 border-b border-[#DCE2E8] last:border-none opacity-85 gap-2">
+                        <span className="font-bold text-rose-500 truncate">{delName} <span className="text-[10px] bg-rose-50 px-1.5 py-0.5 rounded">已刪成員</span></span>
                         <span className="shrink-0 font-mono font-black px-3 py-1 rounded-full text-xs bg-rose-50 text-rose-500 border border-rose-200 whitespace-nowrap">
                           HK$ {Math.round(negVal).toLocaleString()}
                         </span>
@@ -2428,31 +2644,63 @@
               <div className="space-y-4">
                 <div className="glass-dark p-4 sm:p-5 rounded-3xl space-y-3">
                   <div className="flex justify-between items-center gap-1.5 flex-wrap">
-                    <h3 className="font-bold text-white text-sm">✨ 建立全新房間</h3>
-                    <span className="text-[10px] bg-white/15 px-2.5 py-0.5 rounded-full text-[#9BE0EE] font-bold">
-                      早鳥 $38 (原價 $88)
+                    <h3 className="font-bold text-[#26353D] text-[13px] sm:text-sm whitespace-nowrap">✨ 建立全新獨立房間</h3>
+                    <span className="text-[10px] bg-[#EEF1F4] px-2.5 py-0.5 rounded-full text-[#376885] font-bold whitespace-nowrap">
+                      日常與旅遊帳目完全獨立
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-300 leading-relaxed">
-                    撳下面「＋ 新增房間」，即可選擇建立免費嘅「☕ 日常夾錢 (Copay Lite)」或者專為去旅行設計嘅「✈️ 海外旅遊 (Copay Travel)」房間！
+                  <p className="text-[11px] text-[#5C707B] leading-relaxed">
+                    請選擇要建立「☕ 日常夾錢房間」定係「✈️ Copay Travel 旅遊房間」，每個房間都會獲分配獨立 6 位代碼，兩邊帳目絕對唔會混埋一齊！
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setModalSelectedMode("daily");
-                      setModalRoomNameInput("");
-                      setShowCreateRoomModal(true);
-                    }}
-                    className="w-full py-3.5 rounded-2xl teal-pill font-black text-xs sm:text-sm shadow-md flex items-center justify-center gap-2"
-                  >
-                    <span>＋ 新增房間 (選擇日常夾錢 / 海外旅遊)</span>
-                  </button>
+
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setNewRoomTypeSelect("daily")}
+                      className={`p-2.5 sm:p-3 rounded-2xl border text-left transition flex flex-col justify-between min-w-0 ${
+                        newRoomTypeSelect === "daily"
+                          ? "bg-[#DFECF2] border-[#7FA8C4] text-[#26353D]"
+                          : "bg-[#EEF1F4] border-transparent text-[#8E97A4]"
+                      }`}
+                    >
+                      <div className="font-black text-[11px] sm:text-xs whitespace-nowrap truncate">☕ 日常夾錢房</div>
+                      <div className="text-[10px] opacity-80 mt-0.5 whitespace-nowrap">純港幣 HK$</div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNewRoomTypeSelect("triptab")}
+                      className={`p-2.5 sm:p-3 rounded-2xl border text-left transition flex flex-col justify-between min-w-0 ${
+                        newRoomTypeSelect === "triptab"
+                          ? "bg-[#DFECF2] border-[#7FA8C4] text-[#26353D]"
+                          : "bg-[#EEF1F4] border-transparent text-[#8E97A4]"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-0.5 w-full min-w-0">
+                        <span className="font-black text-[11px] sm:text-xs whitespace-nowrap truncate">✈️ Copay Travel</span>
+                        {!isPro && <span className="text-[10px] shrink-0">🔒</span>}
+                      </div>
+                      <div className="text-[10px] opacity-80 mt-0.5 whitespace-nowrap">公數與外幣</div>
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleCreateNewRoom} className="flex items-center gap-2 pt-1 w-full">
+                    <input
+                      type="text"
+                      placeholder={newRoomTypeSelect === "triptab" ? "輸入旅程名稱 (如：沖繩自駕遊)" : "輸入新房間名稱 (如：11月飯局)"}
+                      value={newRoomNameInput}
+                      onChange={e => setNewRoomNameInput(e.target.value)}
+                      className="flex-1 min-w-0 text-xs bg-[#EEF1F4] border border-[#DCE2E8] rounded-2xl px-3 py-3 font-bold text-[#26353D] placeholder-[#93A5B0] focus:outline-none focus:ring-2 focus:ring-[#5A7D9A]"
+                    />
+                    <button type="submit" className="shrink-0 teal-pill text-xs font-black px-3.5 py-3 rounded-2xl whitespace-nowrap">
+                      {!isPro && myRooms.length >= FREE_ROOM_QUOTA ? "🔒 建立第2間房" : "＋ 建立新房"}
+                    </button>
+                  </form>
                 </div>
 
                 <div className="glass-dark p-4 sm:p-5 rounded-3xl space-y-3">
-                  <h3 className="font-bold text-white text-sm">🔑 輸入代碼加入朋友房間</h3>
-                  <p className="text-[11px] text-slate-300">
-                    問朋友攞 6 位房間代碼（例如 <span className="font-mono text-amber-300">X7K9P2</span>）直接連線同步：
+                  <h3 className="font-bold text-[#26353D] text-sm">🔑 輸入代碼加入朋友房間</h3>
+                  <p className="text-[11px] text-[#5C707B]">
+                    問朋友攞 6 位房間代碼（例如 <span className="font-mono text-[#C46D3B]">X7K9P2</span>）直接連線同步：
                   </p>
                   <form onSubmit={handleJoinRoomByCode} className="flex items-center gap-2 w-full">
                     <input
@@ -2461,7 +2709,7 @@
                       placeholder="輸入 6 位房間代碼 (如 X7K9P2)"
                       value={joinRoomCodeInput}
                       onChange={e => setJoinRoomCodeInput(e.target.value.toUpperCase())}
-                      className="flex-1 min-w-0 text-xs bg-white/10 border border-white/15 rounded-2xl px-3 py-3 font-mono font-bold uppercase text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4B7B99]"
+                      className="flex-1 min-w-0 text-xs bg-[#EEF1F4] border border-[#DCE2E8] rounded-2xl px-3 py-3 font-mono font-bold uppercase text-[#26353D] placeholder-[#93A5B0] focus:outline-none focus:ring-2 focus:ring-[#5A7D9A]"
                     />
                     <button type="submit" className="shrink-0 teal-pill text-xs font-bold px-3.5 py-3 rounded-2xl whitespace-nowrap transition">
                       加入房間
@@ -2471,113 +2719,170 @@
 
                 <div className="glass-dark p-4 sm:p-5 rounded-3xl space-y-4">
                   <div className="flex justify-between items-center border-b border-white/10 pb-2.5 gap-2">
-                    <h3 className="font-bold text-white text-sm whitespace-nowrap">📂 我的房間列表</h3>
-                    <span className="text-[11px] font-bold text-[#78C3D2] whitespace-nowrap">
-                      {isPro ? "Copay Travel 已永久解鎖 ✨" : "Copay Lite 免費版"}
+                    <h3 className="font-bold text-[#26353D] text-sm whitespace-nowrap">📂 我的房間列表</h3>
+                    <span className="text-[11px] font-bold text-[#376885] whitespace-nowrap">
+                      {isPro ? "Copay Pro 已永久解鎖 ✨" : `免費額度：${myRooms.length} / ${FREE_ROOM_QUOTA}`}
                     </span>
                   </div>
 
-                  {/* 日常夾錢 (Copay Lite) 房間區塊 */}
+                  {/* 旅遊房間區塊 (Copay Travel 放前) */}
                   <div className="space-y-2">
-                    <div className="text-[11px] font-bold text-[#9BE0EE]">☕ 日常夾錢 · Copay Lite ({dailyRoomsList.length})</div>
-                    {dailyRoomsList.map(r => {
-                      const isCurrent = r.id === roomId;
-                      return (
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="text-[11px] font-bold text-[#4A6984]">✈️ 海外旅遊 · Copay Travel ({travelRoomsList.length})</span>
+                      {isPro && (
                         <button
-                          key={r.id}
                           type="button"
                           onClick={() => {
-                            setRoomId(r.id);
-                            setActiveTab("expenses");
+                            setModalSelectedMode("travel");
+                            setModalRoomNameInput("");
+                            setShowCreateRoomModal(true);
                           }}
-                          className={`w-full p-3.5 rounded-2xl border text-left flex justify-between items-center gap-2 transition ${
-                            isCurrent
-                              ? "bg-[#F5E6B8] border-[#7FA8C4] text-[#2C261E] shadow-sm"
-                              : "bg-white/5 border-white/10 text-slate-200 hover:bg-white/10"
-                          }`}
+                          className="text-[10px] text-[#4A6984] underline font-bold whitespace-nowrap"
                         >
-                          <div className="min-w-0">
-                            <div className="font-bold text-sm flex items-center gap-2">
-                              {isCurrent && <span className="shrink-0 w-2 h-2 rounded-full bg-emerald-500"></span>}
-                              <span className="truncate">{r.name}</span>
-                            </div>
-                            <div className="text-[11px] text-slate-300 font-mono mt-0.5">
-                              日常房代碼：#{r.id}
-                            </div>
-                          </div>
-                          <span className="shrink-0 text-xs font-bold px-3 py-1 rounded-full bg-white whitespace-nowrap">
-                            {isCurrent ? "使用中" : "切換"}
-                          </span>
+                          ＋ 新增海外旅遊房
                         </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* 海外旅遊 (Copay Travel) 房間區塊 */}
-                  <div className="space-y-2 pt-2 border-t border-white/10">
-                    <div className="flex justify-between items-center gap-2">
-                      <span className="text-[11px] font-bold text-amber-300">✈️ 海外旅遊 · Copay Travel ({travelRoomsList.length})</span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setModalSelectedMode("travel");
-                          setModalRoomNameInput("");
-                          setShowCreateRoomModal(true);
-                        }}
-                        className="text-[10px] text-amber-300 underline font-bold whitespace-nowrap"
-                      >
-                        ＋ 新增海外旅遊房
-                      </button>
+                      )}
                     </div>
                     {travelRoomsList.length === 0 ? (
-                      <div className="text-[11px] text-slate-400 bg-white/5 p-3 rounded-2xl text-center">
-                        暫時未有海外旅遊房間，撳上面「＋ 新增房間」揀選「海外旅遊 (Copay Travel)」即可建立！
+                      <div className="text-[11px] text-slate-400 bg-[#EEF1F4] p-3 rounded-2xl text-center">
+                        暫時未有海外旅遊房間，撳上面「＋ 建立新房」揀選「海外旅遊」即可建立！
                       </div>
                     ) : (
                       travelRoomsList.map(r => {
                         const isCurrent = r.id === roomId;
                         return (
-                          <button
-                            key={r.id}
-                            type="button"
-                            onClick={() => {
-                              if (!isPro) {
-                                triggerPaywall(
-                                  "Copay Travel 早鳥永久解鎖：$38 (原價 $88)",
-                                  "進入「海外旅遊 (Copay Travel)」房間需要解鎖專業版！趁限時早鳥優惠以 HK$ 38（原價 $88）一次買斷永久解鎖！",
-                                  () => {
-                                    setRoomId(r.id);
-                                    setActiveTab("expenses");
+                          <div key={r.id} className={`w-full p-3.5 rounded-2xl border flex justify-between items-center gap-2 transition ${
+                            isCurrent
+                              ? "bg-[#DFECF2] border-[#7FA8C4] shadow-sm"
+                              : "bg-[#EEF1F4] border-transparent hover:bg-white/60"
+                          }`}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (!isPro) {
+                                  triggerPaywall(
+                                    "Copay Travel 早鳥永久解鎖：$38 (原價 $88)",
+                                    "進入「海外旅遊 (Copay Travel)」房間需要解鎖專業版！趁限時早鳥優惠以 HK$ 38（原價 $88）一次買斷永久解鎖！",
+                                    () => {
+                                      setRoomId(r.id);
+                                      setActiveTab("expenses");
+                                    }
+                                  );
+                                  return;
+                                }
+                                setRoomId(r.id);
+                                setActiveTab("expenses");
+                              }}
+                              className="flex-1 text-left min-w-0 flex items-center gap-2"
+                            >
+                              <div className="min-w-0">
+                                <div className="font-bold text-[#2C261E] text-sm flex items-center gap-2">
+                                  {isCurrent && <span className="shrink-0 w-2 h-2 rounded-full bg-[#376885]"></span>}
+                                  <span className="truncate">✈️ {r.name}</span>
+                                  {r.isSettled && <span className="text-[9px] bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded font-bold shrink-0">🔒唯讀</span>}
+                                </div>
+                                <div className="text-[11px] text-[#636E7B] font-mono mt-0.5">
+                                  旅遊房代碼：#{r.id}
+                                </div>
+                              </div>
+                            </button>
+
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (!isPro) {
+                                    triggerPaywall(
+                                      "Copay Travel 早鳥永久解鎖：$38 (原價 $88)",
+                                      "進入「海外旅遊 (Copay Travel)」房間需要解鎖專業版！趁限時早鳥優惠以 HK$ 38（原價 $88）一次買斷永久解鎖！",
+                                      () => {
+                                        setRoomId(r.id);
+                                        setActiveTab("expenses");
+                                      }
+                                    );
+                                    return;
                                   }
-                                );
-                                return;
-                              }
-                              setRoomId(r.id);
-                              setActiveTab("expenses");
-                            }}
-                            className={`w-full p-3.5 rounded-2xl border text-left flex justify-between items-center gap-2 transition ${
-                              isCurrent
-                                ? "bg-[#F5E6B8] border-[#7FA8C4] text-[#2C261E] shadow-sm"
-                                : "bg-white/5 border-white/10 text-slate-200 hover:bg-white/10"
-                            }`}
-                          >
-                            <div className="min-w-0">
-                              <div className="font-bold text-sm flex items-center gap-2">
-                                {isCurrent && <span className="shrink-0 w-2 h-2 rounded-full bg-[#376885]"></span>}
-                                <span className="truncate">✈️ {r.name}</span>
-                              </div>
-                              <div className="text-[11px] text-slate-300 font-mono mt-0.5">
-                                旅遊房代碼：#{r.id}
-                              </div>
+                                  setRoomId(r.id);
+                                  setActiveTab("expenses");
+                                }}
+                                className="text-xs font-bold px-3 py-1 rounded-full bg-white text-[#376885] shadow-sm"
+                              >
+                                {isCurrent ? "使用中" : "切換"}
+                              </button>
+                              {/* 🗑️ 刪除房間按鈕 (【要求 1】) */}
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteRoom(r.id, r.name)}
+                                className="w-7 h-7 flex items-center justify-center rounded-full bg-[#FDE8E8] text-[#C95252] hover:bg-[#F9D6D6] transition"
+                                title="徹底刪除房間"
+                              >
+                                🗑️
+                              </button>
                             </div>
-                            <span className="shrink-0 text-xs font-bold px-3 py-1 rounded-full bg-white whitespace-nowrap">
-                              {isCurrent ? "使用中" : "切換"}
-                            </span>
-                          </button>
+                          </div>
                         );
                       })
                     )}
                   </div>
+
+                  {/* 日常夾錢 (Copay Lite) 房間區塊 */}
+                  {dailyRoomsList.length > 0 && (
+                    <div className="space-y-2 pt-2 border-t border-[#DCE2E8]">
+                      <div className="text-[11px] font-bold text-[#5C707B]">☕ 日常夾錢 · Copay Lite ({dailyRoomsList.length})</div>
+                      {dailyRoomsList.map(r => {
+                        const isCurrent = r.id === roomId;
+                        return (
+                          <div key={r.id} className={`w-full p-3.5 rounded-2xl border flex justify-between items-center gap-2 transition ${
+                            isCurrent
+                              ? "bg-[#DFECF2] border-[#7FA8C4] shadow-sm"
+                              : "bg-[#EEF1F4] border-transparent hover:bg-white/60"
+                          }`}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setRoomId(r.id);
+                                setActiveTab("expenses");
+                              }}
+                              className="flex-1 text-left min-w-0 flex items-center gap-2"
+                            >
+                              <div className="min-w-0">
+                                <div className="font-bold text-[#2C261E] text-sm flex items-center gap-2">
+                                  {isCurrent && <span className="shrink-0 w-2 h-2 rounded-full bg-[#2E7D65]"></span>}
+                                  <span className="truncate">{r.name}</span>
+                                  {r.isSettled && <span className="text-[9px] bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded font-bold shrink-0">🔒唯讀</span>}
+                                </div>
+                                <div className="text-[11px] text-[#636E7B] font-mono mt-0.5">
+                                  日常房代碼：#{r.id}
+                                </div>
+                              </div>
+                            </button>
+                            
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setRoomId(r.id);
+                                  setActiveTab("expenses");
+                                }}
+                                className="text-xs font-bold px-3 py-1 rounded-full bg-white text-[#2E7D65] shadow-sm"
+                              >
+                                {isCurrent ? "使用中" : "切換"}
+                              </button>
+                              {/* 🗑️ 刪除房間按鈕 (【要求 1】) */}
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteRoom(r.id, r.name)}
+                                className="w-7 h-7 flex items-center justify-center rounded-full bg-[#FDE8E8] text-[#C95252] hover:bg-[#F9D6D6] transition"
+                                title="徹底刪除房間"
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -2589,12 +2894,12 @@
               <div className="space-y-4">
                 <div className="glass-dark p-4 sm:p-5 rounded-3xl space-y-3">
                   <div className="flex justify-between items-center flex-wrap gap-1.5">
-                    <h3 className="font-bold text-white text-sm flex items-center gap-1.5 flex-wrap">
+                    <h3 className="font-bold text-[#26353D] text-sm flex items-center gap-1.5 flex-wrap">
                       <span className="whitespace-nowrap">👑 Copay 產品線與權限狀態</span>
                       {isPro ? (
                         <span className="text-[10px] bg-[#2D3842] text-[#F4D58D] px-2 py-0.5 rounded-full font-black whitespace-nowrap">Copay Travel 已永久解鎖 ✨</span>
                       ) : (
-                        <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-bold whitespace-nowrap">Copay Lite (免費日常版)</span>
+                        <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-bold whitespace-nowrap">Copay Lite (免費首個旅程)</span>
                       )}
                     </h3>
                     {isPro && (
@@ -2606,13 +2911,13 @@
                             setRoomId(dailyRoomsList[0].id);
                           }
                         }}
-                        className="text-[10px] bg-white/10 hover:bg-white/20 text-slate-300 px-2 py-1 rounded-lg whitespace-nowrap"
+                        className="text-[10px] bg-[#EEF1F4] hover:bg-[#DCE2E8] text-[#5C707B] px-2 py-1 rounded-lg whitespace-nowrap"
                       >
-                        🔄 測試切回免費 Lite 版
+                        🔄 測試切回免費版
                       </button>
                     )}
                   </div>
-                  <p className="text-[11px] text-slate-300 leading-relaxed">
+                  <p className="text-[11px] text-[#5C707B] leading-relaxed">
                     • <strong>☕ Copay Lite (免費)</strong>：日常港幣夾錢、飯局買餸平分。<br/>
                     • <strong>✈️ Copay Travel 早鳥永久解鎖：$38 (原價 $88)</strong>：海外旅遊多幣種實時匯率轉換、公數錢包管理、信用卡手續費、進階拆帳，並免費包攬未來 AI 掃描單據自動入帳升級！
                   </p>
@@ -2629,7 +2934,7 @@
                       className="w-full py-3 rounded-2xl teal-pill font-black text-xs shadow-md flex items-center justify-center gap-2"
                     >
                       <span>🔥 Copay Travel 早鳥永久解鎖：$38</span>
-                      <span className="line-through opacity-75 font-normal text-[11px]">(原價 $88)</span>
+                      <span className="line-through opacity-65 font-normal text-[11px]">(原價 $88)</span>
                     </button>
                   )}
                 </div>
@@ -2637,16 +2942,16 @@
                 {/* 參與成員管理 */}
                 <div className="glass-dark p-4 sm:p-5 rounded-3xl space-y-3.5">
                   <div className="flex justify-between items-center border-b border-white/10 pb-2.5">
-                    <h3 className="font-bold text-white text-sm">👥 當前房間成員 ({members.length}人)</h3>
+                    <h3 className="font-bold text-[#26353D] text-sm">👥 當前房間成員 ({members.length}人)</h3>
                   </div>
                   <div className="flex items-center gap-2 w-full">
-                    <input type="text" placeholder="新增成員名字" value={newMemberName} onChange={e => setNewMemberName(e.target.value)} className="flex-1 min-w-0 text-sm bg-white/10 border border-white/15 rounded-2xl px-3.5 py-2.5 text-white placeholder-slate-400 focus:outline-none" />
+                    <input type="text" placeholder="新增成員名字" value={newMemberName} onChange={e => setNewMemberName(e.target.value)} className="flex-1 min-w-0 text-sm bg-[#EEF1F4] border border-[#DCE2E8] rounded-2xl px-3.5 py-2.5 text-[#26353D] placeholder-slate-400 focus:outline-none" />
                     <button onClick={handleAddMember} className="shrink-0 teal-pill text-xs font-bold px-4 py-2.5 rounded-2xl whitespace-nowrap">新增</button>
                   </div>
 
                   {editingMemberName && (
-                    <div className="bg-black/35 p-3 rounded-2xl border border-[#EAE3D5] space-y-2">
-                      <div className="text-[10px] font-bold text-[#9BE0EE]">
+                    <div className="bg-[#F7F4EC] p-3 rounded-2xl border border-[#EAE3D5] space-y-2">
+                      <div className="text-[10px] font-bold text-[#4A6984]">
                         ✏️ 將「{editingMemberName}」改名為（此房間所有單據會自動同步）：
                       </div>
                       <div className="flex items-center gap-2 w-full">
@@ -2667,7 +2972,7 @@
                         <button
                           type="button"
                           onClick={() => setEditingMemberName(null)}
-                          className="shrink-0 bg-white border border-[#EAE3D5] text-xs font-bold px-2.5 py-2 rounded-xl"
+                          className="shrink-0 bg-white border border-[#EAE3D5] text-[#5C707B] text-xs font-bold px-2.5 py-2 rounded-xl"
                         >
                           取消
                         </button>
@@ -2677,7 +2982,7 @@
 
                   <div className="flex flex-wrap gap-2 pt-1">
                     {members.map(m => (
-                      <span key={m} className="bg-white/10 border border-white/15 text-white text-xs px-3 py-1.5 rounded-xl font-medium flex items-center gap-2">
+                      <span key={m} className="bg-[#EEF1F4] border border-[#DCE2E8] text-[#26353D] text-xs px-3 py-1.5 rounded-xl font-medium flex items-center gap-2">
                         <span>{m}</span>
                         <button
                           type="button"
@@ -2686,7 +2991,7 @@
                             setTempMemberNewName(m);
                           }}
                           title="修改名字"
-                          className="text-[11px] bg-white hover:bg-[#F5E6B8] px-1.5 py-0.5 rounded text-[#9BE0EE] leading-none border border-[#EAE3D5]"
+                          className="text-[11px] bg-white hover:bg-[#DFECF2] px-1.5 py-0.5 rounded text-[#4A6984] leading-none border border-[#DCE2E8]"
                         >
                           ✏️
                         </button>
@@ -2695,7 +3000,7 @@
                             type="button"
                             onClick={() => handleRemoveMember(m)}
                             title="刪除成員"
-                            className="text-slate-300 hover:text-rose-500 font-bold text-sm leading-none ml-0.5"
+                            className="text-slate-400 hover:text-rose-500 font-bold text-sm leading-none ml-0.5"
                           >
                             ×
                           </button>
@@ -2708,8 +3013,8 @@
                 {/* 活動類別設定 */}
                 <div className="glass-dark p-4 sm:p-5 rounded-3xl space-y-3.5">
                   <div className="flex justify-between items-center border-b border-white/10 pb-2.5">
-                    <h3 className="font-bold text-white text-sm">🏷️ 活動類別設定</h3>
-                    <span className="text-[10px] text-slate-300">共 {activeCategories.length} 個類別</span>
+                    <h3 className="font-bold text-[#26353D] text-sm">🏷️ 活動類別設定</h3>
+                    <span className="text-[10px] text-slate-400">共 {activeCategories.length} 個類別</span>
                   </div>
                   <form onSubmit={handleAddCategory} className="flex items-center gap-2 w-full">
                     <input
@@ -2717,7 +3022,7 @@
                       placeholder="輸入新活動類別 (如：🎾 網球 / 🏨 酒店)"
                       value={newCategoryInput}
                       onChange={e => setNewCategoryInput(e.target.value)}
-                      className="flex-1 min-w-0 text-xs bg-white/10 border border-white/15 rounded-2xl px-3.5 py-2.5 text-white placeholder-slate-400 focus:outline-none"
+                      className="flex-1 min-w-0 text-xs bg-[#EEF1F4] border border-[#DCE2E8] rounded-2xl px-3.5 py-2.5 text-[#26353D] placeholder-slate-400 focus:outline-none"
                     />
                     <button type="submit" className="shrink-0 teal-pill text-xs font-bold px-3.5 py-2.5 rounded-2xl whitespace-nowrap">
                       ＋ 新增
@@ -2725,12 +3030,12 @@
                   </form>
                   <div className="flex flex-wrap gap-2 pt-1">
                     {activeCategories.map(cat => (
-                      <span key={cat} className="bg-white/10 border border-white/15 text-white text-xs px-3 py-1.5 rounded-xl font-medium flex items-center gap-2">
+                      <span key={cat} className="bg-[#EEF1F4] border border-[#DCE2E8] text-[#26353D] text-xs px-3 py-1.5 rounded-xl font-medium flex items-center gap-2">
                         <span>{cat}</span>
                         <button
                           type="button"
                           onClick={() => handleDeleteCategory(cat)}
-                          className="text-slate-300 hover:text-rose-500 font-bold text-sm leading-none"
+                          className="text-slate-400 hover:text-rose-500 font-bold text-sm leading-none"
                         >
                           ×
                         </button>
@@ -2745,10 +3050,10 @@
                     <div className="glass-dark p-4 sm:p-5 rounded-3xl space-y-2.5">
                       <div className="flex justify-between items-center gap-2">
                         <div className="min-w-0">
-                          <h3 className="font-bold text-amber-300 text-sm">💳 信用卡海外簽帳手續費 (%)</h3>
-                          <p className="text-[10px] text-slate-300 mt-0.5">記帳時勾選信用卡海外簽帳，將自動加上此百分比</p>
+                          <h3 className="font-bold text-[#C46D3B] text-sm">💳 信用卡海外簽帳手續費 (%)</h3>
+                          <p className="text-[10px] text-[#5C707B] mt-0.5">記帳時勾選信用卡海外簽帳，將自動加上此百分比</p>
                         </div>
-                        <div className="shrink-0 flex items-center gap-1 bg-[#F7F4EC] px-3 py-1.5 rounded-2xl border border-[#7FA8C4]">
+                        <div className="shrink-0 flex items-center gap-1 bg-white px-3 py-1.5 rounded-2xl border border-[#DCE2E8]">
                           <input
                             type="number"
                             inputMode="decimal"
@@ -2756,9 +3061,9 @@
                             step="0.05"
                             value={cardFeePercent}
                             onChange={e => handleCardFeePercentChange(e.target.value)}
-                            className="w-14 text-right bg-transparent font-mono font-black text-sm text-amber-300 focus:outline-none"
+                            className="w-14 text-right bg-transparent font-mono font-black text-sm text-[#C46D3B] focus:outline-none"
                           />
-                          <span className="text-xs font-bold text-amber-300">%</span>
+                          <span className="text-xs font-bold text-[#C46D3B]">%</span>
                         </div>
                       </div>
                     </div>
@@ -2766,9 +3071,9 @@
                     <div className="glass-dark p-4 sm:p-5 rounded-3xl space-y-3.5">
                       <div className="flex justify-between items-center border-b border-white/10 pb-2.5 gap-2">
                         <div className="min-w-0">
-                          <h3 className="font-bold text-amber-300 text-sm">💱 Copay Travel 唱錢匯率鎖定 (兌 HKD)</h3>
-                          <p className="text-[10px] text-slate-300 mt-0.5">
-                            點選貨幣名稱即可設為<strong>記帳預設貨幣</strong>（目前預設：<span className="text-amber-300 font-bold">{currency}</span>）
+                          <h3 className="font-bold text-[#C46D3B] text-sm">💱 Copay Travel 唱錢匯率鎖定 (兌 HKD)</h3>
+                          <p className="text-[10px] text-[#5C707B] mt-0.5">
+                            點選貨幣名稱即可設為<strong>記帳預設貨幣</strong>（目前預設：<span className="text-[#C46D3B] font-bold">{currency}</span>）
                           </p>
                         </div>
                         <button
@@ -2779,10 +3084,10 @@
                           🔄 刷新即時匯率
                         </button>
                       </div>
-                      <form onSubmit={handleAddCustomCurrency} className="flex items-center gap-2 bg-white/5 p-2 rounded-2xl w-full">
-                        <input type="text" maxLength="3" placeholder="代號(NZD)" value={newCurCode} onChange={e => setNewCurCode(e.target.value.toUpperCase())} className="w-20 shrink-0 text-xs bg-white rounded-xl px-2 py-2 font-mono uppercase text-center text-white placeholder-slate-400 border border-[#EAE3D5] focus:outline-none" />
-                        <input type="number" inputMode="decimal" pattern="[0-9]*" step="any" placeholder="兌港幣匯率" value={newCurRate} onChange={e => setNewCurRate(e.target.value)} className="flex-1 min-w-0 text-xs bg-white rounded-xl px-2.5 py-2 text-white placeholder-slate-400 border border-[#EAE3D5] focus:outline-none" />
-                        <button type="submit" className="shrink-0 teal-pill text-xs font-black px-3 py-2 rounded-xl whitespace-nowrap">＋加入</button>
+                      <form onSubmit={handleAddCustomCurrency} className="flex items-center gap-2 bg-[#EEF1F4] p-2 rounded-2xl w-full">
+                        <input type="text" maxLength="3" placeholder="代號(NZD)" value={newCurCode} onChange={e => setNewCurCode(e.target.value.toUpperCase())} className="w-20 shrink-0 text-xs bg-white rounded-xl px-2 py-2 font-mono uppercase text-center text-[#26353D] placeholder-slate-400 border border-[#DCE2E8] focus:outline-none" />
+                        <input type="number" inputMode="decimal" pattern="[0-9]*" step="any" placeholder="兌港幣匯率" value={newCurRate} onChange={e => setNewCurRate(e.target.value)} className="flex-1 min-w-0 text-xs bg-white rounded-xl px-2.5 py-2 text-[#26353D] placeholder-slate-400 border border-[#DCE2E8] focus:outline-none" />
+                        <button type="submit" className="shrink-0 gold-pill text-xs font-black px-3 py-2 rounded-xl whitespace-nowrap">＋加入</button>
                       </form>
                       <div className="grid grid-cols-2 gap-2 pt-1">
                         {sortedCurrencyKeys.filter(c => c !== "HKD").map(cur => {
@@ -2793,12 +3098,12 @@
                               onClick={() => handleSelectDefaultCurrency(cur)}
                               className={`flex justify-between items-center gap-1 p-2 sm:p-2.5 rounded-2xl border cursor-pointer transition min-w-0 ${
                                 isDefaultCur
-                                  ? "bg-[#F5E6B8] border-[#7FA8C4] shadow-sm"
-                                  : "bg-white/5 border-white/10 hover:bg-white/10"
+                                  ? "bg-[#DFECF2] border-[#7FA8C4] shadow-sm"
+                                  : "bg-[#EEF1F4] border-transparent hover:bg-white/60"
                               }`}
                             >
                               <div className="flex items-center gap-1 pl-0.5 min-w-0">
-                                <span className={`font-black text-xs ${isDefaultCur ? "text-[#2C261E]" : "text-slate-200"}`}>
+                                <span className={`font-black text-xs ${isDefaultCur ? "text-[#26353D]" : "text-slate-400"}`}>
                                   {cur}
                                 </span>
                                 {isDefaultCur && (
@@ -2813,9 +3118,10 @@
                                 pattern="[0-9]*"
                                 step="0.0001"
                                 value={rates[cur]}
+                                disabled={cur === "HKD"}
                                 onClick={e => e.stopPropagation()}
                                 onChange={e => handleRateChange(cur, e.target.value)}
-                                className="w-16 sm:w-20 shrink-0 text-right bg-white rounded-lg px-1.5 py-1 font-mono font-bold text-[11px] sm:text-xs text-[#2C261E] border border-[#EAE3D5] focus:outline-none focus:ring-1 focus:ring-[#4B7B99]"
+                                className="w-16 sm:w-20 shrink-0 text-right bg-white rounded-lg px-1.5 py-1 font-mono font-bold text-[11px] sm:text-xs text-[#26353D] border border-[#DCE2E8] focus:outline-none focus:ring-1 focus:ring-[#4B7B99]"
                               />
                             </div>
                           );
@@ -2828,8 +3134,8 @@
             )}
           </div>
 
-          {/* 底部 4 格磨砂白圓角方形導航欄 */}
-          <div className="fixed bottom-0 left-0 right-0 max-w-md w-full mx-auto px-3 sm:px-5 pt-2 safe-bottom-dock z-40">
+          {/* 底部 4 格溫暖白/奶油黃圓角方形導航欄 */}
+          <div className="fixed bottom-0 left-0 right-0 max-w-md w-full mx-auto px-3 sm:px-5 pt-2 safe-bottom-dock z-40 bg-gradient-to-t from-[#F4EFE6] via-[#F4EFE6]/95 to-transparent">
             <div className="grid grid-cols-4 gap-2">
               <button
                 onClick={() => setActiveTab("expenses")}
@@ -2881,113 +3187,51 @@
             </div>
           </div>
 
-          {/* ================================================================= */}
-          {/* 🏠 點擊首頁「＋ 新增房間」跳出兩個卡片選項 */}
-          {/* ================================================================= */}
-          {showCreateRoomModal && (
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          {/* ✈️ 建立全新獨立 TripTab 旅遊房間彈窗 */}
+          {showNewTravelRoomModal && (
+            <div className="fixed inset-0 bg-black/45 backdrop-blur-sm z-50 flex items-center justify-center p-4">
               <div className="glass-dark max-w-sm w-full rounded-[2rem] p-5 sm:p-6 shadow-2xl space-y-4">
                 <div className="flex justify-between items-start gap-2">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <BrandLogo isTravel={modalSelectedMode === "travel"} size="w-10 h-10" />
+                    <BrandLogo isTravel={true} size="w-10 h-10" />
                     <div className="min-w-0">
-                      <h3 className="font-black text-base text-[#26353D] truncate">＋ 新增 Copay 房間</h3>
-                      <p className="text-[11px] text-[#5C707B]">請選擇房間場景（日常與旅遊帳目獨立分開）</p>
+                      <h3 className="font-black text-base text-[#C46D3B] truncate">✈️ 開立獨立 TripTab 旅遊房</h3>
+                      <p className="text-[11px] text-[#636E7B]">與日常房間完全分開，自動分配新 6 位代碼</p>
                     </div>
                   </div>
-                  <button onClick={() => setShowCreateRoomModal(false)} className="shrink-0 text-[#8799A3] hover:text-[#26353D] text-xl font-bold leading-none">×</button>
+                  <button onClick={() => setShowNewTravelRoomModal(false)} className="shrink-0 text-slate-400 hover:text-[#26353D] text-xl font-bold leading-none">×</button>
                 </div>
 
-                <div className="space-y-2.5">
-                  <div
-                    onClick={() => setModalSelectedMode("daily")}
-                    className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
-                      modalSelectedMode === "daily"
-                        ? "bg-[#DFECF2] border-[#4B7B99] shadow-sm"
-                        : "bg-[#ECF2F5] border-transparent opacity-80 hover:opacity-100"
-                    }`}
-                  >
-                    <div className="flex justify-between items-center mb-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-base">☕</span>
-                        <span className="font-black text-sm text-[#26353D]">日常夾錢 (Copay Lite)</span>
-                      </div>
-                      <span className="text-[10px] bg-emerald-100 text-emerald-700 font-black px-2.5 py-0.5 rounded-full">
-                        免費 Free
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-[#5C707B] pl-6">
-                      純港幣 HK$ 記帳 · 適合朋友食飯、買餸、夾租、唱K打波極速平分
-                    </p>
-                  </div>
+                <p className="text-xs text-[#26353D] leading-relaxed bg-[#EEF1F4] p-3 rounded-2xl border border-[#DCE2E8]">
+                  💡 為避免日常開支同旅行開支混亂，每次去旅行都會為你建立一個<strong>全新獨立嘅旅遊專屬房間</strong>（付費用戶可無限開房）！
+                </p>
 
-                  <div
-                    onClick={() => setModalSelectedMode("travel")}
-                    className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
-                      modalSelectedMode === "travel"
-                        ? "bg-[#DFECF2] border-[#2D3842] shadow-sm"
-                        : "bg-[#ECF2F5] border-transparent opacity-85 hover:opacity-100"
-                    }`}
-                  >
-                    <div className="flex justify-between items-center gap-1 mb-1.5 flex-wrap">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-base">✈️</span>
-                        <span className="font-black text-sm text-[#26353D]">海外旅遊 (Copay Travel)</span>
-                      </div>
-                      {isPro ? (
-                        <span className="text-[10px] bg-[#2D3842] text-[#F4D58D] font-black px-2.5 py-0.5 rounded-full">
-                          PRO 已永久解鎖 ✨
-                        </span>
-                      ) : (
-                        <div className="flex items-center gap-1">
-                          <span className="text-[10px] text-[#8799A3] line-through font-semibold">原價 $88</span>
-                          <span className="text-[10px] bg-[#2D3842] text-[#F4D58D] font-black px-2 py-0.5 rounded-full">
-                            🔥 早鳥 $38
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="pl-6 space-y-1 text-[11px] text-[#4A6473]">
-                      <div>• 💱 <strong>15 國旅遊外幣實時匯率轉換</strong> + 鎖定唱錢匯率</div>
-                      <div>• 🏦 <strong>公數錢包 (Common Pool)</strong> 防超支與結餘退算</div>
-                      <div>• ⚖️ <strong>進階不等額拆帳</strong> + 一鍵匯出 CSV 試算表</div>
-                      <div>• 🤖 <strong>免費包攬未來 AI 掃描單據自動入帳升級</strong></div>
-                    </div>
-                  </div>
-                </div>
-
-                <form onSubmit={handleModalCreateRoomSubmit} className="space-y-3 pt-1">
+                <form onSubmit={handleConfirmCreateTravelRoom} className="space-y-3">
                   <div>
-                    <label className="block text-[10px] text-[#5C707B] font-bold mb-1 ml-1">
-                      {modalSelectedMode === "travel" ? "✈️ 輸入海外旅程名稱：" : "☕ 輸入日常聚會/房間名稱："}
-                    </label>
+                    <label className="block text-[10px] text-[#636E7B] font-bold mb-1">輸入今次旅行房間名稱：</label>
                     <input
                       type="text"
-                      placeholder={modalSelectedMode === "travel" ? "例如：東京之旅 / 沖繩自駕遊" : "例如：11月飯局 / 星期五打邊爐"}
-                      value={modalRoomNameInput}
-                      onChange={e => setModalRoomNameInput(e.target.value)}
+                      placeholder="例如：沖繩自駕遊 2027"
+                      value={newTravelRoomTitle}
+                      onChange={e => setNewTravelRoomTitle(e.target.value)}
                       autoFocus
-                      className="w-full min-w-0 text-sm bg-[#ECF2F5] text-[#26353D] font-extrabold px-4 py-3 rounded-2xl border border-[#D5E2E8] focus:outline-none focus:ring-2 focus:ring-[#4B7B99]"
+                      className="w-full min-w-0 text-sm bg-white text-[#26353D] font-extrabold px-4 py-3 rounded-2xl border border-[#DCE2E8] focus:outline-none"
                       required
                     />
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 pt-1">
                     <button
                       type="button"
-                      onClick={() => setShowCreateRoomModal(false)}
-                      className="flex-1 py-3 rounded-2xl bg-[#ECF2F5] text-[#5C707B] text-xs font-bold"
+                      onClick={() => setShowNewTravelRoomModal(false)}
+                      className="flex-1 py-3 rounded-2xl bg-[#EEF1F4] text-[#636E7B] text-xs font-bold"
                     >
                       取消
                     </button>
                     <button
                       type="submit"
-                      className={`flex-1 py-3 rounded-2xl text-xs font-black shadow-md ${
-                        modalSelectedMode === "travel" ? "gold-pill" : "teal-pill"
-                      }`}
+                      className="flex-1 py-3 rounded-2xl teal-pill text-xs font-black shadow-lg"
                     >
-                      {modalSelectedMode === "travel"
-                        ? (isPro ? "✈️ 立即建立旅遊房" : "🔥 早鳥 $38 解鎖 (原價$88)")
-                        : "☕ 免費建立日常房"}
+                      🚀 立即建立旅遊房
                     </button>
                   </div>
                 </form>
@@ -2995,140 +3239,7 @@
             </div>
           )}
 
-          {/* 🏦 公數錢包管理彈窗 */}
-          {showPoolModal && (
-            <div className="fixed inset-0 bg-black/45 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-              <div className="glass-dark max-w-sm w-full rounded-[2rem] p-5 sm:p-6 shadow-2xl space-y-4">
-                <div className="flex justify-between items-start gap-2">
-                  <div>
-                    <h3 className="font-black text-base text-amber-300">🏦 公數錢包管理 (Common Pool)</h3>
-                    <p className="text-[11px] text-slate-300 mt-0.5">
-                      系統已啟用防超支保護：公數消費絕不能多於可用餘額
-                    </p>
-                  </div>
-                  <button onClick={() => setShowPoolModal(false)} className="shrink-0 text-slate-300 hover:text-white text-xl font-bold leading-none">×</button>
-                </div>
-
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-3.5 grid grid-cols-3 gap-2 text-center">
-                  <div>
-                    <div className="text-[10px] text-slate-300">總注資 (HK$)</div>
-                    <div className="font-black text-sm text-white">{Math.round(poolStats.totalContributedHKD).toLocaleString()}</div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] text-slate-300">已消費 (HK$)</div>
-                    <div className="font-black text-sm text-amber-300">{Math.round(poolStats.totalSpentFromPoolHKD).toLocaleString()}</div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] text-slate-300">可用餘額 (HK$)</div>
-                    <div className="font-black text-sm text-emerald-300">{poolStats.remainingPoolHKD.toLocaleString()}</div>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] text-slate-300 font-bold mb-1">📅 公數注資 / 建立日期 (DD/MM/YYYY)</label>
-                  <div className="relative ios-uniform-field w-full bg-[#F7F4EC] border border-[#EAE3D5] px-3.5 flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#2C261E]">
-                      {formatDateUK(poolDate)}
-                    </span>
-                    <span className="text-xs opacity-65">📅</span>
-                    <input
-                      type="date"
-                      value={poolDate}
-                      onChange={e => handlePoolDateChange(e.target.value)}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    />
-                  </div>
-                </div>
-
-                <form onSubmit={handleBatchTopUpPool} className="space-y-1.5">
-                  <label className="block text-[10px] text-slate-300 font-bold">⚡ 全體成員每人一鍵加碼夾公數 (HKD)</label>
-                  <div className="flex items-center gap-2 w-full">
-                    <input
-                      type="number"
-                      inputMode="decimal"
-                      pattern="[0-9]*"
-                      step="any"
-                      placeholder="例如每人夾 1000"
-                      value={poolTopUpAmount}
-                      onChange={e => setPoolTopUpAmount(e.target.value)}
-                      className="flex-1 min-w-0 text-xs bg-white/10 border border-white/15 rounded-xl px-3 py-2.5 text-white font-bold focus:outline-none"
-                    />
-                    <button type="submit" className="shrink-0 teal-pill text-xs font-black px-3.5 py-2.5 rounded-xl whitespace-nowrap">
-                      ＋ 每人加碼
-                    </button>
-                  </div>
-                </form>
-
-                <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
-                  <div className="text-[10px] text-slate-300 font-bold">各成員累計已夾公數金額 (HKD)：</div>
-                  {members.map(m => (
-                    <div key={m} className="flex justify-between items-center bg-white/5 px-3 py-2 rounded-xl border border-white/10 gap-2">
-                      <span className="text-xs font-bold text-white truncate">{m}</span>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <span className="text-[10px] text-slate-400">HK$</span>
-                        <input
-                          type="number"
-                          inputMode="decimal"
-                          pattern="[0-9]*"
-                          step="any"
-                          value={poolContributions[m] || 0}
-                          onChange={e => handleMemberPoolChange(m, e.target.value)}
-                          className="w-24 text-right bg-white rounded-lg px-2 py-1 font-mono font-bold text-xs text-amber-300 border border-[#EAE3D5] focus:outline-none"
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setShowPoolModal(false)}
-                  className="w-full py-2.5 rounded-2xl teal-pill text-xs font-bold"
-                >
-                  完成並返回記帳
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* 刪除單據雙重確認彈窗 */}
-          {deleteConfirmExp && (
-            <div className="fixed inset-0 bg-black/45 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-              <div className="glass-dark max-w-xs w-full rounded-3xl p-6 text-center space-y-4">
-                <div className="w-12 h-12 rounded-full bg-rose-50 border border-rose-200 flex items-center justify-center mx-auto text-2xl">
-                  🗑️
-                </div>
-                <div className="space-y-1">
-                  <h3 className="font-black text-base text-white">確定要刪除呢筆單據？</h3>
-                  <p className="text-xs text-slate-300">
-                    「<span className="font-bold text-amber-300">{deleteConfirmExp.title}</span>」
-                    ({(!deleteConfirmExp.currency || deleteConfirmExp.currency === "HKD") ? "HK$" : deleteConfirmExp.currency} {Number(deleteConfirmExp.amount).toLocaleString()})
-                  </p>
-                  <p className="text-[11px] text-slate-400">刪除後所有成員嘅夾錢結算會即時重新計算。</p>
-                </div>
-                <div className="flex gap-2.5 pt-1">
-                  <button
-                    type="button"
-                    onClick={() => setDeleteConfirmExp(null)}
-                    className="flex-1 py-2.5 rounded-2xl bg-[#F7F4EC] text-[#7D7465] text-xs font-bold transition"
-                  >
-                    取消
-                  </button>
-                  <button
-                    type="button"
-                    onClick={confirmDeleteExpense}
-                    className="flex-1 py-2.5 rounded-2xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold shadow-lg transition"
-                  >
-                    確定刪除
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ================================================================= */}
           {/* 👑 【早鳥優惠 (Early Bird) 包裝收費牆】「Copay Travel 早鳥永久解鎖：$38 (原價 $88)」 */}
-          {/* ================================================================= */}
           {showPaywall && (
             <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
               <div className="glass-dark max-w-sm w-full rounded-[2rem] p-5 sm:p-6 shadow-2xl space-y-4">
@@ -3139,24 +3250,24 @@
                       <span className="inline-block text-[10px] font-black uppercase tracking-wider bg-rose-100 text-rose-600 px-2 py-0.5 rounded-full mb-1">
                         🔥 限時 43 折早鳥優惠 (Early Bird)
                       </span>
-                      <h2 className="font-black text-sm sm:text-base text-white leading-snug">
+                      <h2 className="font-black text-sm sm:text-base text-[#26353D] leading-snug">
                         {paywallTriggerTitle}
                       </h2>
                     </div>
                   </div>
-                  <button onClick={() => setShowPaywall(false)} className="shrink-0 text-slate-300 hover:text-white text-xl font-bold leading-none">×</button>
+                  <button onClick={() => setShowPaywall(false)} className="shrink-0 text-slate-400 hover:text-[#26353D] text-xl font-bold leading-none">×</button>
                 </div>
 
-                <div className="bg-[#FDF8EA] border border-[#7FA8C4] p-3.5 rounded-2xl text-xs text-[#376885] leading-relaxed font-medium">
+                <div className="bg-[#FDF8EA] border border-[#E8CD7D] p-3.5 rounded-2xl text-xs text-[#8C6715] leading-relaxed font-medium">
                   {paywallMsg}
                 </div>
 
-                <div className="space-y-2 text-xs text-slate-200 bg-white/5 p-3.5 rounded-2xl border border-white/10">
+                <div className="space-y-2 text-xs text-[#26353D] bg-[#EEF1F4] p-3.5 rounded-2xl border border-[#DCE2E8]">
                   <div className="flex items-center gap-2"><span>✈️</span> <strong>無限建立海外旅遊房間 (Copay Travel)</strong></div>
                   <div className="flex items-center gap-2"><span>💱</span> <strong>15 國旅遊外幣實時匯率轉換</strong> + 鎖定唱錢匯率</div>
                   <div className="flex items-center gap-2"><span>🏦</span> <strong>公數錢包管理 (防超支保護)</strong> + 信用卡手續費</div>
                   <div className="flex items-center gap-2"><span>⚖️</span> <strong>進階不等額拆帳邏輯</strong> + 一鍵匯出 CSV 試算表</div>
-                  <div className="flex items-center gap-2 text-[#B5851D]"><span>🤖</span> <strong>免費包攬未來「AI 掃描單據自動入帳」升級</strong></div>
+                  <div className="flex items-center gap-2 text-[#C46D3B]"><span>🤖</span> <strong>免費包攬未來「AI 掃描單據自動入帳」升級</strong></div>
                 </div>
 
                 <button
@@ -3164,7 +3275,7 @@
                   onClick={handleSimulatePurchase}
                   className="w-full p-4 rounded-2xl gold-pill text-center transition shadow-lg active:scale-98 space-y-1"
                 >
-                  <div className="text-[11px] font-black uppercase tracking-wider text-white/90">
+                  <div className="text-[11px] font-black uppercase tracking-wider text-[#F0BFA0]">
                     ⚡ 趁加價前鎖定終身權限 · 一次買斷免月費
                   </div>
                   <div className="text-base sm:text-lg font-black flex items-center justify-center gap-2">
@@ -3173,15 +3284,15 @@
                   </div>
                 </button>
 
-                <form onSubmit={handleUnlockWithCode} className="pt-2 border-t border-white/10">
-                  <label className="block text-[10px] text-slate-300 font-bold mb-1">已有早鳥 VIP 解鎖碼？（測試碼：COPAY2026 或 COPAYPRO）</label>
+                <form onSubmit={handleUnlockWithCode} className="pt-2 border-t border-[#EAE3D5]">
+                  <label className="block text-[10px] text-slate-400 font-bold mb-1">已有早鳥 VIP 解鎖碼？（測試碼：COPAY2026 或 COPAYPRO）</label>
                   <div className="flex items-center gap-2 w-full">
                     <input
                       type="text"
                       placeholder="輸入解鎖碼"
                       value={vipInput}
                       onChange={e => setVipInput(e.target.value)}
-                      className="flex-1 min-w-0 text-xs bg-white/10 border border-white/15 rounded-xl px-3 py-2 font-mono uppercase text-white focus:outline-none"
+                      className="flex-1 min-w-0 text-xs bg-[#EEF1F4] border border-[#DCE2E8] rounded-xl px-3 py-2 font-mono uppercase text-[#26353D] focus:outline-none"
                     />
                     <button type="submit" className="shrink-0 teal-pill text-xs font-black px-4 py-2 rounded-xl whitespace-nowrap">
                       兌換
