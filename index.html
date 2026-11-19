@@ -14,6 +14,7 @@
   <link id="dynamic-favicon" rel="icon" type="image/png" href="Copay.png" />
   <link id="dynamic-apple-icon" rel="apple-touch-icon" sizes="180x180" href="Copay.png" />
 
+  <!-- 桌面圖示安全備援腳本 (加強版防護) -->
   <script>
     (function setupAppIcons() {
       function drawFallbackIcon() {
@@ -116,7 +117,9 @@
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
 
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
     html, body {
       -webkit-tap-highlight-color: transparent;
       user-select: none;
@@ -296,12 +299,11 @@
 <body class="antialiased min-h-screen font-sans text-[#2D3640]">
   <div id="root"></div>
 
-  <!-- 全局錯誤捕捉，防止白畫面 -->
   <script>
     window.addEventListener('error', function(event) {
       console.error("Global Error Caught: ", event.error);
       if (document.getElementById('root').innerHTML === '') {
-        document.getElementById('root').innerHTML = '<div style="padding: 20px; color: #D94E4E; text-align: center; font-family: sans-serif; margin-top: 50px;">載入發生錯誤，請嘗試重新整理頁面。</div>';
+        document.getElementById('root').innerHTML = '<div style="padding: 30px; color: #D94E4E; text-align: center; font-family: sans-serif; margin-top: 50px; line-height: 1.6;"><b>載入發生錯誤 ⚠️</b><br/>系統偵測到瀏覽器環境不兼容或連線中斷。<br/>請嘗試<a href="javascript:window.location.reload(true)" style="text-decoration:underline; font-weight:bold;">點擊此處重新整理頁面</a>。</div>';
       }
     });
   </script>
@@ -309,18 +311,27 @@
   <script type="text/babel">
     const { useState, useEffect, useMemo } = React;
 
-    // 初始化 Firebase
-    const firebaseConfig = {
-      databaseURL: "https://travel-split-app-78a36-default-rtdb.asia-southeast1.firebasedatabase.app/"
-    };
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
+    // 確保 Firebase 在網路不穩時不會報錯死機
+    let db = null;
+    try {
+      const firebaseConfig = {
+        databaseURL: "https://travel-split-app-78a36-default-rtdb.asia-southeast1.firebasedatabase.app/"
+      };
+      if (typeof firebase !== 'undefined') {
+        if (!firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+        }
+        db = firebase.database();
+      }
+    } catch (e) {
+      console.error("Firebase init error:", e);
     }
-    const db = firebase.database();
 
     const POOL_PAYER_KEY = "🏦 公數錢包";
+    const FREE_ROOM_QUOTA = 1;
+    const VALID_VIP_CODES = ["COPAY2026", "COPAYPRO", "VIP888", "TRAVELPRO"];
+    const SIXTY_DAYS_MS = 60 * 24 * 60 * 60 * 1000;
 
-    // 格式化日期 DD/MM/YYYY
     const formatDateUK = (isoDateStr) => {
       if (!isoDateStr || typeof isoDateStr !== "string") return "";
       const parts = isoDateStr.split("-");
@@ -333,15 +344,9 @@
     };
 
     const CHART_COLORS = ["#5A7D9A", "#E59F71", "#6C8C74", "#8D7B68", "#A48094", "#709793", "#D48C70"];
-
     const DEFAULT_MEMBERS = ["我", "Alex", "Chloe", "Sam"];
     const DEFAULT_CATEGORIES_DAILY = ["🍱 食飯", "🚕 車費", "📦 團購"];
     const DEFAULT_CATEGORIES_TRAVEL = ["🍱 食飯", "🚕 車費", "📦 團購"];
-
-    const VALID_VIP_CODES = ["COPAY2026", "COPAYPRO", "VIP888", "TRAVELPRO"];
-    const FREE_ROOM_QUOTA = 1;
-    // 60 日閒置過期設定
-    const SIXTY_DAYS_MS = 60 * 24 * 60 * 60 * 1000;
 
     const generateRandomRoomId = () => {
       const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -356,6 +361,7 @@
       return (raw || "").trim().toUpperCase().replace(/[.#$\[\]\/\s]/g, "");
     };
 
+    // 安全讀取 LocalStorage (防止 Safari Private Mode 死機)
     const getStoredRooms = () => {
       try {
         const saved = JSON.parse(localStorage.getItem("copay_brand_rooms_v5"));
@@ -366,17 +372,23 @@
               : { id: item.id, name: item.name, mode: item.mode === "travel" || item.mode === "triptab" ? "travel" : "daily", isSettled: !!item.isSettled }
           );
         }
-      } catch (e) {}
+      } catch (e) {
+        console.warn("localStorage read blocked");
+      }
       const firstId = generateRandomRoomId();
       const initial = [{ id: firstId, name: "首個旅程夾錢 ✈️", mode: "travel", isSettled: false }];
-      localStorage.setItem("copay_brand_rooms_v5", JSON.stringify(initial));
+      try {
+        localStorage.setItem("copay_brand_rooms_v5", JSON.stringify(initial));
+      } catch(e) {}
       return initial;
     };
 
     const getInitialRoomId = () => {
-      const params = new URLSearchParams(window.location.search);
-      const urlRoom = params.get("room");
-      if (urlRoom) return sanitizeRoomId(urlRoom);
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const urlRoom = params.get("room");
+        if (urlRoom) return sanitizeRoomId(urlRoom);
+      } catch(e) {}
       const rooms = getStoredRooms();
       return rooms[0].id;
     };
@@ -433,7 +445,13 @@
     // 主應用程序
     function App() {
       const [myRooms, setMyRooms] = useState(getStoredRooms);
-      const [isPro, setIsPro] = useState(() => localStorage.getItem("copay_pro_v5_unlocked") === "true");
+      const [isPro, setIsPro] = useState(() => {
+        try {
+          return localStorage.getItem("copay_pro_v5_unlocked") === "true";
+        } catch(e) {
+          return false;
+        }
+      });
       
       const [showPaywall, setShowPaywall] = useState(false);
       const [pendingAction, setPendingAction] = useState(null);
@@ -509,7 +527,6 @@
       const isTravelMode = roomMode === "travel";
       const isReadOnly = isRoomSettled && !isPro;
 
-      // 防崩潰保護：確保 myRooms 陣列正常
       const safeRooms = Array.isArray(myRooms) ? myRooms : [];
       const dailyRoomsList = useMemo(() => safeRooms.filter(r => r && r.mode === "daily"), [safeRooms]);
       const travelRoomsList = useMemo(() => safeRooms.filter(r => r && r.mode !== "daily"), [safeRooms]);
@@ -533,11 +550,15 @@
       }, [activeCategories, isTravelMode]);
 
       useEffect(() => {
-        localStorage.setItem("copay_brand_rooms_v5", JSON.stringify(safeRooms));
+        try {
+          localStorage.setItem("copay_brand_rooms_v5", JSON.stringify(safeRooms));
+        } catch(e) {}
       }, [safeRooms]);
 
       useEffect(() => {
-        localStorage.setItem("copay_pro_v5_unlocked", isPro ? "true" : "false");
+        try {
+          localStorage.setItem("copay_pro_v5_unlocked", isPro ? "true" : "false");
+        } catch(e) {}
       }, [isPro]);
 
       useEffect(() => {
@@ -594,10 +615,14 @@
       };
 
       const markRoomUpdated = () => {
-        db.ref(`billmate_rooms/${roomId}/updatedAt`).set(Date.now());
+        if (db) db.ref(`billmate_rooms/${roomId}/updatedAt`).set(Date.now());
       };
 
       useEffect(() => {
+        if (!db) {
+          setSyncStatus("error");
+          return;
+        }
         setSyncStatus("connecting");
         setIsEditingGroupName(false);
         setEditingExpId(null);
@@ -611,16 +636,17 @@
         setReportMonth("ALL");
         setReportDay("ALL");
 
-        const url = new URL(window.location);
-        url.searchParams.set("room", roomId);
-        window.history.replaceState({}, "", url);
+        try {
+          const url = new URL(window.location);
+          url.searchParams.set("room", roomId);
+          window.history.replaceState({}, "", url);
+        } catch(e) {}
 
         const roomRef = db.ref(`billmate_rooms/${roomId}`);
 
         const handleValue = (snapshot) => {
           const data = snapshot.val();
           if (data) {
-            // 60 日長期閒置自動清理機制
             const now = Date.now();
             const lastUpdated = data.updatedAt || data.createdAt || now;
             if (now - lastUpdated > SIXTY_DAYS_MS) {
@@ -727,7 +753,6 @@
           return sum + (Number(poolContributions[m]) || 0);
         }, 0);
 
-        // 防崩潰保護
         const safeExpenses = Array.isArray(expenses) ? expenses : [];
         const totalSpentFromPoolHKD = safeExpenses.reduce((sum, exp) => {
           if (exp && (exp.payer === POOL_PAYER_KEY || exp.isPoolExpense)) {
@@ -780,17 +805,14 @@
         members.forEach(m => {
           updated[m] = Number(((Number(updated[m]) || 0) + addAmt).toFixed(2));
         });
-        db.ref(`billmate_rooms/${roomId}`).update({
-          poolContributions: updated,
-          poolDate: poolDate
-        });
+        if (db) db.ref(`billmate_rooms/${roomId}`).update({ poolContributions: updated, poolDate: poolDate });
         markRoomUpdated();
         setPoolTopUpAmount("");
       };
 
       const handlePoolDateChange = (newDate) => {
         setPoolDate(newDate);
-        db.ref(`billmate_rooms/${roomId}/poolDate`).set(newDate);
+        if (db) db.ref(`billmate_rooms/${roomId}/poolDate`).set(newDate);
         markRoomUpdated();
       };
 
@@ -801,14 +823,10 @@
         const newTotalPool = members.reduce((sum, m) => sum + (Number(tempContributions[m]) || 0), 0);
 
         if (newTotalPool + 0.05 < poolStats.totalSpentFromPoolHKD) {
-          alert(
-            `⚠️ 無法調低公數金額！\n\n` +
-            `目前公數錢包已經消費咗 HK$ ${Math.round(poolStats.totalSpentFromPoolHKD).toLocaleString()}，` +
-            `公數總注資額唔可以少過已消費金額！`
-          );
+          alert(`⚠️ 無法調低公數金額！\n\n目前公數錢包已經消費咗 HK$ ${Math.round(poolStats.totalSpentFromPoolHKD).toLocaleString()}，公數總注資額唔可以少過已消費金額！`);
           return;
         }
-        db.ref(`billmate_rooms/${roomId}/poolContributions/${memberName}`).set(newVal);
+        if (db) db.ref(`billmate_rooms/${roomId}/poolContributions/${memberName}`).set(newVal);
         markRoomUpdated();
       };
 
@@ -823,7 +841,7 @@
         const updated = [...activeCategories, trimmed];
         setCustomCategories(updated);
         setCategory(trimmed);
-        db.ref(`billmate_rooms/${roomId}/customCategories`).set(updated);
+        if (db) db.ref(`billmate_rooms/${roomId}/customCategories`).set(updated);
         markRoomUpdated();
         setNewCategoryInput("");
       };
@@ -838,7 +856,7 @@
         if (category === catToDel) {
           setCategory(updated[0]);
         }
-        db.ref(`billmate_rooms/${roomId}/customCategories`).set(updated);
+        if (db) db.ref(`billmate_rooms/${roomId}/customCategories`).set(updated);
         markRoomUpdated();
       };
 
@@ -846,7 +864,7 @@
         const name = newMemberName.trim();
         if (!name || members.includes(name) || name === POOL_PAYER_KEY) return;
         const updated = [...members, name];
-        db.ref(`billmate_rooms/${roomId}/members`).set(updated);
+        if (db) db.ref(`billmate_rooms/${roomId}/members`).set(updated);
         markRoomUpdated();
         setSplitWith(updated);
         setNewMemberName("");
@@ -867,7 +885,6 @@
         const updates = {};
         updates[`members`] = updatedMembers;
 
-        // 防崩潰保護
         const safeExpenses = Array.isArray(expenses) ? expenses : [];
         safeExpenses.forEach(exp => {
           if (!exp) return;
@@ -893,7 +910,7 @@
         }
         updates[`updatedAt`] = Date.now();
 
-        db.ref(`billmate_rooms/${roomId}`).update(updates);
+        if (db) db.ref(`billmate_rooms/${roomId}`).update(updates);
         if (payer === oldName) setPayer(newName);
         setSplitWith(prev => prev.map(m => m === oldName ? newName : m));
         setEditingMemberName(null);
@@ -913,7 +930,6 @@
         const updates = {};
         updates[`members`] = updatedMembers;
 
-        // 防崩潰保護
         const safeExpenses = Array.isArray(expenses) ? expenses : [];
         safeExpenses.forEach(exp => {
           if (!exp) return;
@@ -927,7 +943,7 @@
         });
         updates[`updatedAt`] = Date.now();
 
-        db.ref(`billmate_rooms/${roomId}`).update(updates);
+        if (db) db.ref(`billmate_rooms/${roomId}`).update(updates);
         if (payer === nameToRemove) setPayer(updatedMembers[0]);
         setSplitWith(prev => {
           const filtered = prev.filter(m => m !== nameToRemove);
@@ -943,7 +959,7 @@
         }
         if (isRoomSettled) {
           if (isPro) {
-            db.ref(`billmate_rooms/${roomId}/isSettled`).set(false);
+            if (db) db.ref(`billmate_rooms/${roomId}/isSettled`).set(false);
             markRoomUpdated();
             setIsRoomSettled(false);
             alert("🔓 已為你解封此房間，現在可以繼續新增或修改消費單據！");
@@ -961,7 +977,7 @@
           : "【完成首個旅程 · 一鍵最終結算】\n\n確認結算並得出最終過數清單後，此免費房間將會自動封存為「唯讀模式」（只能查閱紀錄及剔選過數狀態，不能再新增消費）。\n\n確定要完成結算嗎？";
 
         if (window.confirm(confirmMsg)) {
-          db.ref(`billmate_rooms/${roomId}/isSettled`).set(true);
+          if (db) db.ref(`billmate_rooms/${roomId}/isSettled`).set(true);
           markRoomUpdated();
           setIsRoomSettled(true);
           setActiveTab("settle");
@@ -970,7 +986,7 @@
 
       const handleDeleteRoom = (delRoomId, delRoomName) => {
         if (window.confirm(`⚠️ 確定要徹底刪除房間「${delRoomName}」？\n\n注意：這將會從雲端徹底刪除所有紀錄，你與所有同行朋友都無法再查看此房間，數據無法復原！`)) {
-          db.ref(`billmate_rooms/${delRoomId}`).remove();
+          if (db) db.ref(`billmate_rooms/${delRoomId}`).remove();
           
           setMyRooms(prev => {
             const ex = Array.isArray(prev) ? prev : [];
@@ -1005,7 +1021,7 @@
           createdAt: Date.now(),
           updatedAt: Date.now()
         };
-        db.ref(`billmate_rooms/${newId}`).set(initialRoomData);
+        if (db) db.ref(`billmate_rooms/${newId}`).set(initialRoomData);
         setMyRooms(prev => {
           const ex = Array.isArray(prev) ? prev : [];
           return [...ex, { id: newId, name: customName, mode: targetMode, isSettled: false }];
@@ -1039,14 +1055,6 @@
 
         createSeparateRoomWithMode(customName, newRoomTypeSelect);
         setNewRoomNameInput("");
-      };
-
-      const handleConfirmCreateTravelRoom = (e) => {
-        e.preventDefault();
-        const name = newTravelRoomTitle.trim() || "第二次旅行 ✈️";
-        createSeparateRoomWithMode(name, "travel");
-        setNewTravelRoomTitle("");
-        setShowNewTravelRoomModal(false);
       };
 
       const handleJoinRoomByCode = (e) => {
@@ -1106,7 +1114,7 @@
             () => {
               setBaseCurrency(cur);
               setCurrency(cur);
-              db.ref(`billmate_rooms/${roomId}/defaultCurrency`).set(cur);
+              if (db) db.ref(`billmate_rooms/${roomId}/defaultCurrency`).set(cur);
               markRoomUpdated();
             }
           );
@@ -1114,7 +1122,7 @@
         }
         setBaseCurrency(cur);
         setCurrency(cur);
-        db.ref(`billmate_rooms/${roomId}/defaultCurrency`).set(cur);
+        if (db) db.ref(`billmate_rooms/${roomId}/defaultCurrency`).set(cur);
         markRoomUpdated();
       };
 
@@ -1164,9 +1172,12 @@
           
           let adjNotes = "平分";
           if (e.splitAdjustments) {
-            const validAdjs = Object.entries(e.splitAdjustments).filter(arr => Number(arr[1]) !== 0);
-            if (validAdjs.length > 0) {
-              adjNotes = validAdjs.map(arr => `${arr[0]}:${Number(arr[1]) > 0 ? '+' : ''}${arr[1]}`).join("; ");
+            const validKeys = Object.keys(e.splitAdjustments).filter(k => Number(e.splitAdjustments[k]) !== 0);
+            if (validKeys.length > 0) {
+              adjNotes = validKeys.map(k => {
+                const val = e.splitAdjustments[k];
+                return `${k}:${Number(val) > 0 ? '+' : ''}${val}`;
+              }).join("; ");
             }
           }
 
@@ -1220,7 +1231,7 @@
         const trimmed = tempGroupName.trim();
         if (trimmed) {
           setGroupName(trimmed);
-          db.ref(`billmate_rooms/${roomId}/groupName`).set(trimmed);
+          if (db) db.ref(`billmate_rooms/${roomId}/groupName`).set(trimmed);
           markRoomUpdated();
         }
         setIsEditingGroupName(false);
@@ -1291,7 +1302,7 @@
           category,
           date
         };
-        db.ref(`billmate_rooms/${roomId}/expenses/${id}`).set(newExp);
+        if (db) db.ref(`billmate_rooms/${roomId}/expenses/${id}`).set(newExp);
         markRoomUpdated();
         setTitle("");
         setAmount("");
@@ -1319,7 +1330,7 @@
           }
         }
 
-        db.ref(`billmate_rooms/${roomId}/expenses/${exp.id}`).update({
+        if (db) db.ref(`billmate_rooms/${roomId}/expenses/${exp.id}`).update({
           title: trimmedTitle,
           amount: parsedAmt
         });
@@ -1329,7 +1340,7 @@
 
       const confirmDeleteExpense = () => {
         if (!deleteConfirmExp || isReadOnly) return;
-        db.ref(`billmate_rooms/${roomId}/expenses/${deleteConfirmExp.id}`).remove();
+        if (db) db.ref(`billmate_rooms/${roomId}/expenses/${deleteConfirmExp.id}`).remove();
         markRoomUpdated();
         setDeleteConfirmExp(null);
       };
@@ -1337,18 +1348,18 @@
       const handleRateChange = (cur, val) => {
         const num = parseFloat(val);
         if (isNaN(num) || num <= 0) return;
-        db.ref(`billmate_rooms/${roomId}/customRates/${cur}`).set(num);
+        if (db) db.ref(`billmate_rooms/${roomId}/customRates/${cur}`).set(num);
         markRoomUpdated();
       };
 
       const toggleSettlementPaid = (txKey) => {
         const current = !!paidMap[txKey];
-        db.ref(`billmate_rooms/${roomId}/paidMap/${txKey}`).set(!current);
+        if (db) db.ref(`billmate_rooms/${roomId}/paidMap/${txKey}`).set(!current);
         markRoomUpdated();
       };
 
       const resetAllPaidStatus = () => {
-        db.ref(`billmate_rooms/${roomId}/paidMap`).remove();
+        if (db) db.ref(`billmate_rooms/${roomId}/paidMap`).remove();
         markRoomUpdated();
       };
 
@@ -1503,7 +1514,9 @@
           if (!e) return false;
           if (isTravelMode) return true;
           if (!e.date) return true;
-          const [y, m, d] = e.date.split("-");
+          const parts = e.date.split("-");
+          if (parts.length < 3) return true;
+          const y = parts[0], m = parts[1], d = parts[2];
           if (reportYear !== "ALL" && y !== reportYear) return false;
           if (reportMonth !== "ALL" && m !== reportMonth) return false;
           if (reportDay !== "ALL" && d !== reportDay) return false;
@@ -1518,13 +1531,15 @@
           const cat = e.category || "🍱 食飯";
           catMap[cat] = (catMap[cat] || 0) + hkd;
         });
-        const categoryBreakdown = Object.entries(catMap)
-          .map(([cat, val]) => ({
+        
+        const categoryBreakdown = Object.keys(catMap).map(cat => {
+          const val = catMap[cat];
+          return {
             category: cat,
             amountHKD: val,
             percent: totalFilteredHKD > 0 ? Math.round((val / totalFilteredHKD) * 100) : 0
-          }))
-          .sort((a, b) => b.amountHKD - a.amountHKD);
+          };
+        }).sort((a, b) => b.amountHKD - a.amountHKD);
 
         const participantSet = new Set(members);
         list.forEach(exp => {
@@ -1575,7 +1590,8 @@
           }
         });
 
-        const personArray = Object.values(personStats)
+        const personArray = Object.keys(personStats)
+          .map(k => personStats[k])
           .filter(p => !p.isDeleted || p.eventCount > 0 || p.paidHKD > 0 || p.shareHKD > 0)
           .map(p => ({
             ...p,
@@ -1627,7 +1643,6 @@
         return showAllExpenses ? safeExpenses : safeExpenses.slice(0, 3);
       }, [expenses, showAllExpenses]);
 
-      // 渲染單筆開支卡片
       const renderExpenseItemCard = (exp) => {
         if (!exp) return null;
         const isPayerDeleted = exp.payer !== POOL_PAYER_KEY && !members.includes(exp.payer);
@@ -1692,7 +1707,10 @@
                   </p>
                   {hasAdjustments && (
                     <p className="text-[10px] text-[#C46D3B] font-bold">
-                      ⚖️ 進階拆帳：{Object.entries(exp.splitAdjustments).map(arr => `${arr[0]}:${Number(arr[1]) > 0 ? '+' : ''}${arr[1]}`).join("; ")}
+                      ⚖️ 進階拆帳：{Object.keys(exp.splitAdjustments).map(k => {
+                        const v = exp.splitAdjustments[k];
+                        return `${k}:${Number(v) > 0 ? '+' : ''}${v}`;
+                      }).join("; ")}
                     </p>
                   )}
                 </div>
@@ -1729,7 +1747,6 @@
         );
       };
 
-      // 渲染結算卡片
       const renderSettlementCard = () => (
         <div className="glass-dark p-4 sm:p-5 rounded-3xl space-y-3">
           <div className="flex justify-between items-center gap-2 border-b border-[#EAE3D5] pb-3">
@@ -1753,9 +1770,7 @@
                   <div
                     key={t.key}
                     className={`flex items-center justify-between gap-2 p-3 sm:p-3.5 rounded-2xl border transition-all ${
-                      isPaid
-                        ? "bg-[#E6F3EE] border-[#B7DBCD] opacity-75"
-                        : "bg-[#EEF1F4] border-[#DCE2E8]"
+                      isPaid ? "bg-[#E6F3EE] border-[#B7DBCD] opacity-75" : "bg-[#EEF1F4] border-[#DCE2E8]"
                     }`}
                   >
                     <div className="flex items-center gap-2 min-w-0">
@@ -1779,9 +1794,7 @@
                         type="button"
                         onClick={() => toggleSettlementPaid(t.key)}
                         className={`shrink-0 w-8 h-8 rounded-full text-sm font-black flex items-center justify-center transition shadow-sm ${
-                          isPaid
-                            ? "bg-[#2E7D65] text-white"
-                            : "bg-white border border-[#C46D3B] text-[#4A6984] hover:bg-[#C5D2DF] hover:text-[#2D3640]"
+                          isPaid ? "bg-[#2E7D65] text-white" : "bg-white border border-[#C46D3B] text-[#4A6984] hover:bg-[#C5D2DF] hover:text-[#2D3640]"
                         }`}
                       >
                         ✓
@@ -1809,17 +1822,13 @@
           {expenses.length > 0 && (
             <div className="pt-2 border-t border-[#EAE3D5] flex items-center justify-between gap-2 mt-2">
               <div className="text-[11px] text-[#636E7B] leading-snug">
-                {isRoomSettled
-                  ? "🔒 此房間已完成最終結算並封存為「唯讀模式」"
-                  : "🏁 旅程結束？撳右邊一鍵結算並封存帳目"}
+                {isRoomSettled ? "🔒 此房間已完成最終結算並封存為「唯讀模式」" : "🏁 旅程結束？撳右邊一鍵結算並封存帳目"}
               </div>
               <button
                 type="button"
                 onClick={handleFinalizeAndArchiveRoom}
                 className={`shrink-0 text-[11px] font-black px-3.5 py-2 rounded-full transition whitespace-nowrap ${
-                  isRoomSettled
-                    ? "bg-[#EEF1F4] border border-[#DCE2E8] text-[#8E97A4]"
-                    : "gold-pill"
+                  isRoomSettled ? "bg-[#EEF1F4] border border-[#DCE2E8] text-[#8E97A4]" : "gold-pill"
                 }`}
               >
                 {isRoomSettled ? (isPro ? "🔓 解封房間" : "🔒 已封存 (唯讀)") : "🏁 一鍵結算"}
@@ -2471,8 +2480,12 @@
                         {chartAndReportData.categoryBreakdown.map((item, idx) => {
                           const pct = chartAndReportData.totalFilteredHKD > 0 ? item.amountHKD / chartAndReportData.totalFilteredHKD : 0;
                           const strokeDasharray = `${pct * circumference} ${circumference}`;
-                          const strokeDashoffset = -cumulativePercent * circumference;
+                          
+                          // 安全計算，避免變數污染
+                          const currentOffset = cumulativePercent;
                           cumulativePercent += pct;
+                          const strokeDashoffset = -currentOffset * circumference;
+                          
                           return (
                             <circle
                               key={item.category}
@@ -2561,14 +2574,17 @@
                         </div>
                       );
                     })}
-                    {Object.entries(settlement.deletedPayersNegative).map(([delName, negVal]) => (
-                      <div key={delName} className="flex justify-between items-center text-sm py-2 border-b border-[#DCE2E8] last:border-none opacity-85 gap-2">
-                        <span className="font-bold text-rose-500 truncate">{delName} <span className="text-[10px] bg-rose-50 px-1.5 py-0.5 rounded">已刪成員</span></span>
-                        <span className="shrink-0 font-mono font-black px-3 py-1 rounded-full text-xs bg-rose-50 text-rose-500 border border-rose-200 whitespace-nowrap">
-                          HK$ {Math.round(negVal).toLocaleString()}
-                        </span>
-                      </div>
-                    ))}
+                    {Object.keys(settlement.deletedPayersNegative).map(delName => {
+                      const negVal = settlement.deletedPayersNegative[delName];
+                      return (
+                        <div key={delName} className="flex justify-between items-center text-sm py-2 border-b border-[#DCE2E8] last:border-none opacity-85 gap-2">
+                          <span className="font-bold text-rose-500 truncate">{delName} <span className="text-[10px] bg-rose-50 px-1.5 py-0.5 rounded">已刪成員</span></span>
+                          <span className="shrink-0 font-mono font-black px-3 py-1 rounded-full text-xs bg-rose-50 text-rose-500 border border-rose-200 whitespace-nowrap">
+                            HK$ {Math.round(negVal).toLocaleString()}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -2993,7 +3009,7 @@
                       <form onSubmit={handleAddCustomCurrency} className="flex items-center gap-2 bg-[#EEF1F4] p-2 rounded-2xl w-full">
                         <input type="text" maxLength="3" placeholder="代號(NZD)" value={newCurCode} onChange={e => setNewCurCode(e.target.value.toUpperCase())} className="w-20 shrink-0 text-xs bg-white rounded-xl px-2 py-2 font-mono uppercase text-center text-[#2D3640] placeholder-slate-400 border border-[#DCE2E8] focus:outline-none" />
                         <input type="number" inputMode="decimal" step="any" placeholder="兌港幣匯率" value={newCurRate} onChange={e => setNewCurRate(e.target.value)} className="flex-1 min-w-0 text-xs bg-white rounded-xl px-2.5 py-2 text-[#2D3640] placeholder-slate-400 border border-[#DCE2E8] focus:outline-none" />
-                        <button type="submit" className="shrink-0 teal-pill text-xs font-black px-3 py-2 rounded-xl whitespace-nowrap">＋加入</button>
+                        <button type="submit" className="shrink-0 gold-pill text-xs font-black px-3 py-2 rounded-xl whitespace-nowrap">＋加入</button>
                       </form>
                       <div className="grid grid-cols-2 gap-2 pt-1">
                         {sortedCurrencyKeys.filter(c => c !== "HKD").map(cur => {
@@ -3019,7 +3035,7 @@
                               <input
                                 type="number"
                                 inputMode="decimal"
-                                step="any"
+                                step="0.0001"
                                 value={rates[cur]}
                                 disabled={cur === "HKD"}
                                 onClick={e => e.stopPropagation()}
@@ -3060,7 +3076,7 @@
               >
                 <span className="text-base leading-none">📊</span>
                 <span className="text-[10px] font-bold tracking-tight whitespace-nowrap truncate max-w-full">
-                  {isTravelMode ? `結算&圖表${settlement.transactions.length > 0 ? `(${paidCount}/${settlement.transactions.length})` : ""}` : `明細及圖表(${expenses.length})`}
+                  {isTravelMode ? `結算&圖表${settlement.transactions.length > 0 ? `(${paidCount}/${settlement.transactions.length})` : ""}` : `明細及圖表(${Array.isArray(expenses) ? expenses.length : 0})`}
                 </span>
               </button>
 
