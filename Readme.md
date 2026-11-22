@@ -23,12 +23,13 @@ Copay 是一個專為朋友聚會、日常夾錢以及海外旅遊設計的極�
 * **60 日自動清理機制**：系統會自動偵測並清除超過 60 日無活動（無新增/修改帳目）的舊房間，確保系統輕量流暢。
 * **自主房間管理**：用戶可自由選擇「退出房間（僅刪除本機紀錄）」或「徹底刪除房間（清除雲端資料）」。
 * **IG Story 風格消費報告**：精美圓餅圖與全團消費大豪客排行榜，方便截圖分享。
+* **順滑微動畫 (Micro-interactions)**：內置純 CSS 打造的流暢轉場、上浮與彈出動畫，無需載入外部龐大組件庫，體驗極致絲滑。
 
 ## 🛠️ 技術架構 (極致輕量化)
 
 * **單一檔案部署**：所有的 HTML, CSS, JavaScript, React Components 均寫在同一個 `index.html` 內。
 * **前端框架**：React 18 (透過 CDN 引入)。
-* **樣式編譯**：Tailwind CSS (透過 CDN 引入)。
+* **樣式編譯**：Tailwind CSS (透過 CDN 引入) 與純 CSS Keyframes 動畫。
 * **JSX 編譯**：Babel Standalone (在瀏覽器端即時編譯 JSX)。
 * **資料庫**：Firebase Compat SDK (Realtime Database)。
 * **圖示與資源**：內置 Canvas Fallback 繪圖機制，即使外部圖片載入失敗也能確保 PWA 擁有精美 App Icon。
