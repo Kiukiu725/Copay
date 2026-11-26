@@ -4,8 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Copay — 日常夾錢與海外旅遊分帳神器</title>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5112577779634426"
-     crossorigin="anonymous"></script>
 
   <!-- PWA & Mobile Web App Meta Tags -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -222,6 +220,7 @@
     const auth = firebase.auth();
 
     const POOL_PAYER_KEY = "🏦 公數錢包";
+    const ADSENSE_CLIENT_ID = "ca-pub-5112577779634426";
 
     const formatDateUK = (isoDateStr) => {
       if (!isoDateStr || typeof isoDateStr !== "string") return "";
@@ -280,6 +279,37 @@
       const rooms = getStoredRooms();
       return rooms[0].id;
     };
+
+    // 僅限免費用戶顯示之 Google AdSense 橫幅元件（PRO 用戶完全不會渲染或載入）
+    function AdBanner({ onUpgradeClick }) {
+      useEffect(() => {
+        try {
+          if (window.adsbygoogle && Array.isArray(window.adsbygoogle)) {
+            window.adsbygoogle.push({});
+          }
+        } catch (e) {}
+      }, []);
+
+      return (
+        <div className="glass-dark p-3 rounded-2xl border border-white/80 space-y-1.5 text-center animate-fade-in">
+          <div className="flex justify-between items-center px-1">
+            <span className="text-[9px] uppercase tracking-wider text-[#8799A3] font-bold">贊助商廣告 · Sponsored</span>
+            <button type="button" onClick={onUpgradeClick} className="text-[10px] font-bold text-[#376885] hover:underline">
+              👑 升級 PRO 移除廣告
+            </button>
+          </div>
+          <div className="overflow-hidden rounded-xl min-h-[60px] flex items-center justify-center bg-[#ECF2F5]/70">
+            <ins
+              className="adsbygoogle"
+              style={{ display: "block", width: "100%" }}
+              data-ad-client={ADSENSE_CLIENT_ID}
+              data-ad-format="horizontal"
+              data-full-width-responsive="true"
+            ></ins>
+          </div>
+        </div>
+      );
+    }
 
     function BrandLogo({ isTravel = false, size = "w-10 h-10 sm:w-11 sm:h-11" }) {
       const candidateLogos = ["Copay.png", "Copay_2.png", "copay.png"];
@@ -395,6 +425,26 @@
       
       const [managingRoomId, setManagingRoomId] = useState(null);
 
+      const hasNoAds = isPro || isProRoom;
+
+      // 控制 Google AdSense 腳本：PRO 用戶及 Pro 房間完全不載入，並清理任何殘留廣告節點
+      useEffect(() => {
+        if (hasNoAds) {
+          const existingScript = document.getElementById("copay-adsense-script");
+          if (existingScript) existingScript.remove();
+          document.querySelectorAll(".google-auto-placed, ins.adsbygoogle").forEach(el => el.remove());
+          return;
+        }
+        if (!document.getElementById("copay-adsense-script")) {
+          const script = document.createElement("script");
+          script.id = "copay-adsense-script";
+          script.async = true;
+          script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT_ID}`;
+          script.crossOrigin = "anonymous";
+          document.head.appendChild(script);
+        }
+      }, [hasNoAds]);
+
       const rates = useMemo(() => ({ ...liveRates, ...customRates }), [liveRates, customRates]);
       const isTravelMode = roomMode === "travel";
       const dailyRoomsList = useMemo(() => myRooms.filter(r => r.mode !== "travel"), [myRooms]);
@@ -469,7 +519,7 @@
             url.searchParams.delete("vip");
             window.history.replaceState({}, "", url.toString());
             setTimeout(() => {
-              alert("🎉 感謝支持！付款已確認，【Copay Travel 早鳥永久解鎖】已自動為你開通！");
+              alert("🎉 感謝支持！付款已確認，【Copay Travel 早鳥永久解鎖】已自動為你開通（廣告已移除）！");
             }, 300);
           }
         } catch (e) {}
@@ -876,7 +926,7 @@
         const customName = modalRoomNameInput.trim() || (modalSelectedMode === "travel" ? "東京之旅 ✈️" : "日常飯局夾錢 🍱");
         if (modalSelectedMode === "travel" && !isPro) {
           setShowCreateRoomModal(false);
-          triggerPaywall(null, `準備出發去「${customName}」？趁早鳥優惠解鎖 Copay Travel！`, () => {
+          triggerPaywall(null, `準備出發去「${customName}」？趁早鳥優惠解鎖 Copay Travel（兼享全站無廣告）！`, () => {
             createSeparateRoomWithMode(customName, "travel"); setModalRoomNameInput("");
           });
           return;
@@ -909,7 +959,7 @@
 
       const handleToggleAdvancedSplit = () => {
         if (!useAdvancedSplit && !isPro && !isProRoom) {
-          triggerPaywall(null, "想處理「少夾$50」等進階拆帳？立即解鎖 Copay Travel！", () => setUseAdvancedSplit(true));
+          triggerPaywall(null, "想處理「少夾$50」等進階拆帳？立即解鎖 Copay Travel（兼享無廣告體驗）！", () => setUseAdvancedSplit(true));
           return;
         }
         setUseAdvancedSplit(prev => !prev);
@@ -949,7 +999,7 @@
         setIsPro(true); setShowPaywall(false); setVipInput("");
         if (auth.currentUser) saveProToCloudUser(auth.currentUser);
         if (pendingAction) { pendingAction(); setPendingAction(null); }
-        alert("🎉 恭喜你成功鎖定【Copay Travel 早鳥永久解鎖 $38】！所有進階功能已永久開通！");
+        alert("🎉 恭喜你成功鎖定【Copay Travel 早鳥永久解鎖 $38】！所有進階功能與無廣告體驗已永久開通！");
       };
 
       const handleUnlockWithCode = (e) => {
@@ -1314,9 +1364,9 @@
 
               <div className="flex items-center shrink-0">
                 {isPro ? (
-                  <span className="text-[11px] bg-[#2D3842] text-[#F4D58D] px-3 py-1.5 rounded-full font-black shadow-sm">👑 Travel Pro 已解鎖</span>
+                  <span className="text-[11px] bg-[#2D3842] text-[#F4D58D] px-3 py-1.5 rounded-full font-black shadow-sm">👑 Travel Pro · 無廣告</span>
                 ) : isProRoom ? (
-                  <span className="text-[11px] bg-emerald-600 text-white px-3 py-1.5 rounded-full font-black shadow-sm">👑 Pro 房間 (免費享有)</span>
+                  <span className="text-[11px] bg-emerald-600 text-white px-3 py-1.5 rounded-full font-black shadow-sm">👑 Pro 房間 · 無廣告</span>
                 ) : (
                   <button onClick={() => triggerPaywall()} className="text-[11px] sm:text-xs bg-[#2D3842] text-white px-3 py-2 rounded-full font-black flex items-center gap-1.5 shadow-sm"><span className="text-[#F4D58D]">🔥 早鳥 $38</span><span className="text-[10px] text-slate-300 line-through">$88</span></button>
                 )}
@@ -1462,7 +1512,7 @@
                     <div className="text-xs space-y-2">
                       <div className="flex justify-between items-center mx-1 gap-2">
                         <label className="text-[10px] text-slate-300 font-bold">邊個夾份？</label>
-                        <button type="button" onClick={handleToggleAdvancedSplit} className={`text-[10px] font-bold px-2.5 py-1 rounded-full border flex items-center gap-1 transition-colors ${useAdvancedSplit && (isPro || isProRoom) ? "bg-[#F5E6B8] border-[#7FA8C4] text-[#2C261E]" : "bg-[#F7F4EC] border-[#EAE3D5] text-[#8C6715]"}`}><span>⚖️ 進階拆帳</span>{!isPro && !isProRoom && <span>🔒</span>}</button>
+                        <button type="button" onClick={handleToggleAdvancedSplit} className={`text-[10px] font-bold px-2.5 py-1 rounded-full border flex items-center gap-1 transition-colors ${useAdvancedSplit && hasNoAds ? "bg-[#F5E6B8] border-[#7FA8C4] text-[#2C261E]" : "bg-[#F7F4EC] border-[#EAE3D5] text-[#8C6715]"}`}><span>⚖️ 進階拆帳</span>{!hasNoAds && <span>🔒</span>}</button>
                       </div>
                       <div className="flex flex-wrap gap-1.5">
                         {members.map(m => {
@@ -1470,7 +1520,7 @@
                           return <button key={m} type="button" onClick={() => { if (isSelected) { if (splitWith.length > 1) setSplitWith(splitWith.filter(x => x !== m)); } else { setSplitWith([...splitWith, m]); } }} className={`px-3 py-1.5 rounded-xl text-xs border transition-colors ${isSelected ? 'bg-[#F5E6B8] border-[#7FA8C4] text-[#2C261E] font-bold' : 'bg-transparent border-white/15 text-slate-400 opacity-60'}`}>{isSelected ? '✓ ' : ''}{m}</button>;
                         })}
                       </div>
-                      {(isPro || isProRoom) && useAdvancedSplit && (
+                      {hasNoAds && useAdvancedSplit && (
                         <div className="bg-[#F7F4EC] p-3 rounded-2xl border border-[#EAE3D5] animate-scale-in">
                           <div className="text-[10px] font-bold text-[#8C6715] mb-2">⚖️ 進階微調（-50 代表少夾 50；+100 代表多夾 100）：</div>
                           <div className="grid grid-cols-2 gap-2">
@@ -1539,7 +1589,7 @@
                       <span className="inline-block text-[10px] font-black uppercase bg-[#F5E6B8] text-[#8C6715] px-2.5 py-0.5 rounded-full mb-1">📸 IG STORY SUMMARY</span>
                       <h3 className="font-black text-base text-white truncate">{groupName} · 消費報告</h3>
                     </div>
-                    <button onClick={handleExportExcelCSV} className="shrink-0 teal-pill text-[11px] font-bold px-3 py-1.5 rounded-full">📥 匯出 CSV {!isPro && !isProRoom && "🔒"}</button>
+                    <button onClick={handleExportExcelCSV} className="shrink-0 teal-pill text-[11px] font-bold px-3 py-1.5 rounded-full">📥 匯出 CSV {!hasNoAds && "🔒"}</button>
                   </div>
                   {!isTravelMode && (
                     <div className="grid grid-cols-3 gap-2">
@@ -1697,7 +1747,7 @@
                     <div className="bg-white/5 border border-white/10 rounded-2xl p-3 space-y-2.5">
                       <div className="text-xs font-bold text-[#26353D] break-all">目前帳號：{currentUser.email}</div>
                       <p className="text-[11px] text-slate-300 leading-relaxed">
-                        你嘅 Pro 狀態會同步綁定去呢個 Email；第日換新電話只需用同一個 Email 登入即可恢復。
+                        你嘅 Pro 狀態（包括無廣告權限）會同步綁定去呢個 Email；第日換新電話只需用同一個 Email 登入即可恢復。
                       </p>
                       <button type="button" onClick={handleLogout} className="w-full py-2.5 rounded-2xl bg-white text-[#26353D] border border-[#D5E2E8] font-bold text-xs">
                         登出帳號
@@ -1725,14 +1775,14 @@
                 <div className="glass-dark p-4 sm:p-5 rounded-3xl space-y-3">
                   <div className="flex justify-between items-center gap-1.5 flex-wrap">
                     <h3 className="font-bold text-white text-sm">👑 權限狀態</h3>
-                    {isPro ? <span className="text-[10px] bg-[#2D3842] text-[#F4D58D] px-2 py-0.5 rounded-full font-black">Copay Travel 已解鎖</span> : isProRoom ? <span className="text-[10px] bg-emerald-600 text-white px-2 py-0.5 rounded-full font-black">共享 Pro 房間權限</span> : <span className="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-bold">Copay Lite</span>}
+                    {isPro ? <span className="text-[10px] bg-[#2D3842] text-[#F4D58D] px-2 py-0.5 rounded-full font-black">Copay Travel 已解鎖 · 無廣告</span> : isProRoom ? <span className="text-[10px] bg-emerald-600 text-white px-2 py-0.5 rounded-full font-black">共享 Pro 房間 · 無廣告</span> : <span className="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-bold">Copay Lite (含廣告)</span>}
                   </div>
                   <p className="text-[11px] text-slate-300 leading-relaxed bg-white/5 border border-white/10 rounded-2xl p-3">
-                    💡 <strong className="text-white">換電話／清紀錄點搵返 Pro 資格？</strong>
+                    💡 <strong className="text-white">PRO 專享權益與跨機恢復：</strong>
                     <br />
-                    登入咗你嘅 Email 帳號後，Pro 資格會跟隨帳號儲存喺雲端；換新電話只需用同一個 Email 登入即可恢復 Pro 身份，而房間帳目只要有房號或邀請連結就可以同步返嚟。
+                    解鎖 PRO 後全站自動移除廣告並開通海外旅遊分帳與匯出功能；登入 Email 帳號後，換新電話只需用同一個 Email 登入即可恢復 Pro 身份。
                   </p>
-                  {!isPro && <button onClick={() => triggerPaywall()} className="w-full py-3 rounded-2xl teal-pill font-black text-xs shadow-md active:scale-98 transition-transform">🔥 早鳥 $38 解鎖 (原價 $88)</button>}
+                  {!isPro && <button onClick={() => triggerPaywall()} className="w-full py-3 rounded-2xl teal-pill font-black text-xs shadow-md active:scale-98 transition-transform">🔥 早鳥 $38 解鎖無廣告 & PRO (原價 $88)</button>}
                 </div>
 
                 <div className="glass-dark p-4 sm:p-5 rounded-3xl space-y-3.5">
@@ -1808,6 +1858,9 @@
                 )}
               </div>
             )}
+
+            {/* 免費用戶專屬廣告區塊（PRO 用戶及 Pro 房間完全隱藏） */}
+            {!hasNoAds && <AdBanner onUpgradeClick={() => triggerPaywall()} />}
           </div>
 
           <div className="fixed bottom-0 left-0 right-0 max-w-md w-full mx-auto px-3 sm:px-5 pt-2 safe-bottom-dock z-40">
@@ -1839,7 +1892,7 @@
                     <div className="flex justify-between items-center mb-1"><span className="font-black text-sm text-[#26353D]">☕ 日常夾錢</span><span className="text-[10px] bg-emerald-100 text-emerald-700 px-2.5 py-0.5 rounded-full">免費 Free</span></div>
                   </div>
                   <div onClick={() => setModalSelectedMode("travel")} className={`p-4 rounded-2xl border-2 cursor-pointer transition-colors ${modalSelectedMode === "travel" ? "bg-[#DFECF2] border-[#2D3842]" : "bg-[#ECF2F5] border-transparent"}`}>
-                    <div className="flex justify-between items-center mb-1"><span className="font-black text-sm text-[#26353D]">✈️ 海外旅遊</span>{isPro ? <span className="text-[10px] bg-[#2D3842] text-[#F4D58D] px-2.5 py-0.5 rounded-full">PRO</span> : <span className="text-[10px] bg-[#2D3842] text-[#F4D58D] px-2 py-0.5 rounded-full">🔥 早鳥 $38</span>}</div>
+                    <div className="flex justify-between items-center mb-1"><span className="font-black text-sm text-[#26353D]">✈️ 海外旅遊</span>{isPro ? <span className="text-[10px] bg-[#2D3842] text-[#F4D58D] px-2.5 py-0.5 rounded-full">PRO</span> : <span className="text-[10px] bg-[#2D3842] text-[#F4D58D] px-2.5 py-0.5 rounded-full">🔥 早鳥 $38</span>}</div>
                   </div>
                 </div>
                 <form onSubmit={handleModalCreateRoomSubmit} className="space-y-3 pt-1">
@@ -1903,7 +1956,7 @@
                 {paywallMsg && <div className="bg-[#FDF8EA] border border-[#7FA8C4] p-3.5 rounded-2xl text-xs text-[#376885] font-medium">{paywallMsg}</div>}
                 <button type="button" onClick={() => window.open(STRIPE_PAYMENT_LINK, "_blank")} className="w-full p-4 rounded-2xl gold-pill text-center shadow-lg active:scale-98 transition-transform">
                   <div className="text-base font-black">Copay Travel 早鳥永久解鎖：$38</div>
-                  <div className="text-[11px] opacity-85 mt-0.5">支援 Apple Pay / 信用卡 · 付款後自動解鎖</div>
+                  <div className="text-[11px] opacity-85 mt-0.5">支援 Apple Pay / 信用卡 · 付款後自動解鎖兼享無廣告</div>
                 </button>
                 <form onSubmit={handleUnlockWithCode} className="flex gap-2 w-full pt-2 border-t border-white/10">
                   <input type="text" placeholder="輸入解鎖碼 (COPAY2026)" value={vipInput} onChange={e => setVipInput(e.target.value)} className="flex-1 text-xs bg-white/10 border border-white/15 rounded-xl px-3 py-2 font-mono uppercase text-white focus:outline-none" />
