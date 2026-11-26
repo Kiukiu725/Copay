@@ -1,41 +1,14 @@
-# Copay App - AI Agent Instructions (.cursorrules / guidelines)
+# Copay App — AI Agent Instructions
 
-Hello AI Developer! When modifying or analyzing the Copay App codebase, please strictly adhere to the following rules to maintain the project's integrity, architecture, and unique UI/UX.
+## 1. 架構與檔案規則
+* **單一檔案架構：** 核心應用程式維持在單一 `index.html`（React 18 + Babel + Tailwind CSS），勿隨意拆分成多個 `.js` 或 `.css` 檔案，並保留頂部 `setupAppIcons` 圖示回退腳本。
+* **部署來源：** 正式上線以 `Desktop\Copay-web\index.html` 透過 `firebase deploy` 發布至 Firebase Hosting（`https://letscopay.com`）；修改後應同步本機備份與 GitHub 版本。
 
-## 1. Codebase Architecture (CRITICAL)
-*   **Single-File Architecture:** The entire application MUST remain within a SINGLE `index.html` file. 
-*   **Do NOT** split the code into separate `.js`, `.css`, or component files.
-*   **React + Babel:** The app uses React 18 via CDN and Babel standalone. All React code is inside `<script type="text/babel">`.
-*   **Tailwind CSS:** Styling is handled via Tailwind CSS CDN. Use utility classes extensively.
+## 2. 權限、帳號與房間邏輯
+* **房間級 Pro 共享（`isProRoom`）：** 免費用戶進入 `isProRoom === true` 的房間時，僅在**該房間內**可使用進階拆帳與 CSV 匯出；自行建立新的 Pro 旅遊房或於非 Pro 房間使用付費功能時，須檢查個人 `isPro` 狀態（`!isPro && !isProRoom` 觸發 Paywall）。
+* **Email 登入與雲端同步：** 透過 Firebase Auth 處理 Email 登入／註冊，並於 `copay_users/{uid}` 同步 `isPro` 狀態；免費用戶登入 Email 不會自動獲得 Pro 權限。
+* **公數錢包：** 維持 `POOL_PAYER_KEY = "🏦 公數錢包"` 的注資、餘額驗證與結算退還計算邏輯。
 
-## 2. UI/UX & Styling Guidelines
-*   **Design Language:** The app uses a watercolor aesthetic with "Glassmorphism" UI components.
-*   **Custom CSS Classes:** Always use the predefined custom classes for consistent styling:
-    *   `glass-dark`: For main cards and modals (white translucent with blur).
-    *   `teal-pill`: For primary action buttons (gradients of teal/blue).
-    *   `gold-pill`: For premium/Pro features or warning actions (gradients of dark blue to gold text).
-    *   `ios-uniform-field`: For native-looking select/input fields.
-*   **Animations:** Use predefined micro-interactions for dynamic rendering:
-    *   `animate-fade-in-up`: For list items rendering.
-    *   `animate-scale-in`: For modals and pop-up tooltips.
-    *   `animate-fade-in`: For subtle text or state changes.
-*   **Icons:** Use standard Emojis as icons to keep the app lightweight (e.g., ✈️, 💰, 🍱).
-
-## 3. Business Logic & Premium Features
-*   **Room Modes:** `daily` (Copay Lite - HKD only) and `travel` (Copay Travel - Multi-currency + Pool fund).
-*   **Pro Room Sharing Logic (IMPORTANT):** 
-    *   Pro features are unlocked on a **Per-Room Basis**, not purely per-user.
-    *   If a user with local Pro status (`isPro === true`) enters or creates a travel room, they must set `isProRoom: true` on the Firebase database for that room.
-    *   If a free user enters a room where `isProRoom === true`, they automatically gain access to all Pro features (Advanced Split, CSV Export) *for that specific room only*.
-    *   Paywalls should ONLY trigger if `!isPro && !isProRoom`.
-*   **The Pool Fund (公數):** Identified by `POOL_PAYER_KEY = "🏦 公數錢包"`. It tracks contributions per member and validates if there are enough funds before allowing a pool expense.
-
-## 4. State Management & Real-time Sync
-*   **Firebase:** Uses Firebase Realtime Database. Always use `on("value")` for real-time synchronization.
-*   **Local Storage:** Used for tracking user's recent rooms (`copay_brand_rooms_v1`) and personal Pro status (`copay_pro_travel_unlocked`).
-*   **Performance:** Use `useMemo` for heavy calculations (like `settlement`, `poolStats`, `chartAndReportData`) to prevent UI lag on re-renders.
-
-## 5. Modifying Code Example Protocol
-*   When asked to add a feature, locate the specific component or function inside the large `App` function.
-*   Ensure variables and states depend correctly on the current context (e.g., passing dependencies to `useMemo` arrays).
-*   Never remove the `setupAppIcons` IIFE at the top; it's required for iOS PWA fallbacks.
+## 3. 變現與外部整合
+* **Google AdSense 與 Stripe：** 保留 `<head>` 內的 Google AdSense 腳本、`STRIPE_PAYMENT_LINK`、付款後 `?vip=COPAY38` 自動解鎖邏輯及 `VALID_VIP_CODES` 兌換流程。
+* **效能與同步：** 維持 Firebase Realtime Database 監聽與 `useMemo` 計算，修改 `index.html` 後提供明確的 `firebase deploy` 驗證步驟。

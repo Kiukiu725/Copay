@@ -4,7 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Copay — 日常夾錢與海外旅遊分帳神器</title>
-  
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5112577779634426"
+     crossorigin="anonymous"></script>
+
   <!-- PWA & Mobile Web App Meta Tags -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -111,9 +113,10 @@
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Firebase Compat SDKs (App + Realtime Database) -->
+  <!-- Firebase Compat SDKs (App + Realtime Database + Auth) -->
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 
   <style>
     * { box-sizing: border-box; }
@@ -172,9 +175,6 @@
     .glass-dark input::placeholder { color: #93A5B0 !important; }
     .scrollbar-none::-webkit-scrollbar { display: none; }
 
-    /* ==========================================
-       🌟 CSS 微動畫 (Micro-interactions) 
-       ========================================== */
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(12px); }
       to { opacity: 1; transform: translateY(0); }
@@ -207,12 +207,19 @@
     const { useState, useEffect, useMemo } = React;
 
     const firebaseConfig = {
-      databaseURL: "https://travel-split-app-78a36-default-rtdb.asia-southeast1.firebasedatabase.app/"
+      apiKey: "AIzaSyBQPE4mn2ZH2_SQBLhFVAdGAyRU-Mdhr8s",
+      authDomain: "travel-split-app-78a36.firebaseapp.com",
+      databaseURL: "https://travel-split-app-78a36-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "travel-split-app-78a36",
+      storageBucket: "travel-split-app-78a36.firebasestorage.app",
+      messagingSenderId: "710072985812",
+      appId: "1:710072985812:web:90ff59172ec1e4fcb53341"
     };
     if (!firebase.apps.length) {
       firebase.initializeApp(firebaseConfig);
     }
     const db = firebase.database();
+    const auth = firebase.auth();
 
     const POOL_PAYER_KEY = "🏦 公數錢包";
 
@@ -233,7 +240,8 @@
     const DEFAULT_MEMBERS = ["我", "Alex", "Chloe", "Sam"];
     const DEFAULT_CATEGORIES_DAILY = ["🍱 食飯", "🚕 車費", "📦 團購"];
     const DEFAULT_CATEGORIES_TRAVEL = ["🍱 食飯", "🚕 車費", "📦 團購"];
-    const VALID_VIP_CODES = ["COPAY2026", "COPAYPRO", "VIP888", "TRAVELPRO"];
+    const VALID_VIP_CODES = ["COPAY2026", "COPAYPRO", "COPAY38", "VIP888", "TRAVELPRO"];
+    const STRIPE_PAYMENT_LINK = "https://buy.stripe.com/8x2aEZcs1gjl1gR4Mo2kw00";
 
     const generateRandomRoomId = () => {
       const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -310,6 +318,12 @@
 
     function App() {
       const [myRooms, setMyRooms] = useState(getStoredRooms);
+      const [currentUser, setCurrentUser] = useState(null);
+      const [authEmail, setAuthEmail] = useState("");
+      const [authPassword, setAuthPassword] = useState("");
+      const [authMode, setAuthMode] = useState("login");
+      const [authBusy, setAuthBusy] = useState(false);
+
       const [isPro, setIsPro] = useState(() => localStorage.getItem("copay_pro_travel_unlocked") === "true");
       const [isProRoom, setIsProRoom] = useState(false);
       const [showPaywall, setShowPaywall] = useState(false);
@@ -400,6 +414,106 @@
         db.ref(`copay_rooms/${roomId}/lastUpdated`).set(Date.now());
       };
 
+      const saveProToCloudUser = (userObj) => {
+        if (!userObj || !userObj.uid) return;
+        db.ref(`copay_users/${userObj.uid}`).update({
+          email: userObj.email || "",
+          isPro: true,
+          updatedAt: Date.now()
+        });
+      };
+
+      useEffect(() => {
+        let userProRef = null;
+        const handleUserSnap = (snap) => {
+          const val = snap.val();
+          if (val && val.isPro === true) {
+            setIsPro(true);
+            localStorage.setItem("copay_pro_travel_unlocked", "true");
+          } else {
+            const localFlag = localStorage.getItem("copay_pro_travel_unlocked") === "true";
+            setIsPro(localFlag);
+            if (localFlag && auth.currentUser) {
+              saveProToCloudUser(auth.currentUser);
+            }
+          }
+        };
+
+        const unsub = auth.onAuthStateChanged((user) => {
+          setCurrentUser(user || null);
+          if (userProRef) {
+            userProRef.off("value", handleUserSnap);
+            userProRef = null;
+          }
+          if (user && user.uid) {
+            userProRef = db.ref(`copay_users/${user.uid}`);
+            userProRef.on("value", handleUserSnap);
+          }
+        });
+
+        return () => {
+          if (userProRef) userProRef.off("value", handleUserSnap);
+          unsub();
+        };
+      }, []);
+
+      useEffect(() => {
+        try {
+          const url = new URL(window.location.href);
+          const vipParam = (url.searchParams.get("vip") || "").trim().toUpperCase();
+          if (vipParam && VALID_VIP_CODES.includes(vipParam)) {
+            localStorage.setItem("copay_pro_travel_unlocked", "true");
+            setIsPro(true);
+            setShowPaywall(false);
+            if (auth.currentUser) saveProToCloudUser(auth.currentUser);
+            url.searchParams.delete("vip");
+            window.history.replaceState({}, "", url.toString());
+            setTimeout(() => {
+              alert("🎉 感謝支持！付款已確認，【Copay Travel 早鳥永久解鎖】已自動為你開通！");
+            }, 300);
+          }
+        } catch (e) {}
+      }, []);
+
+      const handleEmailAuthSubmit = async (e) => {
+        e.preventDefault();
+        const cleanEmail = authEmail.trim();
+        if (!cleanEmail || !authPassword) return alert("請輸入電郵與密碼！");
+        setAuthBusy(true);
+        try {
+          let cred;
+          if (authMode === "register") {
+            cred = await auth.createUserWithEmailAndPassword(cleanEmail, authPassword);
+            await db.ref(`copay_users/${cred.user.uid}`).update({
+              email: cleanEmail,
+              createdAt: Date.now()
+            });
+            alert("✅ 帳號註冊並已登入！");
+          } else {
+            cred = await auth.signInWithEmailAndPassword(cleanEmail, authPassword);
+            const snap = await db.ref(`copay_users/${cred.user.uid}/isPro`).once("value");
+            if (snap.val() === true) {
+              setIsPro(true);
+              localStorage.setItem("copay_pro_travel_unlocked", "true");
+            }
+            alert("✅ 登入成功！");
+          }
+          setAuthPassword("");
+        } catch (err) {
+          alert("❌ 登入／註冊失敗：" + (err && err.message ? err.message : "請檢查電郵或密碼"));
+        } finally {
+          setAuthBusy(false);
+        }
+      };
+
+      const handleLogout = async () => {
+        try {
+          await auth.signOut();
+          setIsPro(false);
+          localStorage.setItem("copay_pro_travel_unlocked", "false");
+        } catch (err) {}
+      };
+
       useEffect(() => {
         const sixtyDaysMs = 60 * 24 * 60 * 60 * 1000;
         const now = Date.now();
@@ -421,7 +535,6 @@
               if (now - lastUpdated > sixtyDaysMs) {
                 await db.ref(`copay_rooms/${r.id}`).remove();
                 hasChanges = true;
-                console.log(`[Copay 自動清理] 移除了 60 日未活躍之房間: #${r.id}`);
               } else {
                 validRooms.push(r);
               }
@@ -434,7 +547,6 @@
             if (validRooms.length === 0) {
               const firstId = generateRandomRoomId();
               validRooms = [{ id: firstId, name: "日常飯局夾錢 🍱", mode: "daily" }];
-              hasChanges = true;
             }
             setMyRooms(validRooms);
             const urlParams = new URLSearchParams(window.location.search);
@@ -519,8 +631,7 @@
           const url = new URL(window.location);
           url.searchParams.set("room", roomId);
           window.history.replaceState({}, "", url);
-        } catch (e) {
-        }
+        } catch (e) {}
 
         const roomRef = db.ref(`copay_rooms/${roomId}`);
 
@@ -635,11 +746,6 @@
         members.forEach(m => { updated[m] = Number(((Number(updated[m]) || 0) + addAmt).toFixed(2)); });
         db.ref(`copay_rooms/${roomId}`).update({ poolContributions: updated, poolDate: poolDate, lastUpdated: Date.now() });
         setPoolTopUpAmount("");
-      };
-
-      const handlePoolDateChange = (newDate) => {
-        setPoolDate(newDate);
-        db.ref(`copay_rooms/${roomId}`).update({ poolDate: newDate, lastUpdated: Date.now() });
       };
 
       const handleMemberPoolChange = (memberName, newValStr) => {
@@ -841,6 +947,7 @@
 
       const unlockProPermanent = () => {
         setIsPro(true); setShowPaywall(false); setVipInput("");
+        if (auth.currentUser) saveProToCloudUser(auth.currentUser);
         if (pendingAction) { pendingAction(); setPendingAction(null); }
         alert("🎉 恭喜你成功鎖定【Copay Travel 早鳥永久解鎖 $38】！所有進階功能已永久開通！");
       };
@@ -848,7 +955,7 @@
       const handleUnlockWithCode = (e) => {
         e.preventDefault();
         if (VALID_VIP_CODES.includes(vipInput.trim().toUpperCase())) unlockProPermanent();
-        else alert("❌ 解鎖碼無效！測試碼：COPAY2026");
+        else alert("❌ 解鎖碼無效！請檢查輸入是否正確");
       };
 
       const saveGroupName = (e) => {
@@ -1582,9 +1689,49 @@
               <div key="settings-tab" className="animate-fade-in-up space-y-4">
                 <div className="glass-dark p-4 sm:p-5 rounded-3xl space-y-3">
                   <div className="flex justify-between items-center gap-1.5 flex-wrap">
+                    <h3 className="font-bold text-white text-sm">📧 Email 帳號與 Pro 同步</h3>
+                    {currentUser ? <span className="text-[10px] bg-emerald-600 text-white px-2 py-0.5 rounded-full font-black">已登入</span> : <span className="text-[10px] bg-white/10 text-slate-300 px-2 py-0.5 rounded-full font-bold">未登入</span>}
+                  </div>
+
+                  {currentUser ? (
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-3 space-y-2.5">
+                      <div className="text-xs font-bold text-[#26353D] break-all">目前帳號：{currentUser.email}</div>
+                      <p className="text-[11px] text-slate-300 leading-relaxed">
+                        你嘅 Pro 狀態會同步綁定去呢個 Email；第日換新電話只需用同一個 Email 登入即可恢復。
+                      </p>
+                      <button type="button" onClick={handleLogout} className="w-full py-2.5 rounded-2xl bg-white text-[#26353D] border border-[#D5E2E8] font-bold text-xs">
+                        登出帳號
+                      </button>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleEmailAuthSubmit} className="space-y-2.5">
+                      <div className="flex gap-2">
+                        <button type="button" onClick={() => setAuthMode("login")} className={`flex-1 py-2 rounded-xl text-xs font-bold ${authMode === "login" ? "teal-pill" : "bg-white/10 text-slate-300"}`}>
+                          登入帳號
+                        </button>
+                        <button type="button" onClick={() => setAuthMode("register")} className={`flex-1 py-2 rounded-xl text-xs font-bold ${authMode === "register" ? "teal-pill" : "bg-white/10 text-slate-300"}`}>
+                          註冊新帳號
+                        </button>
+                      </div>
+                      <input type="email" placeholder="輸入電郵 (例如: name@gmail.com)" value={authEmail} onChange={e => setAuthEmail(e.target.value)} className="w-full text-xs bg-white/10 border border-white/15 rounded-2xl px-3.5 py-2.5 text-white focus:outline-none" required />
+                      <input type="password" minLength="6" placeholder="輸入密碼 (最少 6 位)" value={authPassword} onChange={e => setAuthPassword(e.target.value)} className="w-full text-xs bg-white/10 border border-white/15 rounded-2xl px-3.5 py-2.5 text-white focus:outline-none" required />
+                      <button type="submit" disabled={authBusy} className="w-full py-3 rounded-2xl teal-pill font-black text-xs shadow-md active:scale-98 transition-transform">
+                        {authBusy ? "處理中..." : (authMode === "register" ? "註冊並登入" : "立即登入")}
+                      </button>
+                    </form>
+                  )}
+                </div>
+
+                <div className="glass-dark p-4 sm:p-5 rounded-3xl space-y-3">
+                  <div className="flex justify-between items-center gap-1.5 flex-wrap">
                     <h3 className="font-bold text-white text-sm">👑 權限狀態</h3>
                     {isPro ? <span className="text-[10px] bg-[#2D3842] text-[#F4D58D] px-2 py-0.5 rounded-full font-black">Copay Travel 已解鎖</span> : isProRoom ? <span className="text-[10px] bg-emerald-600 text-white px-2 py-0.5 rounded-full font-black">共享 Pro 房間權限</span> : <span className="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-bold">Copay Lite</span>}
                   </div>
+                  <p className="text-[11px] text-slate-300 leading-relaxed bg-white/5 border border-white/10 rounded-2xl p-3">
+                    💡 <strong className="text-white">換電話／清紀錄點搵返 Pro 資格？</strong>
+                    <br />
+                    登入咗你嘅 Email 帳號後，Pro 資格會跟隨帳號儲存喺雲端；換新電話只需用同一個 Email 登入即可恢復 Pro 身份，而房間帳目只要有房號或邀請連結就可以同步返嚟。
+                  </p>
                   {!isPro && <button onClick={() => triggerPaywall()} className="w-full py-3 rounded-2xl teal-pill font-black text-xs shadow-md active:scale-98 transition-transform">🔥 早鳥 $38 解鎖 (原價 $88)</button>}
                 </div>
 
@@ -1753,8 +1900,11 @@
                   <div className="flex items-center gap-2.5"><BrandLogo isTravel={true} size="w-10 h-10" /><div><h2 className="font-black text-sm text-white">{paywallTriggerTitle}</h2></div></div>
                   <button onClick={() => setShowPaywall(false)} className="text-white text-xl">×</button>
                 </div>
-                <div className="bg-[#FDF8EA] border border-[#7FA8C4] p-3.5 rounded-2xl text-xs text-[#376885] font-medium">{paywallMsg}</div>
-                <button type="button" onClick={unlockProPermanent} className="w-full p-4 rounded-2xl gold-pill text-center shadow-lg active:scale-98 transition-transform"><div className="text-base font-black">Copay Travel 早鳥永久解鎖：$38</div></button>
+                {paywallMsg && <div className="bg-[#FDF8EA] border border-[#7FA8C4] p-3.5 rounded-2xl text-xs text-[#376885] font-medium">{paywallMsg}</div>}
+                <button type="button" onClick={() => window.open(STRIPE_PAYMENT_LINK, "_blank")} className="w-full p-4 rounded-2xl gold-pill text-center shadow-lg active:scale-98 transition-transform">
+                  <div className="text-base font-black">Copay Travel 早鳥永久解鎖：$38</div>
+                  <div className="text-[11px] opacity-85 mt-0.5">支援 Apple Pay / 信用卡 · 付款後自動解鎖</div>
+                </button>
                 <form onSubmit={handleUnlockWithCode} className="flex gap-2 w-full pt-2 border-t border-white/10">
                   <input type="text" placeholder="輸入解鎖碼 (COPAY2026)" value={vipInput} onChange={e => setVipInput(e.target.value)} className="flex-1 text-xs bg-white/10 border border-white/15 rounded-xl px-3 py-2 font-mono uppercase text-white focus:outline-none" />
                   <button type="submit" className="teal-pill text-xs font-black px-4 py-2 rounded-xl">兌換</button>
@@ -1775,8 +1925,3 @@
   </script>
 </body>
 </html>
-```
-
-最正嘅係，如果 Pro 用戶返去睇返佢以前已經開落嘅舊 Travel 房，個系統都會識得**自動幫間舊房免費升級做 Pro 房 (`db.ref(...).update({ isProRoom: true })`)**！其他人一入去就直接玩得。
-
-你試下用無痕模式（當自己係免費用戶），入去你有俾錢嘅 Travel 房，睇下係咪即刻見到綠色嘅「👑 Pro 房間 (免費享有)」Tag 同用得晒啲功能！
