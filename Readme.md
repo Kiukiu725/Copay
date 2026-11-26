@@ -1,45 +1,66 @@
 # Copay — 日常夾錢與海外旅遊分帳神器 💰✈️
 
-Copay 是一個專為朋友聚會、日常夾錢以及海外旅遊設計的極簡記帳與分帳 Web App。
-採用 **單一 HTML 檔案 (Single HTML File)** 架構，無須安裝、無須註冊，一打開網址即可與朋友實時同步記帳！
+Copay 是一個專為朋友聚會、飯局以及海外旅行而設計的實時協作分帳 Web App。它免卻了繁瑣的下載與註冊過程，只需一個連結，全團朋友即可實時同步記帳。
 
-## 🌟 兩大核心模式
+## 🌟 核心功能 (Features)
 
-1. **☕ Copay Lite (免費日常版)**
-   - 專為日常飯局、買餸、夾租設計。
-   - 純港幣 (HKD) 記帳，極速平分。
-   - 自動對沖結算清單，一鍵複製至 WhatsApp。
+### 1. 雙模式設計
+*   **Copay Lite (日常版)：** 免費使用，專為日常飯局、搭車夾錢設計，介面極簡，快速輸入港幣 (HKD) 開支。
+*   **Copay Travel (海外旅遊版 / Pro)：** 專為長途旅行設計，支援多國貨幣、即時匯率轉換、信用卡手續費計算及「公數錢包」管理。
 
-2. **✈️ Copay Travel (早鳥永久解鎖版)**
-   - 專為海外旅遊設計，支援 15 國外幣實時匯率轉換（自動折算 HKD）。
-   - **🏦 公數錢包 (Common Pool)**：支援每人注資公數，防超支保護機制，記帳自動扣減公數。
-   - 💳 **信用卡手續費**：一鍵外加自訂 % 數手續費。
-   - ⚖️ **進階拆帳**：支援「少夾$50」、「多夾$100」等微調。
-   - 📊 一鍵匯出包含所有明細與拆帳紀錄的 CSV 試算表。
+### 2. 👑 Pro 房間共享機制 (Virus Growth Feature)
+*   **一人課金，全房共享：** 只要房間的創建者或其中一位進入者是「Travel Pro」付費用戶，該房間即會自動標記為 `isProRoom: true`。
+*   **免費用戶受惠：** 免費用戶進入 Pro 房間後，可無條件免費使用所有進階功能（包括進階拆帳、匯出 CSV 等），大幅降低群組使用門檻，達至最佳的病毒式口碑營銷。
 
-## ✨ 最新重點功能
+### 3. 🏦 獨家「公數錢包」系統 (Pool Fund)
+*   完美解決旅行「入公數」的痛點。
+*   支援隨時注資、顯示剩餘公數餘額。
+*   結算時系統會自動將剩餘的公數按注資比例退還給相應成員。
 
-* **無縫實時同步**：基於 Firebase Realtime Database，所有人看到的帳目永遠是最新狀態。
-* **60 日自動清理機制**：系統會自動偵測並清除超過 60 日無活動（無新增/修改帳目）的舊房間，確保系統輕量流暢。
-* **自主房間管理**：用戶可自由選擇「退出房間（僅刪除本機紀錄）」或「徹底刪除房間（清除雲端資料）」。
-* **IG Story 風格消費報告**：精美圓餅圖與全團消費大豪客排行榜，方便截圖分享。
-* **順滑微動畫 (Micro-interactions)**：內置純 CSS 打造的流暢轉場、上浮與彈出動畫，無需載入外部龐大組件庫，體驗極致絲滑。
+### 4. ⚡ 智能對沖結算 (Smart Settlement)
+*   自動計算複雜的債務關係，並將多重欠款簡化為最少的過數次數（例如：A 欠 B $50，B 欠 C $50，系統會直接指示 A 過數 $50 給 C）。
+*   一鍵複製 WhatsApp / PayMe 過數清單。
 
-## 🛠️ 技術架構 (極致輕量化)
+### 5. 📊 報表與匯出
+*   內建圓環圖分析消費類別比例。
+*   一鍵匯出完整 Excel (CSV) 報表，詳細列明每筆帳目的折合港幣、墊支人及拆帳備註。
 
-* **單一檔案部署**：所有的 HTML, CSS, JavaScript, React Components 均寫在同一個 `index.html` 內。
-* **前端框架**：React 18 (透過 CDN 引入)。
-* **樣式編譯**：Tailwind CSS (透過 CDN 引入) 與純 CSS Keyframes 動畫。
-* **JSX 編譯**：Babel Standalone (在瀏覽器端即時編譯 JSX)。
-* **資料庫**：Firebase Compat SDK (Realtime Database)。
-* **圖示與資源**：內置 Canvas Fallback 繪圖機制，即使外部圖片載入失敗也能確保 PWA 擁有精美 App Icon。
+## 🛠️ 技術棧 (Tech Stack)
+*   **前端框架：** React 18 (Standalone via Babel), HTML5
+*   **樣式設計：** Tailwind CSS, 自定義 CSS 玻璃擬物化特效 (Glassmorphism)
+*   **後端與資料庫：** Firebase Realtime Database (Compat SDK)
+*   **架構：** Single HTML File (無須 Build，開箱即用，方便部署於任何靜態伺服器或 GitHub Pages)
+*   **外部 API：** ExchangeRate-API (實時匯率抓取)
 
-## 🚀 如何運行
+## 🚀 如何運行 (How to Run)
+1. 下載 `index.html`。
+2. 雙擊在任何現代瀏覽器 (Chrome, Safari, Edge) 中打開。
+3. （可選）將檔案上傳至 Vercel, Netlify, GitHub Pages 或 Firebase Hosting 即可獲取公開連結。
 
-1. 將 `index.html` 放置於任何支援靜態網頁託管的伺服器（如 GitHub Pages, Vercel, Netlify）。
-2. 在手機或電腦瀏覽器打開網址即可使用。
-3. （可選）在 iOS Safari 點擊「分享」->「加入主畫面」，即可作為 PWA 全螢幕 App 使用。
-
-## 🔒 隱私與資料保護
-
-Copay 不會要求用戶註冊帳號或提供個人資料。所有記帳數據僅綁定隨機生成的 6 位數房間代碼，過期房間將會被系統定時徹底銷毀，確保隱私安全。
+## 📂 資料庫結構 (Firebase Database Schema)
+```json
+copay_rooms: {
+  "{roomId}": {
+    "roomId": "A1B2C3",
+    "groupName": "東京之旅 ✈️",
+    "roomMode": "travel",
+    "isProRoom": true,
+    "members": ["我", "Alex", "Chloe"],
+    "defaultCurrency": "JPY",
+    "cardFeePercent": 1.95,
+    "poolContributions": { "我": 1000, "Alex": 1000 },
+    "expenses": {
+      "{expenseId}": {
+        "title": "居酒屋",
+        "amount": 5000,
+        "currency": "JPY",
+        "payer": "我",
+        "category": "🍱 食飯",
+        "date": "2026-11-26",
+        "splitWith": ["我", "Alex"],
+        "splitAdjustments": { "Alex": 50 } 
+      }
+    }
+  }
+}
+```

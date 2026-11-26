@@ -254,8 +254,8 @@
         if (Array.isArray(saved) && saved.length > 0) {
           return saved.map(item =>
             typeof item === "string"
-              ? { id: item, name: item, mode: "daily" }
-              : { id: item.id, name: item.name, mode: item.mode === "travel" || item.mode === "triptab" ? "travel" : "daily" }
+              ? { id: item, name: item, mode: "daily", isProRoom: false }
+              : { id: item.id, name: item.name, mode: item.mode === "travel" || item.mode === "triptab" ? "travel" : "daily", isProRoom: !!item.isProRoom }
           );
         }
       } catch (e) {}
@@ -311,6 +311,7 @@
     function App() {
       const [myRooms, setMyRooms] = useState(getStoredRooms);
       const [isPro, setIsPro] = useState(() => localStorage.getItem("copay_pro_travel_unlocked") === "true");
+      const [isProRoom, setIsProRoom] = useState(false);
       const [showPaywall, setShowPaywall] = useState(false);
       const [pendingAction, setPendingAction] = useState(null);
       const [vipInput, setVipInput] = useState("");
@@ -464,12 +465,12 @@
         setMyRooms(prev => {
           const exists = prev.some(r => r.id === roomId);
           if (exists) {
-            return prev.map(r => r.id === roomId ? { ...r, name: groupName, mode: roomMode } : r);
+            return prev.map(r => r.id === roomId ? { ...r, name: groupName, mode: roomMode, isProRoom } : r);
           } else {
-            return [...prev, { id: roomId, name: groupName, mode: roomMode }];
+            return [...prev, { id: roomId, name: groupName, mode: roomMode, isProRoom }];
           }
         });
-      }, [roomId, groupName, roomMode]);
+      }, [roomId, groupName, roomMode, isProRoom]);
 
       const fetchLiveExchangeRates = () => {
         setRateUpdatedText("更新中...");
@@ -529,6 +530,14 @@
             const rawMode = data.roomMode === "travel" || data.roomMode === "triptab" ? "travel" : "daily";
             setGroupName(data.groupName || (rawMode === "travel" ? "東京之旅 ✈️" : "日常飯局夾錢 🍱"));
 
+            const remoteIsProRoom = !!data.isProRoom;
+            if (rawMode === "travel" && isPro && !remoteIsProRoom) {
+              db.ref(`copay_rooms/${roomId}`).update({ isProRoom: true });
+              setIsProRoom(true);
+            } else {
+              setIsProRoom(remoteIsProRoom);
+            }
+
             if (rawMode === "travel") {
               setRoomMode("travel");
               setCurrency(data.defaultCurrency || "JPY");
@@ -573,6 +582,7 @@
             const defaultTitle = localRoom ? localRoom.name : (targetMode === "travel" ? "日本之旅 ✈️" : "日常飯局夾錢 🍱");
             const initialRoomData = {
               roomId: roomId, groupName: defaultTitle, roomMode: targetMode,
+              isProRoom: targetMode === "travel" ? isPro : false,
               defaultCurrency: targetMode === "travel" ? "JPY" : "HKD", cardFeePercent: 1.95,
               members: DEFAULT_MEMBERS, expenses: {}, customRates: {}, paidMap: {}, poolContributions: {},
               poolDate: new Date().toISOString().split("T")[0], createdAt: Date.now(), lastUpdated: Date.now()
@@ -740,15 +750,17 @@
         const newId = generateRandomRoomId();
         const initialRoomData = {
           roomId: newId, groupName: customName, roomMode: targetMode,
+          isProRoom: targetMode === "travel" ? isPro : false,
           defaultCurrency: targetMode === "travel" ? "JPY" : "HKD", cardFeePercent: 1.95,
           members: DEFAULT_MEMBERS, expenses: {}, customRates: {}, paidMap: {}, poolContributions: {},
           poolDate: new Date().toISOString().split("T")[0], createdAt: Date.now(), lastUpdated: Date.now()
         };
         db.ref(`copay_rooms/${newId}`).set(initialRoomData);
-        setMyRooms(prev => [...prev, { id: newId, name: customName, mode: targetMode }]);
+        setMyRooms(prev => [...prev, { id: newId, name: customName, mode: targetMode, isProRoom: targetMode === "travel" ? isPro : false }]);
         setRoomId(newId);
         setGroupName(customName);
         setRoomMode(targetMode);
+        setIsProRoom(targetMode === "travel" ? isPro : false);
         setCurrency(targetMode === "travel" ? "JPY" : "HKD");
         setActiveTab("expenses");
       };
@@ -773,9 +785,13 @@
         const cleanCode = sanitizeRoomId(joinRoomCodeInput);
         if (!cleanCode) return;
 
-        db.ref(`copay_rooms/${cleanCode}/roomMode`).once("value", (snapshot) => {
-          const remoteMode = snapshot.val();
-          if ((remoteMode === "travel" || remoteMode === "triptab") && !isPro) {
+        db.ref(`copay_rooms/${cleanCode}`).once("value", (snapshot) => {
+          const remoteData = snapshot.val();
+          if (!remoteData) return alert("找不到此房間！");
+          const remoteMode = remoteData.roomMode;
+          const remoteIsProRoom = !!remoteData.isProRoom;
+
+          if ((remoteMode === "travel" || remoteMode === "triptab") && !isPro && !remoteIsProRoom) {
             triggerPaywall(null, `房間 #${cleanCode} 屬於「Copay Travel 海外旅遊房間」。請先解鎖！`, () => {
               setRoomId(cleanCode); setJoinRoomCodeInput(""); setActiveTab("expenses");
             });
@@ -786,7 +802,7 @@
       };
 
       const handleToggleAdvancedSplit = () => {
-        if (!useAdvancedSplit && !isPro) {
+        if (!useAdvancedSplit && !isPro && !isProRoom) {
           triggerPaywall(null, "想處理「少夾$50」等進階拆帳？立即解鎖 Copay Travel！", () => setUseAdvancedSplit(true));
           return;
         }
@@ -796,7 +812,7 @@
       const handleAdjustmentChange = (memberName, valStr) => setSplitAdjustments(prev => ({ ...prev, [memberName]: valStr }));
 
       const handleExportExcelCSV = () => {
-        if (!isPro) return triggerPaywall(null, "想一鍵匯出完整 Excel (.csv) 試算表？趁限時早鳥優惠解鎖！");
+        if (!isPro && !isProRoom) return triggerPaywall(null, "想一鍵匯出完整 Excel (.csv) 試算表？趁限時早鳥優惠解鎖！");
         let csv = "\uFEFF";
         csv += `${isTravelMode ? "Copay Travel 海外旅遊報告" : "Copay Lite 日常消費報告"} - ${groupName} (房號 #${roomId})\n`;
         if (!isTravelMode) csv += `篩選範圍：,日子:${reportDay === 'ALL' ? '全部' : reportDay},月份:${reportMonth === 'ALL' ? '全部' : reportMonth},年份:${reportYear === 'ALL' ? '全部' : reportYear}\n\n`;
@@ -861,7 +877,7 @@
         }
 
         let cleanedAdjustments = null;
-        if (isPro && useAdvancedSplit) {
+        if ((isPro || isProRoom) && useAdvancedSplit) {
           cleanedAdjustments = {};
           splitWith.forEach(m => {
             const adjVal = parseFloat(splitAdjustments[m]);
@@ -1190,7 +1206,13 @@
               </div>
 
               <div className="flex items-center shrink-0">
-                {isPro ? <span className="text-[11px] bg-[#2D3842] text-[#F4D58D] px-3 py-1.5 rounded-full font-black shadow-sm">👑 Travel Pro 已解鎖</span> : <button onClick={() => triggerPaywall()} className="text-[11px] sm:text-xs bg-[#2D3842] text-white px-3 py-2 rounded-full font-black flex items-center gap-1.5 shadow-sm"><span className="text-[#F4D58D]">🔥 早鳥 $38</span><span className="text-[10px] text-slate-300 line-through">$88</span></button>}
+                {isPro ? (
+                  <span className="text-[11px] bg-[#2D3842] text-[#F4D58D] px-3 py-1.5 rounded-full font-black shadow-sm">👑 Travel Pro 已解鎖</span>
+                ) : isProRoom ? (
+                  <span className="text-[11px] bg-emerald-600 text-white px-3 py-1.5 rounded-full font-black shadow-sm">👑 Pro 房間 (免費享有)</span>
+                ) : (
+                  <button onClick={() => triggerPaywall()} className="text-[11px] sm:text-xs bg-[#2D3842] text-white px-3 py-2 rounded-full font-black flex items-center gap-1.5 shadow-sm"><span className="text-[#F4D58D]">🔥 早鳥 $38</span><span className="text-[10px] text-slate-300 line-through">$88</span></button>
+                )}
               </div>
             </div>
 
@@ -1333,7 +1355,7 @@
                     <div className="text-xs space-y-2">
                       <div className="flex justify-between items-center mx-1 gap-2">
                         <label className="text-[10px] text-slate-300 font-bold">邊個夾份？</label>
-                        <button type="button" onClick={handleToggleAdvancedSplit} className={`text-[10px] font-bold px-2.5 py-1 rounded-full border flex items-center gap-1 transition-colors ${useAdvancedSplit && isPro ? "bg-[#F5E6B8] border-[#7FA8C4] text-[#2C261E]" : "bg-[#F7F4EC] border-[#EAE3D5] text-[#8C6715]"}`}><span>⚖️ 進階拆帳</span>{!isPro && <span>🔒</span>}</button>
+                        <button type="button" onClick={handleToggleAdvancedSplit} className={`text-[10px] font-bold px-2.5 py-1 rounded-full border flex items-center gap-1 transition-colors ${useAdvancedSplit && (isPro || isProRoom) ? "bg-[#F5E6B8] border-[#7FA8C4] text-[#2C261E]" : "bg-[#F7F4EC] border-[#EAE3D5] text-[#8C6715]"}`}><span>⚖️ 進階拆帳</span>{!isPro && !isProRoom && <span>🔒</span>}</button>
                       </div>
                       <div className="flex flex-wrap gap-1.5">
                         {members.map(m => {
@@ -1341,7 +1363,7 @@
                           return <button key={m} type="button" onClick={() => { if (isSelected) { if (splitWith.length > 1) setSplitWith(splitWith.filter(x => x !== m)); } else { setSplitWith([...splitWith, m]); } }} className={`px-3 py-1.5 rounded-xl text-xs border transition-colors ${isSelected ? 'bg-[#F5E6B8] border-[#7FA8C4] text-[#2C261E] font-bold' : 'bg-transparent border-white/15 text-slate-400 opacity-60'}`}>{isSelected ? '✓ ' : ''}{m}</button>;
                         })}
                       </div>
-                      {isPro && useAdvancedSplit && (
+                      {(isPro || isProRoom) && useAdvancedSplit && (
                         <div className="bg-[#F7F4EC] p-3 rounded-2xl border border-[#EAE3D5] animate-scale-in">
                           <div className="text-[10px] font-bold text-[#8C6715] mb-2">⚖️ 進階微調（-50 代表少夾 50；+100 代表多夾 100）：</div>
                           <div className="grid grid-cols-2 gap-2">
@@ -1410,7 +1432,7 @@
                       <span className="inline-block text-[10px] font-black uppercase bg-[#F5E6B8] text-[#8C6715] px-2.5 py-0.5 rounded-full mb-1">📸 IG STORY SUMMARY</span>
                       <h3 className="font-black text-base text-white truncate">{groupName} · 消費報告</h3>
                     </div>
-                    <button onClick={handleExportExcelCSV} className="shrink-0 teal-pill text-[11px] font-bold px-3 py-1.5 rounded-full">📥 匯出 CSV {!isPro && "🔒"}</button>
+                    <button onClick={handleExportExcelCSV} className="shrink-0 teal-pill text-[11px] font-bold px-3 py-1.5 rounded-full">📥 匯出 CSV {!isPro && !isProRoom && "🔒"}</button>
                   </div>
                   {!isTravelMode && (
                     <div className="grid grid-cols-3 gap-2">
@@ -1539,7 +1561,7 @@
                           <button onClick={(e) => { e.stopPropagation(); setManagingRoomId(null); }} className="w-full text-xs font-bold text-slate-400 mt-1">取消操作</button>
                         </div>
                       ) : (
-                        <button key={r.id} type="button" onClick={() => { if (!isPro) return triggerPaywall(); setRoomId(r.id); setActiveTab("expenses"); }} className={`w-full p-3.5 rounded-2xl border text-left flex justify-between items-center gap-2 transition ${isCurrent ? "bg-[#F5E6B8] border-[#7FA8C4]" : "bg-white/5 border-white/10 hover:bg-white/10"}`}>
+                        <button key={r.id} type="button" onClick={() => { if (!isPro && !r.isProRoom) return triggerPaywall(null, "此房間並未升級為 Pro 房間，請先解鎖 Copay Travel！", () => { setRoomId(r.id); setActiveTab("expenses"); }); setRoomId(r.id); setActiveTab("expenses"); }} className={`w-full p-3.5 rounded-2xl border text-left flex justify-between items-center gap-2 transition ${isCurrent ? "bg-[#F5E6B8] border-[#7FA8C4]" : "bg-white/5 border-white/10 hover:bg-white/10"}`}>
                           <div className="min-w-0">
                             <div className="font-bold text-sm flex items-center gap-2"><span className={`truncate ${isCurrent ? "text-[#2C261E]" : "text-white"}`}>✈️ {r.name}</span></div>
                             <div className="text-[11px] text-slate-300 font-mono mt-0.5">代碼：#{r.id}</div>
@@ -1561,7 +1583,7 @@
                 <div className="glass-dark p-4 sm:p-5 rounded-3xl space-y-3">
                   <div className="flex justify-between items-center gap-1.5 flex-wrap">
                     <h3 className="font-bold text-white text-sm">👑 權限狀態</h3>
-                    {isPro ? <span className="text-[10px] bg-[#2D3842] text-[#F4D58D] px-2 py-0.5 rounded-full font-black">Copay Travel 已解鎖</span> : <span className="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-bold">Copay Lite</span>}
+                    {isPro ? <span className="text-[10px] bg-[#2D3842] text-[#F4D58D] px-2 py-0.5 rounded-full font-black">Copay Travel 已解鎖</span> : isProRoom ? <span className="text-[10px] bg-emerald-600 text-white px-2 py-0.5 rounded-full font-black">共享 Pro 房間權限</span> : <span className="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-bold">Copay Lite</span>}
                   </div>
                   {!isPro && <button onClick={() => triggerPaywall()} className="w-full py-3 rounded-2xl teal-pill font-black text-xs shadow-md active:scale-98 transition-transform">🔥 早鳥 $38 解鎖 (原價 $88)</button>}
                 </div>
@@ -1755,5 +1777,6 @@
 </html>
 ```
 
-你可以即刻複製呢段代碼覆蓋 `index.html` 試試。
-試吓切換底欄嘅幾個 Tabs，再撳下「＋ 新增房間」或者「注資公數」，感覺吓個絲滑程度！你覺得呢個動畫速度夠唔夠爽快？
+最正嘅係，如果 Pro 用戶返去睇返佢以前已經開落嘅舊 Travel 房，個系統都會識得**自動幫間舊房免費升級做 Pro 房 (`db.ref(...).update({ isProRoom: true })`)**！其他人一入去就直接玩得。
+
+你試下用無痕模式（當自己係免費用戶），入去你有俾錢嘅 Travel 房，睇下係咪即刻見到綠色嘅「👑 Pro 房間 (免費享有)」Tag 同用得晒啲功能！
