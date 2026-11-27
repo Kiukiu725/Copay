@@ -14,6 +14,14 @@
 
   <link id="dynamic-favicon" rel="icon" type="image/png" href="Copay.png" />
   <link id="dynamic-apple-icon" rel="apple-touch-icon" sizes="180x180" href="Copay.png" />
+  <link rel="manifest" href="manifest.json" />
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("/sw.js").catch(function () {});
+      });
+    }
+  </script>
 
   <!-- 安全版 iOS 主畫面 Icon 檢測腳本 -->
   <script>
@@ -240,7 +248,8 @@
     const DEFAULT_CATEGORIES_DAILY = ["🍱 食飯", "🚕 車費", "📦 團購"];
     const DEFAULT_CATEGORIES_TRAVEL = ["🍱 食飯", "🚕 車費", "📦 團購"];
     const VALID_VIP_CODES = ["COPAY2026", "COPAYPRO", "COPAY38", "VIP888", "TRAVELPRO"];
-    const STRIPE_PAYMENT_LINK = "https://buy.stripe.com/8x2aEZcs1gjl1gR4Mo2kw00";
+    const STRIPE_PAYMENT_LINK = "https://buy.stripe.com/14A4gBgIh1or7Ff6Uw2kw05";
+    const STRIPE_DONATION_LINK = "https://buy.stripe.com/5kQ9AVgIhgjl8Jj3Ik2kw06";
 
     const generateRandomRoomId = () => {
       const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -280,7 +289,7 @@
       return rooms[0].id;
     };
 
-    // 僅限免費用戶顯示之 Google AdSense 橫幅元件（PRO 用戶完全不會渲染或載入）
+    // 僅限免費用戶顯示之 Google AdSense 橫幅元件（PRO 用戶及 Pro 房間完全不會渲染或載入）
     function AdBanner({ onUpgradeClick }) {
       useEffect(() => {
         try {
@@ -1856,6 +1865,22 @@
                     </div>
                   </>
                 )}
+
+                {/* 請飲凍檸茶打賞區塊 */}
+                <div className="glass-dark p-4 sm:p-5 rounded-3xl space-y-3 mt-4 text-center animate-fade-in-up">
+                  <div className="text-2xl mb-1">🧋</div>
+                  <h3 className="font-black text-white text-sm">覺得 Copay 幫到手？</h3>
+                  <p className="text-[11px] text-slate-300 leading-relaxed bg-white/5 p-3 rounded-2xl border border-white/10">
+                    小妹為咗寫呢個 App 寫到甩頭髮，如果 Copay 幫你計少咗數、追少咗債，免卻咗反面危機... 不妨隨緣樂助，請我飲杯凍檸茶續命 🥺 等我老公唔好詐型話我掛住寫 App 唔理佢！
+                  </p>
+                  <button 
+                    type="button" 
+                    onClick={() => window.open(STRIPE_DONATION_LINK, "_blank")} 
+                    className="w-full py-3 rounded-2xl bg-gradient-to-r from-[#FCE092] to-[#EAA956] text-[#8C6715] font-black text-xs shadow-lg active:scale-98 transition-transform mt-2"
+                  >
+                    🧋 請小妹飲杯凍檸茶 (HK$20)
+                  </button>
+                </div>
               </div>
             )}
 
@@ -1954,14 +1979,30 @@
                   <button onClick={() => setShowPaywall(false)} className="text-white text-xl">×</button>
                 </div>
                 {paywallMsg && <div className="bg-[#FDF8EA] border border-[#7FA8C4] p-3.5 rounded-2xl text-xs text-[#376885] font-medium">{paywallMsg}</div>}
-                <button type="button" onClick={() => window.open(STRIPE_PAYMENT_LINK, "_blank")} className="w-full p-4 rounded-2xl gold-pill text-center shadow-lg active:scale-98 transition-transform">
-                  <div className="text-base font-black">Copay Travel 早鳥永久解鎖：$38</div>
-                  <div className="text-[11px] opacity-85 mt-0.5">支援 Apple Pay / 信用卡 · 付款後自動解鎖兼享無廣告</div>
-                </button>
-                <form onSubmit={handleUnlockWithCode} className="flex gap-2 w-full pt-2 border-t border-white/10">
-                  <input type="text" placeholder="輸入解鎖碼 (COPAY2026)" value={vipInput} onChange={e => setVipInput(e.target.value)} className="flex-1 text-xs bg-white/10 border border-white/15 rounded-xl px-3 py-2 font-mono uppercase text-white focus:outline-none" />
-                  <button type="submit" className="teal-pill text-xs font-black px-4 py-2 rounded-xl">兌換</button>
-                </form>
+                
+                {/* 強制登入檢查：未登入前不顯示付款按鈕 */}
+                {!currentUser ? (
+                  <div className="space-y-3 pt-2">
+                    <div className="bg-rose-50 border border-rose-200 p-3.5 rounded-2xl text-xs text-rose-600 font-medium leading-relaxed">
+                      ⚠️ 為保障你嘅購買紀錄，防止第日換新電話遺失 PRO 資格，<strong className="font-black">請先免費註冊或登入 Email 帳號</strong>，然後再進行付款解鎖。
+                    </div>
+                    <button type="button" onClick={() => { setShowPaywall(false); setActiveTab("settings"); }} className="w-full p-4 rounded-2xl teal-pill text-center shadow-lg active:scale-98 transition-transform font-black text-sm">
+                      前往登入 / 註冊帳號
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <button type="button" onClick={() => window.open(STRIPE_PAYMENT_LINK, "_blank")} className="w-full p-4 rounded-2xl gold-pill text-center shadow-lg active:scale-98 transition-transform">
+                      <div className="text-base font-black">Copay Travel 早鳥永久解鎖：$38</div>
+                      <div className="text-[11px] opacity-85 mt-0.5">支援 Apple Pay / 信用卡 · 付款後自動解鎖兼享無廣告</div>
+                    </button>
+                    <form onSubmit={handleUnlockWithCode} className="flex gap-2 w-full pt-2 border-t border-white/10">
+                      <input type="text" placeholder="輸入解鎖碼 (COPAY2026)" value={vipInput} onChange={e => setVipInput(e.target.value)} className="flex-1 text-xs bg-white/10 border border-white/15 rounded-xl px-3 py-2 font-mono uppercase text-white focus:outline-none" />
+                      <button type="submit" className="teal-pill text-xs font-black px-4 py-2 rounded-xl">兌換</button>
+                    </form>
+                  </>
+                )}
+
               </div>
             </div>
           )}
